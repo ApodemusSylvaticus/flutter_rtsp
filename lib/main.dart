@@ -14,6 +14,8 @@ import 'package:wakelock/wakelock.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_ffmpeg/flutter_ffmpeg.dart';
+import 'package:http/http.dart' as http;
+
 
 void main() {
   runApp(const MyApp());
@@ -106,6 +108,9 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> checkWifiAndInitializePlayer() async {
+
+
+
     var connectivityResult = await (Connectivity().checkConnectivity());
     if (connectivityResult == ConnectivityResult.wifi) {
       // If connected to Wi-Fi
