@@ -39,8 +39,9 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   // 192.168.100.1
+  
   TextEditingController streamUrl =
-      TextEditingController(text: '192.168.1.117:8554/mystream');
+      TextEditingController(text: '192.168.100.1/stream0');
   TextEditingController commandUrl =
       TextEditingController(text: '192.168.1.117:8085');
   bool isSubmitPressed = false;

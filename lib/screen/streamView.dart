@@ -21,7 +21,22 @@ class ParsedData {
   final String? rest;
 
   ParsedData({this.ipAddress, this.host, this.rest});
+
+  factory ParsedData.fromString(String input) {
+    var regex = RegExp(r'^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::(\d+))?(.*)$');
+    var match = regex.firstMatch(input);
+    if (match != null) {
+      var ip = match.group(1);
+      var host = match.group(2) != null ? match.group(2) : null;
+      var link = match.group(3);
+      return ParsedData(ipAddress: ip, host: host, rest: link);
+    } else {
+      throw FormatException('Invalid input format');
+    }
+  }
 }
+
+
 
 class StreamViewPage extends StatefulWidget {
   final String streamUrl;
@@ -116,25 +131,17 @@ class _StreamViewPageState extends State<StreamViewPage> {
     }
   }
 
-  ParsedData parseString(String input) {
-    RegExp regex = RegExp(r'^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)/(.*)$');
-    var match = regex.firstMatch(input);
-    if (match != null) {
-      String? ipAddress = match.group(1);
-      String? host = match.group(2);
-      String? rest = match.group(3);
-      return ParsedData(ipAddress: ipAddress, host: host, rest: rest);
-    } else {
-      return ParsedData();
-    }
-  }
-
   Future<void> initializePlayer() async {
     setState(() {
       isReconnecting = true;
       isLoading = true;
     });
-    final parsed = parseString(widget.streamUrl);
+    final parsed = ParsedData.fromString(widget.streamUrl);
+    print('-----------------------------------------------');
+    print('tcp ${parsed.ipAddress}:8888');
+    
+        print("rtsp://${parsed.ipAddress}${parsed.host != null ? ':${parsed.host}' : ''}${parsed.rest != null ? '${parsed.rest}' : ''}");
+
     try {
       if (widget.shouldRunStreamView) {
         var socket = await Socket.connect(parsed.ipAddress, 8888);
@@ -164,7 +171,9 @@ class _StreamViewPageState extends State<StreamViewPage> {
       player.setOption(FijkOption.playerCategory, "flush_packets", 1);
       player.setOption(FijkOption.formatCategory, "rtsp_transport", "tcp");
   
-      await player.setDataSource("rtsp://${parsed.ipAddress}${parsed.host != null ? ':${parsed.host}' : ''}${parsed.rest != null ? '/${parsed.rest}' : ''}",
+  print('-----------------------------------------------');
+  print('here');
+      await player.setDataSource("rtsp://${parsed.ipAddress}${parsed.host != null ? ':${parsed.host}' : ''}${parsed.rest != null ? '${parsed.rest}' : ''}",
           autoPlay: true);
       // Player configuration
 
