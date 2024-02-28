@@ -1,27 +1,60 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:one_more_try/features/overlayButtons/style.dart';
+import 'package:one_more_try/proto/demo_protocol.pb.dart';
 
 class ModeChangeButton extends StatefulWidget {
+  final void Function(Uint8List buffer) sendToServer;
+  final HostDevStatus devStatus;
+  ModeChangeButton(this.sendToServer, this.devStatus);
+
   @override
   _ModeChangeButton createState() => _ModeChangeButton();
 }
 
 class _ModeChangeButton extends State<ModeChangeButton> {
-  int _currentZoomIndex = 0;
-  final List<int> _zoomValues = [1, 2, 3];
+  late int _currentModeIndex;
+  final List<AGCMode> modeList = [
+    AGCMode.AUTO_1,
+    AGCMode.AUTO_2,
+    AGCMode.AUTO_3
+  ];
 
-  void _changeZoom() {
+  @override
+  void initState() {
+    super.initState();
+    if (widget.devStatus.modAGC == AGCMode.UNKNOWN_AGC_MODE) {
+      throw ArgumentError('Unknown modAGC: ${widget.devStatus.modAGC}');
+    }
+
+    _currentModeIndex = modeList.indexOf(widget.devStatus.modAGC);
+  }
+
+  void _changeMode() {
     setState(() {
-      _currentZoomIndex = (_currentZoomIndex + 1) % _zoomValues.length;
+      _currentModeIndex = (_currentModeIndex + 1) % modeList.length;
     });
+
+    sendComand(modeList[_currentModeIndex]);
+  }
+
+  void sendComand(AGCMode agcMode) {
+    final setAgc = SetAgcMode(mode: agcMode);
+    final command = Command(setAgc: setAgc);
+
+    final clientPayload = ClientPayload(command: command);
+
+    final buffer = clientPayload.writeToBuffer();
+    widget.sendToServer(buffer);
   }
 
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
-      onPressed: _changeZoom,
+      onPressed: _changeMode,
       style: CustomButtonStyle.menuButtonStyle,
-      child: Text('Mode ${_zoomValues[_currentZoomIndex]}', style: CustomButtonStyle.buttonTextStyle),
+      child: Text('Mode ${modeList[_currentModeIndex]}',
+          style: CustomButtonStyle.buttonTextStyle),
     );
   }
 }

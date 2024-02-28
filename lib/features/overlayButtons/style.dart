@@ -16,7 +16,7 @@ class CustomButtonStyle {
   );
 
    static final TextStyle buttonTextStyle = TextStyle(
-    fontSize: 16.0,
+    fontSize: 14.0,
     fontWeight: FontWeight.bold,
     color: Colors.green,
   );

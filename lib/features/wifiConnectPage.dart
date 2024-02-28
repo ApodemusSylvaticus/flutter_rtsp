@@ -10,20 +10,25 @@ class WifiConnectPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          'Please connect to Wi-Fi to continue.',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-        SizedBox(height: 20),
-        ElevatedButton(
-          onPressed: onConnectToWifi,
-          child: Text('Connect to Wi-Fi'),
-        ),
-      ],
+    return Scaffold(
+      backgroundColor: Colors.black.withOpacity(0.5),
+      body: Center(
+          child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'Please connect to Wi-Fi to continue.',
+            style: TextStyle(
+                color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
+          ),
+          SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: onConnectToWifi,
+            child: Text('Connect to Wi-Fi', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+          ),
+        ],
+      )),
     );
   }
 }

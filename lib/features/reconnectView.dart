@@ -12,24 +12,28 @@ class ReconnectView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        if (isReconnecting)
-          CircularProgressIndicator()
-        else ...[
-          Text(
-            'Check your connection and try again.',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: onReconnect,
-            child: Text('Reconnect'),
-          ),
+    return Scaffold(
+      backgroundColor: Colors.black.withOpacity(0.5),
+      body: Center(child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (isReconnecting)
+            CircularProgressIndicator()
+          else ...[
+            Text(
+              'Check your connection and try again.',
+              style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
+            ),
+                      SizedBox(height: 16),
+
+            ElevatedButton(
+              onPressed: onReconnect,
+              child: Text('Reconnect', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),),
+            ),
+          ],
         ],
-      ],
+      )),
     );
   }
 }

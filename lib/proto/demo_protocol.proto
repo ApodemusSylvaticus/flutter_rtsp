@@ -130,6 +130,8 @@ message HostDevStatus {
 	int32 cant = 10; //-90..90 °
 	int32 distance = 11; //deciMeter
 	int32 currentProfile = 12; //profile index
+	ColorScheme colorScheme = 13;
+	AGCMode modAGC = 14;
 }
 
 message ClientDevStatus {
@@ -146,6 +148,7 @@ enum AGCMode {
 	UNKNOWN_AGC_MODE = 0;
 	AUTO_1 = 1;
 	AUTO_2 = 2;
+	AUTO_3 = 3;
 }
 
 enum Zoom {
@@ -176,6 +179,7 @@ enum CMDDirect {
 	CALIBRATE_ACCEL_GYRO = 1;
 	LRF_MEASUREMENT = 2;
 	RESET_CM_CLICKS = 3;
+	TRIGGER_FFC = 4;
 }
 
 message CoefRow {

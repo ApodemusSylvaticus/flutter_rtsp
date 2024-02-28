@@ -1,13 +1,31 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:one_more_try/features/overlayButtons/style.dart';
+import 'package:one_more_try/proto/demo_protocol.pb.dart' as demo_protocol;
+import 'package:one_more_try/proto/demo_protocol.pbserver.dart';
 
 class LightModeSelector extends StatefulWidget {
+  final void Function(Uint8List buffer) sendToServer;
+  final demo_protocol.HostDevStatus devStatus;
+  LightModeSelector(this.sendToServer, this.devStatus);
+
   @override
   _LightModeSelectorState createState() => _LightModeSelectorState();
 }
 
 class _LightModeSelectorState extends State<LightModeSelector> {
-  String _selectedOption = 'Option 1';
+  late demo_protocol.ColorScheme _selectedOption;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.devStatus.colorScheme ==
+        demo_protocol.ColorScheme.UNKNOWN_COLOR_SHEME) {
+      throw ArgumentError(
+          'Unknown ColorScheme: ${widget.devStatus.colorScheme}');
+    }
+    _selectedOption = widget.devStatus.colorScheme;
+  }
 
   void _showMenu(BuildContext context) async {
     final RenderBox overlay =
@@ -27,28 +45,26 @@ class _LightModeSelectorState extends State<LightModeSelector> {
       color: Color.fromARGB(255, 102, 102, 102),
       position: RelativeRect.fromLTRB(
         offset.dx - button.size.width * 1.15,
-        offset.dy + button.size.height,
+        offset.dy - button.size.height * 1.14,
         offset.dx + button.size.width,
         offset.dy + button.size.height,
       ),
       items: [
         PopupMenuItem(
-          value: 'Option 1',
-          child: Text('Option 1', style: CustomButtonStyle.buttonTextStyle),
+          value: demo_protocol.ColorScheme.BLACK_HOT,
+          child: Text('Black hot', style: CustomButtonStyle.buttonTextStyle),
         ),
-    
         PopupMenuItem(
-          value: 'Option 2',
+          value: demo_protocol.ColorScheme.SEPIA,
           child: Text(
-            'Option 2',
+            'Sepia',
             style: CustomButtonStyle.buttonTextStyle,
           ),
         ),
-
         PopupMenuItem(
-          value: 'Option 3',
+          value: demo_protocol.ColorScheme.WHITE_HOT,
           child: Text(
-            'Option 3',
+            'White hot',
             style: CustomButtonStyle.buttonTextStyle,
           ),
         ),
@@ -57,8 +73,35 @@ class _LightModeSelectorState extends State<LightModeSelector> {
 
     if (selected != null) {
       setState(() {
-        _selectedOption = selected as String;
+        _selectedOption = selected;
       });
+
+      sendComand(_selectedOption);
+    }
+  }
+
+  void sendComand(demo_protocol.ColorScheme colorScheme) {
+    final setColorScheme = demo_protocol.SetColorScheme(scheme: colorScheme);
+    final command = Command(setPallette: setColorScheme);
+
+    final clientPayload = ClientPayload(command: command);
+
+    final buffer = clientPayload.writeToBuffer();
+    widget.sendToServer(buffer);
+  }
+
+  String convertShemeToText(demo_protocol.ColorScheme colorScheme) {
+    switch (colorScheme) {
+      case demo_protocol.ColorScheme.BLACK_HOT:
+        return "Black Hot";
+      case demo_protocol.ColorScheme.SEPIA:
+        return "Sepia";
+      case demo_protocol.ColorScheme.WHITE_HOT:
+        return "White Hot";
+      case demo_protocol.ColorScheme.UNKNOWN_COLOR_SHEME:
+        throw ArgumentError('Unknown ColorScheme: $colorScheme');
+      default:
+        throw ArgumentError('Unexpected ColorScheme: $colorScheme');
     }
   }
 
@@ -67,7 +110,8 @@ class _LightModeSelectorState extends State<LightModeSelector> {
     return ElevatedButton(
       onPressed: () => _showMenu(context),
       style: CustomButtonStyle.menuButtonStyle,
-      child: Text(_selectedOption, style: CustomButtonStyle.buttonTextStyle),
+      child: Text(convertShemeToText(_selectedOption),
+          style: CustomButtonStyle.buttonTextStyle),
     );
   }
 }

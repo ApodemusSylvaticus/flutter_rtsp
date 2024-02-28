@@ -21,7 +21,7 @@ class LoadingIndicator extends StatelessWidget {
                   SizedBox(height: 16),
                   Text(
                     'Trying to connect...',
-                    style: TextStyle(color: Colors.white),
+                    style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
                   ),
                 ],
               ),
