@@ -15,6 +15,8 @@
         "assetBundlePatterns": ["**/*"],
         "ios": {
             "supportsTablet": true,
+            "buildNumber": "1",
+            "bundleIdentifier": "org.name.archerBC2mobile",
             "entitlements": {
                 "com.apple.developer.networking.wifi-info": true
             }
