@@ -15,7 +15,6 @@ import 'package:android_intent_plus/android_intent.dart';
 import 'package:wakelock/wakelock.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 class ParsedData {
   final String? ipAddress;
@@ -294,9 +293,7 @@ class _StreamViewPageState extends State<StreamViewPage> {
   }
 
   Future<void> startRecording() async {
-    PermissionStatus status = await Permission.storage.request();
-    if (status.isGranted) {
-      isRecording = true;
+   isRecording = true;
       stopwatch.start();
       int index = 0;
 
@@ -310,11 +307,6 @@ class _StreamViewPageState extends State<StreamViewPage> {
         imagePaths.add(filePath);
         index++;
       }
-    } else if (status.isDenied) {
-      openAppSettings();
-    } else {
-      return;
-    }
   }
 
   Future<void> stopRecording() async {
