@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:ffmpeg_kit_flutter/return_code.dart';
 import 'package:flutter/material.dart';
+import 'package:ffmpeg_kit_flutter/ffmpeg_kit.dart';
 import 'package:fijkplayer/fijkplayer.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:gallery_saver/gallery_saver.dart';
@@ -13,7 +15,7 @@ import 'package:android_intent_plus/android_intent.dart';
 import 'package:wakelock/wakelock.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:flutter_ffmpeg/flutter_ffmpeg.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class ParsedData {
   final String? ipAddress;
@@ -23,7 +25,8 @@ class ParsedData {
   ParsedData({this.ipAddress, this.host, this.rest});
 
   factory ParsedData.fromString(String input) {
-    var regex = RegExp(r'^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::(\d+))?(.*)$');
+    var regex =
+        RegExp(r'^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::(\d+))?(.*)$');
     var match = regex.firstMatch(input);
     if (match != null) {
       var ip = match.group(1);
@@ -36,15 +39,14 @@ class ParsedData {
   }
 }
 
-
-
 class StreamViewPage extends StatefulWidget {
   final String streamUrl;
   final String commandUrl;
   final bool shouldRunStreamView;
+  final void Function() resetAll;
 
   const StreamViewPage(
-      this.streamUrl, this.commandUrl, this.shouldRunStreamView,
+      this.streamUrl, this.commandUrl, this.shouldRunStreamView, this.resetAll,
       {super.key});
 
   @override
@@ -56,7 +58,6 @@ class _StreamViewPageState extends State<StreamViewPage> {
   bool showReconnectButton = false;
   bool isReconnecting = false;
   bool isLoading = true;
-  final _flutterFFmpeg = FlutterFFmpeg();
 
   StreamSubscription<ConnectivityResult>? connectivitySubscription;
   bool isConnectedToWifi = true;
@@ -137,10 +138,6 @@ class _StreamViewPageState extends State<StreamViewPage> {
       isLoading = true;
     });
     final parsed = ParsedData.fromString(widget.streamUrl);
-    print('-----------------------------------------------');
-    print('tcp ${parsed.ipAddress}:8888');
-    
-        print("rtsp://${parsed.ipAddress}${parsed.host != null ? ':${parsed.host}' : ''}${parsed.rest != null ? '${parsed.rest}' : ''}");
 
     try {
       if (widget.shouldRunStreamView) {
@@ -158,6 +155,13 @@ class _StreamViewPageState extends State<StreamViewPage> {
             setLandscapeOrientation();
           });
         }
+
+        if (player.state == FijkState.error) {
+          setState(() {
+            showReconnectButton = true;
+            isLoading = false;
+          });
+        }
       });
 
       if (player.state == FijkState.completed) {
@@ -170,10 +174,9 @@ class _StreamViewPageState extends State<StreamViewPage> {
 
       player.setOption(FijkOption.playerCategory, "flush_packets", 1);
       player.setOption(FijkOption.formatCategory, "rtsp_transport", "tcp");
-  
-  print('-----------------------------------------------');
-  print('here');
-      await player.setDataSource("rtsp://${parsed.ipAddress}${parsed.host != null ? ':${parsed.host}' : ''}${parsed.rest != null ? '${parsed.rest}' : ''}",
+
+      await player.setDataSource(
+          "rtsp://${parsed.ipAddress}${parsed.host != null ? ':${parsed.host}' : ''}${parsed.rest != null ? '${parsed.rest}' : ''}",
           autoPlay: true);
       // Player configuration
 
@@ -206,7 +209,7 @@ class _StreamViewPageState extends State<StreamViewPage> {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
         overlays: SystemUiOverlay.values);
     player.release();
-    connectivitySubscription?.cancel(); // Cancel the connectivity subscription
+    connectivitySubscription?.cancel();
     Wakelock.disable();
     super.dispose();
   }
@@ -224,6 +227,7 @@ class _StreamViewPageState extends State<StreamViewPage> {
     if (!isConnectedToWifi) {
       return WifiConnectPage(
         onConnectToWifi: openWifiSettings,
+        resetAll: widget.resetAll,
       );
     } else if (isLoading == true) {
       return LoadingIndicator(isLoading: isLoading);
@@ -231,6 +235,7 @@ class _StreamViewPageState extends State<StreamViewPage> {
       return ReconnectView(
         isReconnecting: isReconnecting,
         onReconnect: checkWifiAndInitializePlayer,
+        resetAll: widget.resetAll,
       );
     } else {
       return buildStreamView();
@@ -245,7 +250,7 @@ class _StreamViewPageState extends State<StreamViewPage> {
     // The player wrapped with ScreenRecorder
     Widget playerWithScreenRecorder = Container(
       width: playerWidth,
-      height: MediaQuery.of(context).size.height, // 100% of screen height
+      height: MediaQuery.of(context).size.height,
       child: FijkView(
         player: player,
         color: Colors.black,
@@ -289,19 +294,26 @@ class _StreamViewPageState extends State<StreamViewPage> {
   }
 
   Future<void> startRecording() async {
-    isRecording = true;
-    stopwatch.start();
-    int index = 0;
+    PermissionStatus status = await Permission.storage.request();
+    if (status.isGranted) {
+      isRecording = true;
+      stopwatch.start();
+      int index = 0;
 
-    while (isRecording) {
-      Uint8List? imageData = await player.takeSnapShot();
-      final directory = await getTemporaryDirectory();
-      String fileName = 'image_${index.toString().padLeft(6, '0')}.jpg';
-      String filePath = '${directory.path}/$fileName';
-      File file = File(filePath);
-      await file.writeAsBytes(imageData);
-      imagePaths.add(filePath);
-      index++;
+      while (isRecording) {
+        Uint8List? imageData = await player.takeSnapShot();
+        final directory = await getTemporaryDirectory();
+        String fileName = 'image_${index.toString().padLeft(6, '0')}.jpg';
+        String filePath = '${directory.path}/$fileName';
+        File file = File(filePath);
+        await file.writeAsBytes(imageData);
+        imagePaths.add(filePath);
+        index++;
+      }
+    } else if (status.isDenied) {
+      openAppSettings();
+    } else {
+      return;
     }
   }
 
@@ -320,10 +332,20 @@ class _StreamViewPageState extends State<StreamViewPage> {
 
   Future<void> createVideoFromImages(int desiredVideoLengthInSeconds) async {
     final directory = await getTemporaryDirectory();
+
+    if (directory.existsSync()) {
+      directory.listSync(recursive: true).forEach((entity) {
+        print(entity.path);
+      });
+    } else {
+      print('Каталог не существует');
+    }
+
     String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
     String outputPath = '${directory.path}/video_$timestamp.mp4';
 
     String inputPattern = '${directory.path}/image_%06d.jpg';
+
     if (imagePaths.isEmpty || desiredVideoLengthInSeconds == 0) {
       return;
     }
@@ -333,19 +355,23 @@ class _StreamViewPageState extends State<StreamViewPage> {
 
     String ffmpegCommand =
         '-framerate $fps -i $inputPattern -c:v mpeg4 -pix_fmt yuv420p -r $fps $outputPath';
+    await FFmpegKit.execute(ffmpegCommand).then((session) async {
+      final returnCode = await session.getReturnCode();
 
-    int rc = await _flutterFFmpeg.execute(ffmpegCommand);
-    if (rc == 0) {
-      print("Video saved to $outputPath");
-      GallerySaver.saveVideo(outputPath).then((bool? success) {
-        if (success == true) {
-          print("Video successfully saved to gallery.");
-        } else {
-          print("Failed to save video to gallery.");
-        }
-      });
-    } else {
-      print("Error creating video with return code: $rc");
-    }
+      if (ReturnCode.isSuccess(returnCode)) {
+        GallerySaver.saveVideo(outputPath).then((bool? success) {
+          if (success == true) {
+            print("Video successfully saved to gallery.");
+          } else {
+            print("Failed to save video to gallery.");
+          }
+        });
+      } else {
+        print("!_!_!_!_!_!_!_!_!__!!__!_!_!_!_!_!_!_!_");
+        print(await session.getFailStackTrace());
+        print("!_!_!_!_!_!_!_!_!__!!__!_!_!_!_!_!_!_!_");
+        print(await session.getLogsAsString());
+      }
+    });
   }
 }

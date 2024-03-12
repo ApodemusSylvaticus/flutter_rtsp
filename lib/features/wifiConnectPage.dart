@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 
 class WifiConnectPage extends StatelessWidget {
   final void Function() onConnectToWifi;
+  final void Function() resetAll;
 
   const WifiConnectPage({
     Key? key,
     required this.onConnectToWifi,
+    required this.resetAll,
   }) : super(key: key);
 
   @override
@@ -25,7 +27,14 @@ class WifiConnectPage extends StatelessWidget {
           SizedBox(height: 16),
           ElevatedButton(
             onPressed: onConnectToWifi,
-            child: Text('Connect to Wi-Fi', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+            child: Text('Connect to Wi-Fi',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+          ),
+          SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: resetAll,
+            child: Text('Reset',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
           ),
         ],
       )),

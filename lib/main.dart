@@ -8,7 +8,6 @@ void main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    // Создание своего собственного экземпляра MaterialColor из цвета
     MaterialColor customColor = MaterialColor(0xFFC4A9F1, {
       50: Color(0xFFF0E7FD),
       100: Color(0xFFD3B5F6),
@@ -38,8 +37,8 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  // 192.168.100.1
-  
+  // 192.168.1.117:8554/mystream
+  // 192.168.100.1/stream0
   TextEditingController streamUrl =
       TextEditingController(text: '192.168.100.1/stream0');
   TextEditingController commandUrl =
@@ -47,10 +46,16 @@ class _MyHomePageState extends State<MyHomePage> {
   bool isSubmitPressed = false;
   bool shouldRunStreamView = false;
 
+  void resetAll(){
+     setState(() {
+      isSubmitPressed = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return isSubmitPressed
-        ? StreamViewPage(streamUrl.text, commandUrl.text, shouldRunStreamView)
+        ? StreamViewPage(streamUrl.text, commandUrl.text, shouldRunStreamView, resetAll)
         : Scaffold(
             backgroundColor: Color.fromRGBO(128, 128, 128, 1),
             body: Padding(

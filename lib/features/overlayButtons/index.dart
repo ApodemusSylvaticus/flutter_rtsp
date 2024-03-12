@@ -25,7 +25,6 @@ class OverlayButtons extends StatefulWidget {
   _OverlayButtonsState createState() => _OverlayButtonsState();
 }
 
-
 class _OverlayButtonsState extends State<OverlayButtons> {
   late IOWebSocketChannel _channel;
   bool _isConnected = false;
@@ -123,12 +122,26 @@ class _OverlayButtonsState extends State<OverlayButtons> {
         ],
       );
     } else {
-      return Center(
-        child: Text(
-          'Unable to establish a WebSocket connection. Please check your network connection.',
-          textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.white.withOpacity(0.45), fontSize: 14, ),
-        ),
+      return Stack(
+        children: [
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Unable to establish a WebSocket connection. Please check your network connection.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      color: Colors.white.withOpacity(0.45), fontSize: 14),
+                ),
+              ],
+            ),
+          ),
+          RecordButton(
+            isRecording: widget.isRecording,
+            onToggle: widget.onRecordingChanged,
+          )
+        ],
       );
     }
   }
