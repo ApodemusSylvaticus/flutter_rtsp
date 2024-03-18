@@ -46,16 +46,20 @@ class _MyHomePageState extends State<MyHomePage> {
   bool isSubmitPressed = false;
   bool shouldRunStreamView = false;
 
-  void resetAll(){
-     setState(() {
+
+  void resetAll() {
+    setState(() {
       isSubmitPressed = false;
     });
   }
 
+
+
   @override
   Widget build(BuildContext context) {
     return isSubmitPressed
-        ? StreamViewPage(streamUrl.text, commandUrl.text, shouldRunStreamView, resetAll)
+        ? StreamViewPage(
+            streamUrl.text, commandUrl.text, shouldRunStreamView, resetAll)
         : Scaffold(
             backgroundColor: Color.fromRGBO(128, 128, 128, 1),
             body: Padding(

@@ -15,6 +15,7 @@ import 'package:android_intent_plus/android_intent.dart';
 import 'package:wakelock/wakelock.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:wifi_iot/wifi_iot.dart';
 
 class ParsedData {
   final String? ipAddress;
@@ -71,6 +72,26 @@ class _StreamViewPageState extends State<StreamViewPage> {
     checkWifiAndInitializePlayer();
   }
 
+  Future<bool> isSubnetCorrect() async {
+    List<String> parts = widget.streamUrl.split(RegExp(r'[:/]'));
+    List<String> octets = parts[0].split('.');
+    final actualIp = await WiFiForIoTPlugin.getIP();
+    if (actualIp == null) {
+      return false;
+    }
+    final actualOctets = actualIp.split('.');
+    if (actualOctets.length < 3) {
+      return false;
+    }
+
+    if (octets[0] == actualOctets[0] &&
+        octets[1] == actualOctets[1] &&
+        octets[2] == actualOctets[2]) {
+      return true;
+    }
+    return false;
+  }
+
   void monitorWifiConnection() {
     connectivitySubscription = Connectivity()
         .onConnectivityChanged
@@ -83,14 +104,23 @@ class _StreamViewPageState extends State<StreamViewPage> {
           isConnectedToWifi = true;
         });
       } else {
-        setState(() {
-          isConnectedToWifi = false;
+        isSubnetCorrect().then((value) {
+          if (value) {
+            setState(() {
+              isConnectedToWifi = true;
+            });
+            return;
+          }
+
+          setState(() {
+            isConnectedToWifi = false;
+          });
+          if (isRecording) {
+            stopRecording();
+          }
+          setPortraitOrientation();
+          Wakelock.disable();
         });
-        if (isRecording) {
-          stopRecording();
-        }
-        setPortraitOrientation();
-        Wakelock.disable();
       }
     });
   }
@@ -124,9 +154,20 @@ class _StreamViewPageState extends State<StreamViewPage> {
 
       initializePlayer();
     } else {
-      // Not connected to Wi-Fi
-      setState(() {
-        isConnectedToWifi = false;
+      isSubnetCorrect().then((value) {
+        if (value) {
+          setState(() {
+            isConnectedToWifi = true;
+          });
+          initializePlayer();
+
+          return;
+        }
+
+        // Not connected to Wi-Fi
+        setState(() {
+          isConnectedToWifi = false;
+        });
       });
     }
   }
@@ -293,20 +334,20 @@ class _StreamViewPageState extends State<StreamViewPage> {
   }
 
   Future<void> startRecording() async {
-   isRecording = true;
-      stopwatch.start();
-      int index = 0;
+    isRecording = true;
+    stopwatch.start();
+    int index = 0;
 
-      while (isRecording) {
-        Uint8List? imageData = await player.takeSnapShot();
-        final directory = await getTemporaryDirectory();
-        String fileName = 'image_${index.toString().padLeft(6, '0')}.jpg';
-        String filePath = '${directory.path}/$fileName';
-        File file = File(filePath);
-        await file.writeAsBytes(imageData);
-        imagePaths.add(filePath);
-        index++;
-      }
+    while (isRecording) {
+      Uint8List? imageData = await player.takeSnapShot();
+      final directory = await getTemporaryDirectory();
+      String fileName = 'image_${index.toString().padLeft(6, '0')}.jpg';
+      String filePath = '${directory.path}/$fileName';
+      File file = File(filePath);
+      await file.writeAsBytes(imageData);
+      imagePaths.add(filePath);
+      index++;
+    }
   }
 
   Future<void> stopRecording() async {
