@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:one_more_try/containers/DefaultBg.dart';
 
 class LoadingIndicator extends StatelessWidget {
   final bool isLoading;
@@ -11,17 +12,20 @@ class LoadingIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return isLoading
-        ? Container(
-            color: Colors.black.withOpacity(0.5),
+        ? DefaultBg(
             child: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  CircularProgressIndicator(),
+                  CircularProgressIndicator( valueColor: AlwaysStoppedAnimation<Color>(Color.fromRGBO(255, 255, 255, 1))),
                   SizedBox(height: 16),
                   Text(
                     'Trying to connect...',
-                    style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
+                    style: TextStyle(
+                       decoration: TextDecoration.none,
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500),
                   ),
                 ],
               ),

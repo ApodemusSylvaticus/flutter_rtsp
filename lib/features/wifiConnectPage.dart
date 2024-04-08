@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:one_more_try/containers/DefaultBg.dart';
 
 class WifiConnectPage extends StatelessWidget {
   final void Function() onConnectToWifi;
@@ -12,29 +13,29 @@ class WifiConnectPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black.withOpacity(0.5),
-      body: Center(
+    return DefaultBg(
+      child: Center(
           child: Column(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
             'Please connect to Wi-Fi to continue.',
-            style: TextStyle(
+            style: TextStyle(  decoration: TextDecoration.none,
+
                 color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
           ),
-          SizedBox(height: 16),
+          SizedBox(height: 10),
           ElevatedButton(
             onPressed: onConnectToWifi,
             child: Text('Connect to Wi-Fi',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.black)),
           ),
-          SizedBox(height: 16),
+          SizedBox(height: 10),
           ElevatedButton(
             onPressed: resetAll,
             child: Text('Reset',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.black)),
           ),
         ],
       )),

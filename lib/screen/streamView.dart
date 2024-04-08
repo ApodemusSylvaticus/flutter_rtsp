@@ -6,8 +6,8 @@ import 'package:ffmpeg_kit_flutter/ffmpeg_kit.dart';
 import 'package:fijkplayer/fijkplayer.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:gallery_saver/gallery_saver.dart';
+import 'package:one_more_try/features/StreamViewButtons/index.dart';
 import 'package:one_more_try/features/loading.dart';
-import 'package:one_more_try/features/overlayButtons/index.dart';
 import 'package:one_more_try/features/reconnectView.dart';
 import 'package:one_more_try/features/wifiConnectPage.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -16,6 +16,7 @@ import 'package:wakelock/wakelock.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:wifi_iot/wifi_iot.dart';
+import 'package:one_more_try/containers/DefaultBg.dart';
 
 class ParsedData {
   final String? ipAddress;
@@ -178,10 +179,11 @@ class _StreamViewPageState extends State<StreamViewPage> {
       isLoading = true;
     });
     final parsed = ParsedData.fromString(widget.streamUrl);
-
+    print('parsed host - ${parsed.host}, ${parsed.ipAddress}, ${parsed.rest}');
     try {
-      if (widget.shouldRunStreamView) {
-        var socket = await Socket.connect(parsed.ipAddress, 8888);
+      if (widget.shouldRunStreamView && parsed.host != null) {
+        int port = int.parse(parsed.host!);
+        var socket = await Socket.connect(parsed.ipAddress, port);
         socket.writeln('CMD_RTSP_TRANS_START');
         await socket.flush();
       }
@@ -214,7 +216,8 @@ class _StreamViewPageState extends State<StreamViewPage> {
 
       player.setOption(FijkOption.playerCategory, "flush_packets", 1);
       player.setOption(FijkOption.formatCategory, "rtsp_transport", "tcp");
-
+      print(
+          "rtsp://${parsed.ipAddress}${parsed.host != null ? ':${parsed.host}' : ''}${parsed.rest != null ? '${parsed.rest}' : ''}");
       await player.setDataSource(
           "rtsp://${parsed.ipAddress}${parsed.host != null ? ':${parsed.host}' : ''}${parsed.rest != null ? '${parsed.rest}' : ''}",
           autoPlay: true);
@@ -256,8 +259,8 @@ class _StreamViewPageState extends State<StreamViewPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
+    return DefaultBg(
+      child: Center(
         child: buildBody(),
       ),
     );
@@ -284,38 +287,32 @@ class _StreamViewPageState extends State<StreamViewPage> {
 
   Widget buildStreamView() {
     double screenWidth = MediaQuery.of(context).size.width;
-    double playerWidth =
-        screenWidth * 1; // Assuming you want the player to be full screen width
-
-    // The player wrapped with ScreenRecorder
+    double playerWidth = screenWidth - 320;
     Widget playerWithScreenRecorder = Container(
       width: playerWidth,
       height: MediaQuery.of(context).size.height,
       child: FijkView(
         player: player,
-        color: Colors.black,
+        color: Colors.transparent,
         panelBuilder: (_, __, ___, ____, _____) => Container(),
       ),
     );
 
-    return Stack(
-      children: [
-        Center(child: playerWithScreenRecorder),
-        OverlayButtons(
-          commandUrl: widget.commandUrl,
-          isRecording: isRecording,
-          onRecordingChanged: (value) {
-            setState(() {
-              isRecording = value;
-              if (isRecording) {
-                startRecording();
-              } else {
-                stopRecording();
-              }
-            });
-          },
-        ),
-      ],
+    return StreamViewButtons(
+      child: playerWithScreenRecorder,
+      onRecordingChanged: (value) {
+        setState(() {
+          isRecording = value;
+          if (isRecording) {
+            startRecording();
+          } else {
+            stopRecording();
+          }
+        });
+      },
+      isRecording: isRecording,
+      commandUrl: widget.commandUrl,
+      takePhoto: takeSnapShot,
     );
   }
 
@@ -361,6 +358,25 @@ class _StreamViewPageState extends State<StreamViewPage> {
     });
     imagePaths.clear();
     stopwatch.reset();
+  }
+
+  Future<void> takeSnapShot() async {
+    DateTime now = DateTime.now();
+
+    int timestamp = now.millisecondsSinceEpoch;
+    Uint8List? imageData = await player.takeSnapShot();
+    final directory = await getTemporaryDirectory();
+    String fileName = 'snapshot_$timestamp.jpg';
+    String filePath = '${directory.path}/$fileName';
+    File file = File(filePath);
+    await file.writeAsBytes(imageData);
+    GallerySaver.saveImage(filePath).then((bool? success) {
+      if (success == true) {
+        print("Snapshot successfully saved to gallery.");
+      } else {
+        print("Failed to save snapshot to gallery.");
+      }
+    });
   }
 
   Future<void> createVideoFromImages(int desiredVideoLengthInSeconds) async {
