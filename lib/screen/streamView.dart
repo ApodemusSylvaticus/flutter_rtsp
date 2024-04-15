@@ -183,6 +183,7 @@ class _StreamViewPageState extends State<StreamViewPage> {
     try {
       if (widget.shouldRunStreamView && parsed.host != null) {
         int port = int.parse(parsed.host!);
+        print('port ${port}');
         var socket = await Socket.connect(parsed.ipAddress, port);
         socket.writeln('CMD_RTSP_TRANS_START');
         await socket.flush();
@@ -216,11 +217,18 @@ class _StreamViewPageState extends State<StreamViewPage> {
 
       player.setOption(FijkOption.playerCategory, "flush_packets", 1);
       player.setOption(FijkOption.formatCategory, "rtsp_transport", "tcp");
-      print(
-          "rtsp://${parsed.ipAddress}${parsed.host != null ? ':${parsed.host}' : ''}${parsed.rest != null ? '${parsed.rest}' : ''}");
-      await player.setDataSource(
-          "rtsp://${parsed.ipAddress}${parsed.host != null ? ':${parsed.host}' : ''}${parsed.rest != null ? '${parsed.rest}' : ''}",
-          autoPlay: true);
+      if (widget.shouldRunStreamView) {
+        print(
+            'rtsp://${parsed.ipAddress}${parsed.rest != null ? '${parsed.rest}' : ''}');
+        await player.setDataSource(
+            "rtsp://${parsed.ipAddress}${parsed.rest != null ? '${parsed.rest}' : ''}",
+            autoPlay: true);
+      } else {
+        await player.setDataSource(
+            "rtsp://${parsed.ipAddress}${parsed.host != null ? ':${parsed.host}' : ''}${parsed.rest != null ? '${parsed.rest}' : ''}",
+            autoPlay: true);
+      }
+
       // Player configuration
 
       Wakelock.enable();
@@ -287,7 +295,7 @@ class _StreamViewPageState extends State<StreamViewPage> {
 
   Widget buildStreamView() {
     double screenWidth = MediaQuery.of(context).size.width;
-    double playerWidth = screenWidth - 320;
+    double playerWidth = screenWidth - 280;
     Widget playerWithScreenRecorder = Container(
       width: playerWidth,
       height: MediaQuery.of(context).size.height,
@@ -331,13 +339,23 @@ class _StreamViewPageState extends State<StreamViewPage> {
   }
 
   Future<void> startRecording() async {
+    final directory = await getTemporaryDirectory();
+    // Clean directory before starting recording
+    if (directory.existsSync()) {
+      directory.listSync().forEach((entity) {
+        if (entity is File) {
+          entity.deleteSync();
+        }
+      });
+    } else {
+      print('Directory does not exist');
+    }
     isRecording = true;
     stopwatch.start();
     int index = 0;
 
     while (isRecording) {
       Uint8List? imageData = await player.takeSnapShot();
-      final directory = await getTemporaryDirectory();
       String fileName = 'image_${index.toString().padLeft(6, '0')}.jpg';
       String filePath = '${directory.path}/$fileName';
       File file = File(filePath);

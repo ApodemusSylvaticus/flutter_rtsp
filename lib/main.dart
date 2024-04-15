@@ -16,7 +16,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         textSelectionTheme: TextSelectionThemeData(
           // cursorColor: Color.fromRGBO(52, 198, 89, 1), // Цвет курсора
-          selectionColor: Color.fromRGBO(52, 198, 89, 1), // Цвет фона выделения
+          // selectionColor: Color.fromRGBO(52, 198, 89, 1), // Цвет фона выделения
           selectionHandleColor:
               Color.fromRGBO(52, 198, 89, 1), // Цвет индикаторов выделения
         ),
@@ -33,7 +33,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   TextEditingController streamUrlController =
-      TextEditingController(text: '192.168.1.117:8554/mystream');
+      TextEditingController(text: '192.168.100.1:8888/stream0');
   TextEditingController commandUrlController =
       TextEditingController(text: '192.168.1.117:8080/websocket');
   bool isSubmitPressed = false;

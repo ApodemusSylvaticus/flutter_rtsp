@@ -112,7 +112,7 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
       return Row(
         children: [
           SizedBox(
-            width: 160,
+            width: 140,
             height: MediaQuery.of(context).size.height,
             child: Center(
               child: Column(
@@ -130,7 +130,7 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
           ),
           Center(child: widget.child),
           SizedBox(
-            width: 160,
+            width: 140,
             height: MediaQuery.of(context).size.height,
             child: Center(
               child: Column(
@@ -150,25 +150,52 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
         ],
       );
     } else {
-      return Stack(
+      return Row(
+
         children: [
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Unable to establish a WebSocket connection. Please check your network connection.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      color: Colors.white.withOpacity(0.45), fontSize: 14),
-                ),
-              ],
+           SizedBox(
+            width: 140,
+            height: MediaQuery.of(context).size.height,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  MakePhotoButton(takePhoto: widget.takePhoto),
+                  SizedBox(height: 10),
+                  RecordButton(
+                    isRecording: widget.isRecording,
+                    onToggle: widget.onRecordingChanged,
+                  ),
+                ],
+              ),
             ),
           ),
-          // RecordButton(
-          //   isRecording: widget.isRecording,
-          //   onToggle: widget.onRecordingChanged,
-          // )
+          Center(child: widget.child),
+           SizedBox(
+            width: 140,
+            height: MediaQuery.of(context).size.height,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Padding(padding: EdgeInsets.symmetric(horizontal: 10), child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Unable to establish a WebSocket connection. Please check your network connection.',
+                      style: TextStyle(
+                  
+                          color: Colors.white.withOpacity(0.45),
+                          fontSize: 12,
+                          decoration: TextDecoration.none),
+                    ),
+                  ],
+                ),)
+                ],
+              ),
+            ),
+          )
+         
         ],
       );
     }
