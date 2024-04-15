@@ -11,6 +11,19 @@ void main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    MaterialColor customColor = MaterialColor(0xFF34C759, {
+      50: Color(0xFFF0F9E8),
+      100: Color(0xFFDCEDC8),
+      200: Color(0xFFCCE5B9),
+      300: Color(0xFFB0D68D),
+      400: Color(0xFF8CC665),
+      500: Color(0xFF69B100),
+      600: Color(0xFF5A9B00),
+      700: Color(0xFF4A8500),
+      800: Color(0xFF3A6F00),
+      900: Color(0xFF2C5700),
+    });
+
     return MaterialApp(
       title: 'URL Input Demo',
       theme: ThemeData(

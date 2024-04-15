@@ -179,11 +179,10 @@ class _StreamViewPageState extends State<StreamViewPage> {
       isLoading = true;
     });
     final parsed = ParsedData.fromString(widget.streamUrl);
-    print('parsed host - ${parsed.host}, ${parsed.ipAddress}, ${parsed.rest}');
+    print('initializePlayer');
     try {
       if (widget.shouldRunStreamView && parsed.host != null) {
         int port = int.parse(parsed.host!);
-        print('port ${port}');
         var socket = await Socket.connect(parsed.ipAddress, port);
         socket.writeln('CMD_RTSP_TRANS_START');
         await socket.flush();
@@ -218,8 +217,6 @@ class _StreamViewPageState extends State<StreamViewPage> {
       player.setOption(FijkOption.playerCategory, "flush_packets", 1);
       player.setOption(FijkOption.formatCategory, "rtsp_transport", "tcp");
       if (widget.shouldRunStreamView) {
-        print(
-            'rtsp://${parsed.ipAddress}${parsed.rest != null ? '${parsed.rest}' : ''}');
         await player.setDataSource(
             "rtsp://${parsed.ipAddress}${parsed.rest != null ? '${parsed.rest}' : ''}",
             autoPlay: true);

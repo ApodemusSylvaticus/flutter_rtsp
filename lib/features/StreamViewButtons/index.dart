@@ -26,6 +26,7 @@ class StreamViewButtons extends StatefulWidget {
     required this.takePhoto,
   }) : super();
 
+
   @override
   _StreamViewButtonsState createState() => _StreamViewButtonsState();
 }
@@ -55,19 +56,23 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
   }
 
   Future<void> _connectToWebSocket() async {
+   try{
+ print('_connectedToWebSocket');
     final wsUrl = Uri.parse('ws://${widget.commandUrl}');
 
     _channel = IOWebSocketChannel.connect(wsUrl);
-    getDevStatus();
+    // getDevStatus();
 
     _channel.stream.listen((event) {
+      final commandResp = HostPayload.fromBuffer(event);
+
+      print('!!_______________HERE__!!!!!!!!!!');
+
       _requestQueue.removeLast();
 
       if (_requestQueue.length != 0) {
         _channel.sink.add(_requestQueue.last);
       }
-
-      final commandResp = HostPayload.fromBuffer(event);
 
       if (commandResp.hasDevStatus()) {
         setState(() {
@@ -77,19 +82,38 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
 
       setState(() {
         _isConnected = true;
+
       });
     }, onError: (error) {
+            print('!!_______________Hййs__!!!!!!!!!!');
+
+print(_requestQueue);
+      print('onError');
+      _requestQueue.clear();
       setState(() {
+      
         _isConnected = false;
       });
+          _channel.sink.close();
+
     }, onDone: () {
+       print('!!_______________sss__!!!!!!!!!!');
+       print(_requestQueue);
+      print('onDone');
+      _requestQueue.clear();
+
       setState(() {
         _isConnected = false;
-      });
+      });    _channel.sink.close();
+
     });
+   } catch (e) {
+    print('uniq error ${e}');
+   }
   }
 
   Future<void> getDevStatus() async {
+    print('getDevStatus');
     GetHostDevStatus getHostDevStatus = GetHostDevStatus();
     Command command = Command(getHostDevStatus: getHostDevStatus);
 
@@ -100,6 +124,8 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
   }
 
   void _sendToServer(Uint8List buffer) {
+
+    print('_sendToServer, ${buffer}');
     _requestQueue.addFirst(buffer);
     if (_requestQueue.length == 1) {
       _channel.sink.add(buffer);
@@ -108,7 +134,7 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
 
   @override
   Widget build(BuildContext context) {
-    if (devStatus != null) {
+    if (devStatus != null && _isConnected) {
       return Row(
         children: [
           SizedBox(
@@ -151,9 +177,8 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
       );
     } else {
       return Row(
-
         children: [
-           SizedBox(
+          SizedBox(
             width: 140,
             height: MediaQuery.of(context).size.height,
             child: Center(
@@ -171,31 +196,32 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
             ),
           ),
           Center(child: widget.child),
-           SizedBox(
+          SizedBox(
             width: 140,
             height: MediaQuery.of(context).size.height,
             child: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Padding(padding: EdgeInsets.symmetric(horizontal: 10), child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Unable to establish a WebSocket connection. Please check your network connection.',
-                      style: TextStyle(
-                  
-                          color: Colors.white.withOpacity(0.45),
-                          fontSize: 12,
-                          decoration: TextDecoration.none),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 10),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Unable to establish a WebSocket connection. Please check your network connection.',
+                          style: TextStyle(
+                              color: Colors.white.withOpacity(0.45),
+                              fontSize: 12,
+                              decoration: TextDecoration.none),
+                        ),
+                      ],
                     ),
-                  ],
-                ),)
+                  )
                 ],
               ),
             ),
           )
-         
         ],
       );
     }
