@@ -18,6 +18,26 @@ import 'package:path_provider/path_provider.dart';
 import 'package:wifi_iot/wifi_iot.dart';
 import 'package:one_more_try/containers/DefaultBg.dart';
 
+Future<bool> isSubnetCorrect(String url) async {
+  List<String> parts = url.split(RegExp(r'[:/]'));
+  List<String> octets = parts[0].split('.');
+  final actualIp = await WiFiForIoTPlugin.getIP();
+  if (actualIp == null) {
+    return false;
+  }
+  final actualOctets = actualIp.split('.');
+  if (actualOctets.length < 3) {
+    return false;
+  }
+
+  if (octets[0] == actualOctets[0] &&
+      octets[1] == actualOctets[1] &&
+      octets[2] == actualOctets[2]) {
+    return true;
+  }
+  return false;
+}
+
 class ParsedData {
   final String? ipAddress;
   final String? host;
@@ -73,56 +93,22 @@ class _StreamViewPageState extends State<StreamViewPage> {
     checkWifiAndInitializePlayer();
   }
 
-  Future<bool> isSubnetCorrect() async {
-    List<String> parts = widget.streamUrl.split(RegExp(r'[:/]'));
-    List<String> octets = parts[0].split('.');
-    final actualIp = await WiFiForIoTPlugin.getIP();
-    if (actualIp == null) {
-      return false;
-    }
-    final actualOctets = actualIp.split('.');
-    if (actualOctets.length < 3) {
-      return false;
-    }
-
-    if (octets[0] == actualOctets[0] &&
-        octets[1] == actualOctets[1] &&
-        octets[2] == actualOctets[2]) {
-      return true;
-    }
-    return false;
-  }
-
   void monitorWifiConnection() {
     connectivitySubscription = Connectivity()
         .onConnectivityChanged
         .listen((ConnectivityResult result) {
-      if (result == ConnectivityResult.wifi) {
-        if (!isConnectedToWifi) {
-          checkWifiAndInitializePlayer();
-        }
+      if (result != ConnectivityResult.wifi) {
         setState(() {
-          isConnectedToWifi = true;
+          isConnectedToWifi = false;
         });
-      } else {
-        isSubnetCorrect().then((value) {
-          if (value) {
-            setState(() {
-              isConnectedToWifi = true;
-            });
-            return;
-          }
-
-          setState(() {
-            isConnectedToWifi = false;
-          });
-          if (isRecording) {
-            stopRecording();
-          }
-          setPortraitOrientation();
-          Wakelock.disable();
-        });
+        if (isRecording) {
+          stopRecording();
+        }
+        setPortraitOrientation();
+        Wakelock.disable();
+        return;
       }
+      checkWifiAndInitializePlayer();
     });
   }
 
@@ -147,30 +133,25 @@ class _StreamViewPageState extends State<StreamViewPage> {
 
   Future<void> checkWifiAndInitializePlayer() async {
     var connectivityResult = await (Connectivity().checkConnectivity());
-    if (connectivityResult == ConnectivityResult.wifi) {
-      // If connected to Wi-Fi
+    if (connectivityResult != ConnectivityResult.wifi) {
       setState(() {
-        isConnectedToWifi = true;
+        isConnectedToWifi = false;
       });
-
-      initializePlayer();
-    } else {
-      isSubnetCorrect().then((value) {
-        if (value) {
-          setState(() {
-            isConnectedToWifi = true;
-          });
-          initializePlayer();
-
-          return;
-        }
-
-        // Not connected to Wi-Fi
-        setState(() {
-          isConnectedToWifi = false;
-        });
-      });
+      return;
     }
+
+    isSubnetCorrect(widget.streamUrl).then((value) {
+      if (value) {
+        setState(() {
+          isConnectedToWifi = true;
+        });
+        initializePlayer();
+      } else {
+        setState(() {
+          isReconnecting = true;
+        });
+      }
+    });
   }
 
   Future<void> initializePlayer() async {

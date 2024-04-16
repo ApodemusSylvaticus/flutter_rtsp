@@ -43,7 +43,8 @@ class MyHomePage extends StatefulWidget {
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
-
+// 192.168.100.1:8888/stream0
+//192.168.1.117:8554/mystream
 class _MyHomePageState extends State<MyHomePage> {
   TextEditingController streamUrlController =
       TextEditingController(text: '192.168.100.1:8888/stream0');
@@ -87,7 +88,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                         SizedBox(height: 20.0),
                         const Text(
-                          'Enter command websocket ip:',
+                          'Enter command websocket URL:',
                           style: TextStyle(
                               color: Colors.white,
                               fontSize: 16,

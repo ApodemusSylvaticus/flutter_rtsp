@@ -8,6 +8,7 @@ import 'package:one_more_try/features/StreamViewButtons/makePhotoButton.dart';
 import 'package:one_more_try/features/StreamViewButtons/modeChangeButton.dart';
 import 'package:one_more_try/features/StreamViewButtons/recordButton.dart';
 import 'package:one_more_try/features/StreamViewButtons/zoomButton.dart';
+import 'package:one_more_try/screen/streamView.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:one_more_try/proto/demo_protocol.pb.dart';
 
@@ -26,7 +27,6 @@ class StreamViewButtons extends StatefulWidget {
     required this.takePhoto,
   }) : super();
 
-
   @override
   _StreamViewButtonsState createState() => _StreamViewButtonsState();
 }
@@ -37,6 +37,7 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
   HostDevStatus? devStatus;
   late Timer _timer;
   final Queue<Uint8List> _requestQueue = Queue<Uint8List>();
+
   @override
   void initState() {
     super.initState();
@@ -56,17 +57,21 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
   }
 
   Future<void> _connectToWebSocket() async {
-   try{
- print('_connectedToWebSocket');
+    bool isCorrect = await isSubnetCorrect(widget.commandUrl);
+    if(isCorrect == false){
+      return;
+    }
+
     final wsUrl = Uri.parse('ws://${widget.commandUrl}');
 
     _channel = IOWebSocketChannel.connect(wsUrl);
-    // getDevStatus();
+    getDevStatus();
+  
+
+
 
     _channel.stream.listen((event) {
       final commandResp = HostPayload.fromBuffer(event);
-
-      print('!!_______________HERE__!!!!!!!!!!');
 
       _requestQueue.removeLast();
 
@@ -82,34 +87,23 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
 
       setState(() {
         _isConnected = true;
-
       });
     }, onError: (error) {
-            print('!!_______________Hййs__!!!!!!!!!!');
 
-print(_requestQueue);
-      print('onError');
+      print('onError ${error}');
       _requestQueue.clear();
       setState(() {
-      
         _isConnected = false;
       });
-          _channel.sink.close();
-
     }, onDone: () {
-       print('!!_______________sss__!!!!!!!!!!');
-       print(_requestQueue);
+
       print('onDone');
       _requestQueue.clear();
 
       setState(() {
         _isConnected = false;
-      });    _channel.sink.close();
-
+      });
     });
-   } catch (e) {
-    print('uniq error ${e}');
-   }
   }
 
   Future<void> getDevStatus() async {
@@ -124,9 +118,10 @@ print(_requestQueue);
   }
 
   void _sendToServer(Uint8List buffer) {
-
     print('_sendToServer, ${buffer}');
     _requestQueue.addFirst(buffer);
+    print('_requestQueue, ${_requestQueue}');
+
     if (_requestQueue.length == 1) {
       _channel.sink.add(buffer);
     }
@@ -209,8 +204,9 @@ print(_requestQueue);
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'Unable to establish a WebSocket connection. Please check your network connection.',
+                          'Unable to establish a WebSocket connection. Please check your command ws URL.',
                           style: TextStyle(
+                          
                               color: Colors.white.withOpacity(0.45),
                               fontSize: 12,
                               decoration: TextDecoration.none),
