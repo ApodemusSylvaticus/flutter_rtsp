@@ -273,7 +273,7 @@ class _StreamViewPageState extends State<StreamViewPage> {
 
   Widget buildStreamView() {
     double screenWidth = MediaQuery.of(context).size.width;
-    double playerWidth = screenWidth - 280;
+    double playerWidth = screenWidth - 280 - MediaQuery.of(context).padding.left - MediaQuery.of(context).padding.right;
     Widget playerWithScreenRecorder = Container(
       width: playerWidth,
       height: MediaQuery.of(context).size.height,

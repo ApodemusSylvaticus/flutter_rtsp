@@ -1,12 +1,12 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:one_more_try/features/StreamViewButtons/customButton.dart';
-import 'package:one_more_try/proto/demo_protocol.pb.dart' as demo_protocol;
-import 'package:one_more_try/proto/demo_protocol.pbserver.dart';
+import 'package:one_more_try/proto/archer_protocol.pb.dart' as archer_protocol;
+import 'package:one_more_try/proto/archer_protocol.pbserver.dart';
 
 class LightModeSelector extends StatefulWidget {
   final void Function(Uint8List buffer) sendToServer;
-  final demo_protocol.HostDevStatus devStatus;
+  final archer_protocol.HostDevStatus devStatus;
   LightModeSelector(this.sendToServer, this.devStatus);
 
   @override
@@ -14,13 +14,13 @@ class LightModeSelector extends StatefulWidget {
 }
 
 class _LightModeSelectorState extends State<LightModeSelector> {
-  late demo_protocol.ColorScheme _selectedOption;
+  late archer_protocol.ColorScheme _selectedOption;
 
   @override
   void initState() {
     super.initState();
     if (widget.devStatus.colorScheme ==
-        demo_protocol.ColorScheme.UNKNOWN_COLOR_SHEME) {
+        archer_protocol.ColorScheme.UNKNOWN_COLOR_SHEME) {
       throw ArgumentError(
           'Unknown ColorScheme: ${widget.devStatus.colorScheme}');
     }
@@ -51,7 +51,7 @@ class _LightModeSelectorState extends State<LightModeSelector> {
       ),
       items: [
         PopupMenuItem(
-            value: demo_protocol.ColorScheme.BLACK_HOT,
+            value: archer_protocol.ColorScheme.BLACK_HOT,
             child: Text('Black hot',
                 style: TextStyle(
                   fontSize: 14.0,
@@ -59,7 +59,7 @@ class _LightModeSelectorState extends State<LightModeSelector> {
                   color: Colors.white,
                 ))),
         PopupMenuItem(
-          value: demo_protocol.ColorScheme.SEPIA,
+          value: archer_protocol.ColorScheme.SEPIA,
           child: Text('Sepia',
               style: TextStyle(
                 fontSize: 14.0,
@@ -68,7 +68,7 @@ class _LightModeSelectorState extends State<LightModeSelector> {
               )),
         ),
         PopupMenuItem(
-          value: demo_protocol.ColorScheme.WHITE_HOT,
+          value: archer_protocol.ColorScheme.WHITE_HOT,
           child: Text('White hot',
               style: TextStyle(
                 fontSize: 14.0,
@@ -83,13 +83,14 @@ class _LightModeSelectorState extends State<LightModeSelector> {
       setState(() {
         _selectedOption = selected;
       });
+      
 
       sendComand(_selectedOption);
     }
   }
 
-  void sendComand(demo_protocol.ColorScheme colorScheme) {
-    final setColorScheme = demo_protocol.SetColorScheme(scheme: colorScheme);
+  void sendComand(archer_protocol.ColorScheme colorScheme) {
+    final setColorScheme = archer_protocol.SetColorScheme(scheme: colorScheme);
     final command = Command(setPallette: setColorScheme);
 
     final clientPayload = ClientPayload(command: command);
@@ -98,15 +99,15 @@ class _LightModeSelectorState extends State<LightModeSelector> {
     widget.sendToServer(buffer);
   }
 
-  String convertShemeToText(demo_protocol.ColorScheme colorScheme) {
+  String convertShemeToText(archer_protocol.ColorScheme colorScheme) {
     switch (colorScheme) {
-      case demo_protocol.ColorScheme.BLACK_HOT:
+      case archer_protocol.ColorScheme.BLACK_HOT:
         return "Black Hot";
-      case demo_protocol.ColorScheme.SEPIA:
+      case archer_protocol.ColorScheme.SEPIA:
         return "Sepia";
-      case demo_protocol.ColorScheme.WHITE_HOT:
+      case archer_protocol.ColorScheme.WHITE_HOT:
         return "White Hot";
-      case demo_protocol.ColorScheme.UNKNOWN_COLOR_SHEME:
+      case archer_protocol.ColorScheme.UNKNOWN_COLOR_SHEME:
         throw ArgumentError('Unknown ColorScheme: $colorScheme');
       default:
         throw ArgumentError('Unexpected ColorScheme: $colorScheme');

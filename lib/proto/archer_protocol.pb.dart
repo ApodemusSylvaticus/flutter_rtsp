@@ -1,6 +1,6 @@
 //
 //  Generated code. Do not modify.
-//  source: demo_protocol.proto
+//  source: archer_protocol.proto
 //
 // @dart = 2.12
 
@@ -13,15 +13,17 @@ import 'dart:core' as $core;
 
 import 'package:protobuf/protobuf.dart' as $pb;
 
-import 'demo_protocol.pbenum.dart';
+import 'archer_protocol.pbenum.dart';
 
-export 'demo_protocol.pbenum.dart';
+export 'archer_protocol.pbenum.dart';
 
 class HostPayload extends $pb.GeneratedMessage {
   factory HostPayload({
     HostProfile? profile,
     HostDevStatus? devStatus,
     CommandResponse? response,
+    Reticles? reticles,
+    FullProfileData? allProfiles,
   }) {
     final $result = create();
     if (profile != null) {
@@ -33,16 +35,24 @@ class HostPayload extends $pb.GeneratedMessage {
     if (response != null) {
       $result.response = response;
     }
+    if (reticles != null) {
+      $result.reticles = reticles;
+    }
+    if (allProfiles != null) {
+      $result.allProfiles = allProfiles;
+    }
     return $result;
   }
   HostPayload._() : super();
   factory HostPayload.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory HostPayload.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'HostPayload', package: const $pb.PackageName(_omitMessageNames ? '' : 'demo_protocol'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'HostPayload', package: const $pb.PackageName(_omitMessageNames ? '' : 'archer_protocol'), createEmptyInstance: create)
     ..aOM<HostProfile>(1, _omitFieldNames ? '' : 'profile', subBuilder: HostProfile.create)
     ..aOM<HostDevStatus>(2, _omitFieldNames ? '' : 'devStatus', protoName: 'devStatus', subBuilder: HostDevStatus.create)
     ..aOM<CommandResponse>(3, _omitFieldNames ? '' : 'response', subBuilder: CommandResponse.create)
+    ..aOM<Reticles>(4, _omitFieldNames ? '' : 'reticles', subBuilder: Reticles.create)
+    ..aOM<FullProfileData>(5, _omitFieldNames ? '' : 'allProfiles', protoName: 'allProfiles', subBuilder: FullProfileData.create)
     ..hasRequiredFields = false
   ;
 
@@ -99,19 +109,37 @@ class HostPayload extends $pb.GeneratedMessage {
   void clearResponse() => clearField(3);
   @$pb.TagNumber(3)
   CommandResponse ensureResponse() => $_ensure(2);
+
+  @$pb.TagNumber(4)
+  Reticles get reticles => $_getN(3);
+  @$pb.TagNumber(4)
+  set reticles(Reticles v) { setField(4, v); }
+  @$pb.TagNumber(4)
+  $core.bool hasReticles() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearReticles() => clearField(4);
+  @$pb.TagNumber(4)
+  Reticles ensureReticles() => $_ensure(3);
+
+  @$pb.TagNumber(5)
+  FullProfileData get allProfiles => $_getN(4);
+  @$pb.TagNumber(5)
+  set allProfiles(FullProfileData v) { setField(5, v); }
+  @$pb.TagNumber(5)
+  $core.bool hasAllProfiles() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearAllProfiles() => clearField(5);
+  @$pb.TagNumber(5)
+  FullProfileData ensureAllProfiles() => $_ensure(4);
 }
 
 class ClientPayload extends $pb.GeneratedMessage {
   factory ClientPayload({
-    ClientProfile? profile,
     ClientDevStatus? devStatus,
     Command? command,
     CommandResponse? response,
   }) {
     final $result = create();
-    if (profile != null) {
-      $result.profile = profile;
-    }
     if (devStatus != null) {
       $result.devStatus = devStatus;
     }
@@ -127,8 +155,7 @@ class ClientPayload extends $pb.GeneratedMessage {
   factory ClientPayload.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory ClientPayload.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ClientPayload', package: const $pb.PackageName(_omitMessageNames ? '' : 'demo_protocol'), createEmptyInstance: create)
-    ..aOM<ClientProfile>(1, _omitFieldNames ? '' : 'profile', subBuilder: ClientProfile.create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ClientPayload', package: const $pb.PackageName(_omitMessageNames ? '' : 'archer_protocol'), createEmptyInstance: create)
     ..aOM<ClientDevStatus>(2, _omitFieldNames ? '' : 'devStatus', protoName: 'devStatus', subBuilder: ClientDevStatus.create)
     ..aOM<Command>(3, _omitFieldNames ? '' : 'command', subBuilder: Command.create)
     ..aOM<CommandResponse>(4, _omitFieldNames ? '' : 'response', subBuilder: CommandResponse.create)
@@ -156,49 +183,38 @@ class ClientPayload extends $pb.GeneratedMessage {
   static ClientPayload getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ClientPayload>(create);
   static ClientPayload? _defaultInstance;
 
-  @$pb.TagNumber(1)
-  ClientProfile get profile => $_getN(0);
-  @$pb.TagNumber(1)
-  set profile(ClientProfile v) { setField(1, v); }
-  @$pb.TagNumber(1)
-  $core.bool hasProfile() => $_has(0);
-  @$pb.TagNumber(1)
-  void clearProfile() => clearField(1);
-  @$pb.TagNumber(1)
-  ClientProfile ensureProfile() => $_ensure(0);
-
   @$pb.TagNumber(2)
-  ClientDevStatus get devStatus => $_getN(1);
+  ClientDevStatus get devStatus => $_getN(0);
   @$pb.TagNumber(2)
   set devStatus(ClientDevStatus v) { setField(2, v); }
   @$pb.TagNumber(2)
-  $core.bool hasDevStatus() => $_has(1);
+  $core.bool hasDevStatus() => $_has(0);
   @$pb.TagNumber(2)
   void clearDevStatus() => clearField(2);
   @$pb.TagNumber(2)
-  ClientDevStatus ensureDevStatus() => $_ensure(1);
+  ClientDevStatus ensureDevStatus() => $_ensure(0);
 
   @$pb.TagNumber(3)
-  Command get command => $_getN(2);
+  Command get command => $_getN(1);
   @$pb.TagNumber(3)
   set command(Command v) { setField(3, v); }
   @$pb.TagNumber(3)
-  $core.bool hasCommand() => $_has(2);
+  $core.bool hasCommand() => $_has(1);
   @$pb.TagNumber(3)
   void clearCommand() => clearField(3);
   @$pb.TagNumber(3)
-  Command ensureCommand() => $_ensure(2);
+  Command ensureCommand() => $_ensure(1);
 
   @$pb.TagNumber(4)
-  CommandResponse get response => $_getN(3);
+  CommandResponse get response => $_getN(2);
   @$pb.TagNumber(4)
   set response(CommandResponse v) { setField(4, v); }
   @$pb.TagNumber(4)
-  $core.bool hasResponse() => $_has(3);
+  $core.bool hasResponse() => $_has(2);
   @$pb.TagNumber(4)
   void clearResponse() => clearField(4);
   @$pb.TagNumber(4)
-  CommandResponse ensureResponse() => $_ensure(3);
+  CommandResponse ensureResponse() => $_ensure(2);
 }
 
 enum CommandResponse_OneofCommandResponse {
@@ -230,7 +246,7 @@ class CommandResponse extends $pb.GeneratedMessage {
     2 : CommandResponse_OneofCommandResponse.statusErr,
     0 : CommandResponse_OneofCommandResponse.notSet
   };
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'CommandResponse', package: const $pb.PackageName(_omitMessageNames ? '' : 'demo_protocol'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'CommandResponse', package: const $pb.PackageName(_omitMessageNames ? '' : 'archer_protocol'), createEmptyInstance: create)
     ..oo(0, [1, 2])
     ..aOM<StatusOk>(1, _omitFieldNames ? '' : 'statusOk', protoName: 'statusOk', subBuilder: StatusOk.create)
     ..aOM<StatusError>(2, _omitFieldNames ? '' : 'statusErr', protoName: 'statusErr', subBuilder: StatusError.create)
@@ -301,6 +317,10 @@ enum Command_OneofCommand {
   cmdTrigger, 
   getHostDevStatus, 
   getHostProfile, 
+  getAllProfiles, 
+  updateAllProfiles, 
+  getReticles, 
+  updateReticles, 
   notSet
 }
 
@@ -322,6 +342,10 @@ class Command extends $pb.GeneratedMessage {
     TriggerCmd? cmdTrigger,
     GetHostDevStatus? getHostDevStatus,
     GetHostProfile? getHostProfile,
+    GetProfiles? getAllProfiles,
+    UpdateProfiles? updateAllProfiles,
+    GetReticles? getReticles,
+    UpdateReticles? updateReticles,
   }) {
     final $result = create();
     if (setZoom != null) {
@@ -372,6 +396,18 @@ class Command extends $pb.GeneratedMessage {
     if (getHostProfile != null) {
       $result.getHostProfile = getHostProfile;
     }
+    if (getAllProfiles != null) {
+      $result.getAllProfiles = getAllProfiles;
+    }
+    if (updateAllProfiles != null) {
+      $result.updateAllProfiles = updateAllProfiles;
+    }
+    if (getReticles != null) {
+      $result.getReticles = getReticles;
+    }
+    if (updateReticles != null) {
+      $result.updateReticles = updateReticles;
+    }
     return $result;
   }
   Command._() : super();
@@ -395,10 +431,14 @@ class Command extends $pb.GeneratedMessage {
     14 : Command_OneofCommand.cmdTrigger,
     15 : Command_OneofCommand.getHostDevStatus,
     16 : Command_OneofCommand.getHostProfile,
+    17 : Command_OneofCommand.getAllProfiles,
+    18 : Command_OneofCommand.updateAllProfiles,
+    19 : Command_OneofCommand.getReticles,
+    20 : Command_OneofCommand.updateReticles,
     0 : Command_OneofCommand.notSet
   };
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Command', package: const $pb.PackageName(_omitMessageNames ? '' : 'demo_protocol'), createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16])
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Command', package: const $pb.PackageName(_omitMessageNames ? '' : 'archer_protocol'), createEmptyInstance: create)
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20])
     ..aOM<SetZoomLevel>(1, _omitFieldNames ? '' : 'setZoom', protoName: 'setZoom', subBuilder: SetZoomLevel.create)
     ..aOM<SetColorScheme>(2, _omitFieldNames ? '' : 'setPallette', protoName: 'setPallette', subBuilder: SetColorScheme.create)
     ..aOM<SetAgcMode>(3, _omitFieldNames ? '' : 'setAgc', protoName: 'setAgc', subBuilder: SetAgcMode.create)
@@ -415,6 +455,10 @@ class Command extends $pb.GeneratedMessage {
     ..aOM<TriggerCmd>(14, _omitFieldNames ? '' : 'cmdTrigger', protoName: 'cmdTrigger', subBuilder: TriggerCmd.create)
     ..aOM<GetHostDevStatus>(15, _omitFieldNames ? '' : 'getHostDevStatus', protoName: 'getHostDevStatus', subBuilder: GetHostDevStatus.create)
     ..aOM<GetHostProfile>(16, _omitFieldNames ? '' : 'getHostProfile', protoName: 'getHostProfile', subBuilder: GetHostProfile.create)
+    ..aOM<GetProfiles>(17, _omitFieldNames ? '' : 'getAllProfiles', protoName: 'getAllProfiles', subBuilder: GetProfiles.create)
+    ..aOM<UpdateProfiles>(18, _omitFieldNames ? '' : 'updateAllProfiles', protoName: 'updateAllProfiles', subBuilder: UpdateProfiles.create)
+    ..aOM<GetReticles>(19, _omitFieldNames ? '' : 'getReticles', protoName: 'getReticles', subBuilder: GetReticles.create)
+    ..aOM<UpdateReticles>(20, _omitFieldNames ? '' : 'updateReticles', protoName: 'updateReticles', subBuilder: UpdateReticles.create)
     ..hasRequiredFields = false
   ;
 
@@ -617,6 +661,218 @@ class Command extends $pb.GeneratedMessage {
   void clearGetHostProfile() => clearField(16);
   @$pb.TagNumber(16)
   GetHostProfile ensureGetHostProfile() => $_ensure(15);
+
+  @$pb.TagNumber(17)
+  GetProfiles get getAllProfiles => $_getN(16);
+  @$pb.TagNumber(17)
+  set getAllProfiles(GetProfiles v) { setField(17, v); }
+  @$pb.TagNumber(17)
+  $core.bool hasGetAllProfiles() => $_has(16);
+  @$pb.TagNumber(17)
+  void clearGetAllProfiles() => clearField(17);
+  @$pb.TagNumber(17)
+  GetProfiles ensureGetAllProfiles() => $_ensure(16);
+
+  @$pb.TagNumber(18)
+  UpdateProfiles get updateAllProfiles => $_getN(17);
+  @$pb.TagNumber(18)
+  set updateAllProfiles(UpdateProfiles v) { setField(18, v); }
+  @$pb.TagNumber(18)
+  $core.bool hasUpdateAllProfiles() => $_has(17);
+  @$pb.TagNumber(18)
+  void clearUpdateAllProfiles() => clearField(18);
+  @$pb.TagNumber(18)
+  UpdateProfiles ensureUpdateAllProfiles() => $_ensure(17);
+
+  @$pb.TagNumber(19)
+  GetReticles get getReticles => $_getN(18);
+  @$pb.TagNumber(19)
+  set getReticles(GetReticles v) { setField(19, v); }
+  @$pb.TagNumber(19)
+  $core.bool hasGetReticles() => $_has(18);
+  @$pb.TagNumber(19)
+  void clearGetReticles() => clearField(19);
+  @$pb.TagNumber(19)
+  GetReticles ensureGetReticles() => $_ensure(18);
+
+  @$pb.TagNumber(20)
+  UpdateReticles get updateReticles => $_getN(19);
+  @$pb.TagNumber(20)
+  set updateReticles(UpdateReticles v) { setField(20, v); }
+  @$pb.TagNumber(20)
+  $core.bool hasUpdateReticles() => $_has(19);
+  @$pb.TagNumber(20)
+  void clearUpdateReticles() => clearField(20);
+  @$pb.TagNumber(20)
+  UpdateReticles ensureUpdateReticles() => $_ensure(19);
+}
+
+class GetProfiles extends $pb.GeneratedMessage {
+  factory GetProfiles() => create();
+  GetProfiles._() : super();
+  factory GetProfiles.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory GetProfiles.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'GetProfiles', package: const $pb.PackageName(_omitMessageNames ? '' : 'archer_protocol'), createEmptyInstance: create)
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
+  GetProfiles clone() => GetProfiles()..mergeFromMessage(this);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  GetProfiles copyWith(void Function(GetProfiles) updates) => super.copyWith((message) => updates(message as GetProfiles)) as GetProfiles;
+
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static GetProfiles create() => GetProfiles._();
+  GetProfiles createEmptyInstance() => create();
+  static $pb.PbList<GetProfiles> createRepeated() => $pb.PbList<GetProfiles>();
+  @$core.pragma('dart2js:noInline')
+  static GetProfiles getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<GetProfiles>(create);
+  static GetProfiles? _defaultInstance;
+}
+
+class GetReticles extends $pb.GeneratedMessage {
+  factory GetReticles() => create();
+  GetReticles._() : super();
+  factory GetReticles.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory GetReticles.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'GetReticles', package: const $pb.PackageName(_omitMessageNames ? '' : 'archer_protocol'), createEmptyInstance: create)
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
+  GetReticles clone() => GetReticles()..mergeFromMessage(this);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  GetReticles copyWith(void Function(GetReticles) updates) => super.copyWith((message) => updates(message as GetReticles)) as GetReticles;
+
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static GetReticles create() => GetReticles._();
+  GetReticles createEmptyInstance() => create();
+  static $pb.PbList<GetReticles> createRepeated() => $pb.PbList<GetReticles>();
+  @$core.pragma('dart2js:noInline')
+  static GetReticles getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<GetReticles>(create);
+  static GetReticles? _defaultInstance;
+}
+
+class UpdateReticles extends $pb.GeneratedMessage {
+  factory UpdateReticles({
+    Reticles? data,
+  }) {
+    final $result = create();
+    if (data != null) {
+      $result.data = data;
+    }
+    return $result;
+  }
+  UpdateReticles._() : super();
+  factory UpdateReticles.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory UpdateReticles.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'UpdateReticles', package: const $pb.PackageName(_omitMessageNames ? '' : 'archer_protocol'), createEmptyInstance: create)
+    ..aOM<Reticles>(1, _omitFieldNames ? '' : 'data', subBuilder: Reticles.create)
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
+  UpdateReticles clone() => UpdateReticles()..mergeFromMessage(this);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  UpdateReticles copyWith(void Function(UpdateReticles) updates) => super.copyWith((message) => updates(message as UpdateReticles)) as UpdateReticles;
+
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static UpdateReticles create() => UpdateReticles._();
+  UpdateReticles createEmptyInstance() => create();
+  static $pb.PbList<UpdateReticles> createRepeated() => $pb.PbList<UpdateReticles>();
+  @$core.pragma('dart2js:noInline')
+  static UpdateReticles getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<UpdateReticles>(create);
+  static UpdateReticles? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  Reticles get data => $_getN(0);
+  @$pb.TagNumber(1)
+  set data(Reticles v) { setField(1, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasData() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearData() => clearField(1);
+  @$pb.TagNumber(1)
+  Reticles ensureData() => $_ensure(0);
+}
+
+class UpdateProfiles extends $pb.GeneratedMessage {
+  factory UpdateProfiles({
+    FullProfileData? data,
+  }) {
+    final $result = create();
+    if (data != null) {
+      $result.data = data;
+    }
+    return $result;
+  }
+  UpdateProfiles._() : super();
+  factory UpdateProfiles.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory UpdateProfiles.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'UpdateProfiles', package: const $pb.PackageName(_omitMessageNames ? '' : 'archer_protocol'), createEmptyInstance: create)
+    ..aOM<FullProfileData>(1, _omitFieldNames ? '' : 'data', subBuilder: FullProfileData.create)
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
+  UpdateProfiles clone() => UpdateProfiles()..mergeFromMessage(this);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  UpdateProfiles copyWith(void Function(UpdateProfiles) updates) => super.copyWith((message) => updates(message as UpdateProfiles)) as UpdateProfiles;
+
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static UpdateProfiles create() => UpdateProfiles._();
+  UpdateProfiles createEmptyInstance() => create();
+  static $pb.PbList<UpdateProfiles> createRepeated() => $pb.PbList<UpdateProfiles>();
+  @$core.pragma('dart2js:noInline')
+  static UpdateProfiles getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<UpdateProfiles>(create);
+  static UpdateProfiles? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  FullProfileData get data => $_getN(0);
+  @$pb.TagNumber(1)
+  set data(FullProfileData v) { setField(1, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasData() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearData() => clearField(1);
+  @$pb.TagNumber(1)
+  FullProfileData ensureData() => $_ensure(0);
 }
 
 class StatusOk extends $pb.GeneratedMessage {
@@ -633,7 +889,7 @@ class StatusOk extends $pb.GeneratedMessage {
   factory StatusOk.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory StatusOk.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'StatusOk', package: const $pb.PackageName(_omitMessageNames ? '' : 'demo_protocol'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'StatusOk', package: const $pb.PackageName(_omitMessageNames ? '' : 'archer_protocol'), createEmptyInstance: create)
     ..e<OkStatusCode>(1, _omitFieldNames ? '' : 'code', $pb.PbFieldType.OE, defaultOrMaker: OkStatusCode.UNKNOWN_OK_STATUS, valueOf: OkStatusCode.valueOf, enumValues: OkStatusCode.values)
     ..hasRequiredFields = false
   ;
@@ -687,7 +943,7 @@ class StatusError extends $pb.GeneratedMessage {
   factory StatusError.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory StatusError.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'StatusError', package: const $pb.PackageName(_omitMessageNames ? '' : 'demo_protocol'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'StatusError', package: const $pb.PackageName(_omitMessageNames ? '' : 'archer_protocol'), createEmptyInstance: create)
     ..e<ErrorStatusCode>(1, _omitFieldNames ? '' : 'code', $pb.PbFieldType.OE, defaultOrMaker: ErrorStatusCode.UNKNOWN_ERROR_STATUS, valueOf: ErrorStatusCode.valueOf, enumValues: ErrorStatusCode.values)
     ..aOS(2, _omitFieldNames ? '' : 'text')
     ..hasRequiredFields = false
@@ -747,7 +1003,7 @@ class SetZoomLevel extends $pb.GeneratedMessage {
   factory SetZoomLevel.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory SetZoomLevel.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SetZoomLevel', package: const $pb.PackageName(_omitMessageNames ? '' : 'demo_protocol'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SetZoomLevel', package: const $pb.PackageName(_omitMessageNames ? '' : 'archer_protocol'), createEmptyInstance: create)
     ..e<Zoom>(1, _omitFieldNames ? '' : 'zoomLevel', $pb.PbFieldType.OE, protoName: 'zoomLevel', defaultOrMaker: Zoom.UNKNOWN_ZOOM_LEVEL, valueOf: Zoom.valueOf, enumValues: Zoom.values)
     ..hasRequiredFields = false
   ;
@@ -797,7 +1053,7 @@ class SetColorScheme extends $pb.GeneratedMessage {
   factory SetColorScheme.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory SetColorScheme.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SetColorScheme', package: const $pb.PackageName(_omitMessageNames ? '' : 'demo_protocol'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SetColorScheme', package: const $pb.PackageName(_omitMessageNames ? '' : 'archer_protocol'), createEmptyInstance: create)
     ..e<ColorScheme>(1, _omitFieldNames ? '' : 'scheme', $pb.PbFieldType.OE, defaultOrMaker: ColorScheme.UNKNOWN_COLOR_SHEME, valueOf: ColorScheme.valueOf, enumValues: ColorScheme.values)
     ..hasRequiredFields = false
   ;
@@ -839,7 +1095,7 @@ class GetHostDevStatus extends $pb.GeneratedMessage {
   factory GetHostDevStatus.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory GetHostDevStatus.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'GetHostDevStatus', package: const $pb.PackageName(_omitMessageNames ? '' : 'demo_protocol'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'GetHostDevStatus', package: const $pb.PackageName(_omitMessageNames ? '' : 'archer_protocol'), createEmptyInstance: create)
     ..hasRequiredFields = false
   ;
 
@@ -871,7 +1127,7 @@ class GetHostProfile extends $pb.GeneratedMessage {
   factory GetHostProfile.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory GetHostProfile.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'GetHostProfile', package: const $pb.PackageName(_omitMessageNames ? '' : 'demo_protocol'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'GetHostProfile', package: const $pb.PackageName(_omitMessageNames ? '' : 'archer_protocol'), createEmptyInstance: create)
     ..hasRequiredFields = false
   ;
 
@@ -911,7 +1167,7 @@ class SetAirTemp extends $pb.GeneratedMessage {
   factory SetAirTemp.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory SetAirTemp.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SetAirTemp', package: const $pb.PackageName(_omitMessageNames ? '' : 'demo_protocol'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SetAirTemp', package: const $pb.PackageName(_omitMessageNames ? '' : 'archer_protocol'), createEmptyInstance: create)
     ..a<$core.int>(1, _omitFieldNames ? '' : 'temperature', $pb.PbFieldType.O3)
     ..hasRequiredFields = false
   ;
@@ -961,7 +1217,7 @@ class SetPowderTemp extends $pb.GeneratedMessage {
   factory SetPowderTemp.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory SetPowderTemp.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SetPowderTemp', package: const $pb.PackageName(_omitMessageNames ? '' : 'demo_protocol'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SetPowderTemp', package: const $pb.PackageName(_omitMessageNames ? '' : 'archer_protocol'), createEmptyInstance: create)
     ..a<$core.int>(1, _omitFieldNames ? '' : 'temperature', $pb.PbFieldType.O3)
     ..hasRequiredFields = false
   ;
@@ -1011,7 +1267,7 @@ class SetAirHumidity extends $pb.GeneratedMessage {
   factory SetAirHumidity.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory SetAirHumidity.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SetAirHumidity', package: const $pb.PackageName(_omitMessageNames ? '' : 'demo_protocol'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SetAirHumidity', package: const $pb.PackageName(_omitMessageNames ? '' : 'archer_protocol'), createEmptyInstance: create)
     ..a<$core.int>(1, _omitFieldNames ? '' : 'humidity', $pb.PbFieldType.O3)
     ..hasRequiredFields = false
   ;
@@ -1061,7 +1317,7 @@ class SetAirPressure extends $pb.GeneratedMessage {
   factory SetAirPressure.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory SetAirPressure.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SetAirPressure', package: const $pb.PackageName(_omitMessageNames ? '' : 'demo_protocol'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SetAirPressure', package: const $pb.PackageName(_omitMessageNames ? '' : 'archer_protocol'), createEmptyInstance: create)
     ..a<$core.int>(1, _omitFieldNames ? '' : 'pressure', $pb.PbFieldType.O3)
     ..hasRequiredFields = false
   ;
@@ -1115,7 +1371,7 @@ class SetWind extends $pb.GeneratedMessage {
   factory SetWind.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory SetWind.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SetWind', package: const $pb.PackageName(_omitMessageNames ? '' : 'demo_protocol'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SetWind', package: const $pb.PackageName(_omitMessageNames ? '' : 'archer_protocol'), createEmptyInstance: create)
     ..a<$core.int>(1, _omitFieldNames ? '' : 'direction', $pb.PbFieldType.O3)
     ..a<$core.int>(2, _omitFieldNames ? '' : 'speed', $pb.PbFieldType.O3)
     ..hasRequiredFields = false
@@ -1175,7 +1431,7 @@ class SetDistance extends $pb.GeneratedMessage {
   factory SetDistance.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory SetDistance.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SetDistance', package: const $pb.PackageName(_omitMessageNames ? '' : 'demo_protocol'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SetDistance', package: const $pb.PackageName(_omitMessageNames ? '' : 'archer_protocol'), createEmptyInstance: create)
     ..a<$core.int>(1, _omitFieldNames ? '' : 'distance', $pb.PbFieldType.O3)
     ..hasRequiredFields = false
   ;
@@ -1225,7 +1481,7 @@ class SetAgcMode extends $pb.GeneratedMessage {
   factory SetAgcMode.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory SetAgcMode.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SetAgcMode', package: const $pb.PackageName(_omitMessageNames ? '' : 'demo_protocol'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SetAgcMode', package: const $pb.PackageName(_omitMessageNames ? '' : 'archer_protocol'), createEmptyInstance: create)
     ..e<AGCMode>(1, _omitFieldNames ? '' : 'mode', $pb.PbFieldType.OE, defaultOrMaker: AGCMode.UNKNOWN_AGC_MODE, valueOf: AGCMode.valueOf, enumValues: AGCMode.values)
     ..hasRequiredFields = false
   ;
@@ -1275,7 +1531,7 @@ class SetCompassOffset extends $pb.GeneratedMessage {
   factory SetCompassOffset.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory SetCompassOffset.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SetCompassOffset', package: const $pb.PackageName(_omitMessageNames ? '' : 'demo_protocol'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SetCompassOffset', package: const $pb.PackageName(_omitMessageNames ? '' : 'archer_protocol'), createEmptyInstance: create)
     ..a<$core.int>(1, _omitFieldNames ? '' : 'offset', $pb.PbFieldType.O3)
     ..hasRequiredFields = false
   ;
@@ -1315,6 +1571,7 @@ class SetHoldoff extends $pb.GeneratedMessage {
   factory SetHoldoff({
     $core.int? x,
     $core.int? y,
+    HoldoffType? type,
   }) {
     final $result = create();
     if (x != null) {
@@ -1323,15 +1580,19 @@ class SetHoldoff extends $pb.GeneratedMessage {
     if (y != null) {
       $result.y = y;
     }
+    if (type != null) {
+      $result.type = type;
+    }
     return $result;
   }
   SetHoldoff._() : super();
   factory SetHoldoff.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory SetHoldoff.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SetHoldoff', package: const $pb.PackageName(_omitMessageNames ? '' : 'demo_protocol'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SetHoldoff', package: const $pb.PackageName(_omitMessageNames ? '' : 'archer_protocol'), createEmptyInstance: create)
     ..a<$core.int>(1, _omitFieldNames ? '' : 'x', $pb.PbFieldType.O3)
     ..a<$core.int>(2, _omitFieldNames ? '' : 'y', $pb.PbFieldType.O3)
+    ..e<HoldoffType>(3, _omitFieldNames ? '' : 'type', $pb.PbFieldType.OE, defaultOrMaker: HoldoffType.UNDEFINED, valueOf: HoldoffType.valueOf, enumValues: HoldoffType.values)
     ..hasRequiredFields = false
   ;
 
@@ -1373,6 +1634,15 @@ class SetHoldoff extends $pb.GeneratedMessage {
   $core.bool hasY() => $_has(1);
   @$pb.TagNumber(2)
   void clearY() => clearField(2);
+
+  @$pb.TagNumber(3)
+  HoldoffType get type => $_getN(2);
+  @$pb.TagNumber(3)
+  set type(HoldoffType v) { setField(3, v); }
+  @$pb.TagNumber(3)
+  $core.bool hasType() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearType() => clearField(3);
 }
 
 class ButtonPress extends $pb.GeneratedMessage {
@@ -1389,7 +1659,7 @@ class ButtonPress extends $pb.GeneratedMessage {
   factory ButtonPress.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory ButtonPress.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ButtonPress', package: const $pb.PackageName(_omitMessageNames ? '' : 'demo_protocol'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ButtonPress', package: const $pb.PackageName(_omitMessageNames ? '' : 'archer_protocol'), createEmptyInstance: create)
     ..e<ButtonEnum>(1, _omitFieldNames ? '' : 'buttonPressed', $pb.PbFieldType.OE, protoName: 'buttonPressed', defaultOrMaker: ButtonEnum.UNKNOWN_BUTTON, valueOf: ButtonEnum.valueOf, enumValues: ButtonEnum.values)
     ..hasRequiredFields = false
   ;
@@ -1439,7 +1709,7 @@ class TriggerCmd extends $pb.GeneratedMessage {
   factory TriggerCmd.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory TriggerCmd.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'TriggerCmd', package: const $pb.PackageName(_omitMessageNames ? '' : 'demo_protocol'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'TriggerCmd', package: const $pb.PackageName(_omitMessageNames ? '' : 'archer_protocol'), createEmptyInstance: create)
     ..e<CMDDirect>(1, _omitFieldNames ? '' : 'cmd', $pb.PbFieldType.OE, defaultOrMaker: CMDDirect.UNKNOWN_CMD_DIRECTION, valueOf: CMDDirect.valueOf, enumValues: CMDDirect.values)
     ..hasRequiredFields = false
   ;
@@ -1493,7 +1763,7 @@ class SetZeroing extends $pb.GeneratedMessage {
   factory SetZeroing.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory SetZeroing.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SetZeroing', package: const $pb.PackageName(_omitMessageNames ? '' : 'demo_protocol'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SetZeroing', package: const $pb.PackageName(_omitMessageNames ? '' : 'archer_protocol'), createEmptyInstance: create)
     ..a<$core.int>(1, _omitFieldNames ? '' : 'x', $pb.PbFieldType.O3)
     ..a<$core.int>(2, _omitFieldNames ? '' : 'y', $pb.PbFieldType.O3)
     ..hasRequiredFields = false
@@ -1555,6 +1825,7 @@ class HostDevStatus extends $pb.GeneratedMessage {
     $core.int? currentProfile,
     ColorScheme? colorScheme,
     AGCMode? modAGC,
+    Zoom? maxZoom,
   }) {
     final $result = create();
     if (charge != null) {
@@ -1599,13 +1870,16 @@ class HostDevStatus extends $pb.GeneratedMessage {
     if (modAGC != null) {
       $result.modAGC = modAGC;
     }
+    if (maxZoom != null) {
+      $result.maxZoom = maxZoom;
+    }
     return $result;
   }
   HostDevStatus._() : super();
   factory HostDevStatus.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory HostDevStatus.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'HostDevStatus', package: const $pb.PackageName(_omitMessageNames ? '' : 'demo_protocol'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'HostDevStatus', package: const $pb.PackageName(_omitMessageNames ? '' : 'archer_protocol'), createEmptyInstance: create)
     ..a<$core.int>(1, _omitFieldNames ? '' : 'charge', $pb.PbFieldType.O3)
     ..e<Zoom>(2, _omitFieldNames ? '' : 'zoom', $pb.PbFieldType.OE, defaultOrMaker: Zoom.UNKNOWN_ZOOM_LEVEL, valueOf: Zoom.valueOf, enumValues: Zoom.values)
     ..a<$core.int>(3, _omitFieldNames ? '' : 'airTemp', $pb.PbFieldType.O3, protoName: 'airTemp')
@@ -1620,6 +1894,7 @@ class HostDevStatus extends $pb.GeneratedMessage {
     ..a<$core.int>(12, _omitFieldNames ? '' : 'currentProfile', $pb.PbFieldType.O3, protoName: 'currentProfile')
     ..e<ColorScheme>(13, _omitFieldNames ? '' : 'colorScheme', $pb.PbFieldType.OE, protoName: 'colorScheme', defaultOrMaker: ColorScheme.UNKNOWN_COLOR_SHEME, valueOf: ColorScheme.valueOf, enumValues: ColorScheme.values)
     ..e<AGCMode>(14, _omitFieldNames ? '' : 'modAGC', $pb.PbFieldType.OE, protoName: 'modAGC', defaultOrMaker: AGCMode.UNKNOWN_AGC_MODE, valueOf: AGCMode.valueOf, enumValues: AGCMode.values)
+    ..e<Zoom>(15, _omitFieldNames ? '' : 'maxZoom', $pb.PbFieldType.OE, protoName: 'maxZoom', defaultOrMaker: Zoom.UNKNOWN_ZOOM_LEVEL, valueOf: Zoom.valueOf, enumValues: Zoom.values)
     ..hasRequiredFields = false
   ;
 
@@ -1769,6 +2044,15 @@ class HostDevStatus extends $pb.GeneratedMessage {
   $core.bool hasModAGC() => $_has(13);
   @$pb.TagNumber(14)
   void clearModAGC() => clearField(14);
+
+  @$pb.TagNumber(15)
+  Zoom get maxZoom => $_getN(14);
+  @$pb.TagNumber(15)
+  set maxZoom(Zoom v) { setField(15, v); }
+  @$pb.TagNumber(15)
+  $core.bool hasMaxZoom() => $_has(14);
+  @$pb.TagNumber(15)
+  void clearMaxZoom() => clearField(15);
 }
 
 class ClientDevStatus extends $pb.GeneratedMessage {
@@ -1777,7 +2061,7 @@ class ClientDevStatus extends $pb.GeneratedMessage {
   factory ClientDevStatus.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory ClientDevStatus.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ClientDevStatus', package: const $pb.PackageName(_omitMessageNames ? '' : 'demo_protocol'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ClientDevStatus', package: const $pb.PackageName(_omitMessageNames ? '' : 'archer_protocol'), createEmptyInstance: create)
     ..hasRequiredFields = false
   ;
 
@@ -1805,15 +2089,15 @@ class ClientDevStatus extends $pb.GeneratedMessage {
 
 class CoefRow extends $pb.GeneratedMessage {
   factory CoefRow({
-    $core.int? first,
-    $core.int? second,
+    $core.int? bcCd,
+    $core.int? mv,
   }) {
     final $result = create();
-    if (first != null) {
-      $result.first = first;
+    if (bcCd != null) {
+      $result.bcCd = bcCd;
     }
-    if (second != null) {
-      $result.second = second;
+    if (mv != null) {
+      $result.mv = mv;
     }
     return $result;
   }
@@ -1821,9 +2105,9 @@ class CoefRow extends $pb.GeneratedMessage {
   factory CoefRow.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory CoefRow.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'CoefRow', package: const $pb.PackageName(_omitMessageNames ? '' : 'demo_protocol'), createEmptyInstance: create)
-    ..a<$core.int>(1, _omitFieldNames ? '' : 'first', $pb.PbFieldType.O3)
-    ..a<$core.int>(2, _omitFieldNames ? '' : 'second', $pb.PbFieldType.O3)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'CoefRow', package: const $pb.PackageName(_omitMessageNames ? '' : 'archer_protocol'), createEmptyInstance: create)
+    ..a<$core.int>(1, _omitFieldNames ? '' : 'bcCd', $pb.PbFieldType.O3)
+    ..a<$core.int>(2, _omitFieldNames ? '' : 'mv', $pb.PbFieldType.O3)
     ..hasRequiredFields = false
   ;
 
@@ -1849,22 +2133,22 @@ class CoefRow extends $pb.GeneratedMessage {
   static CoefRow? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $core.int get first => $_getIZ(0);
+  $core.int get bcCd => $_getIZ(0);
   @$pb.TagNumber(1)
-  set first($core.int v) { $_setSignedInt32(0, v); }
+  set bcCd($core.int v) { $_setSignedInt32(0, v); }
   @$pb.TagNumber(1)
-  $core.bool hasFirst() => $_has(0);
+  $core.bool hasBcCd() => $_has(0);
   @$pb.TagNumber(1)
-  void clearFirst() => clearField(1);
+  void clearBcCd() => clearField(1);
 
   @$pb.TagNumber(2)
-  $core.int get second => $_getIZ(1);
+  $core.int get mv => $_getIZ(1);
   @$pb.TagNumber(2)
-  set second($core.int v) { $_setSignedInt32(1, v); }
+  set mv($core.int v) { $_setSignedInt32(1, v); }
   @$pb.TagNumber(2)
-  $core.bool hasSecond() => $_has(1);
+  $core.bool hasMv() => $_has(1);
   @$pb.TagNumber(2)
-  void clearSecond() => clearField(2);
+  void clearMv() => clearField(2);
 }
 
 class SwPos extends $pb.GeneratedMessage {
@@ -1897,7 +2181,7 @@ class SwPos extends $pb.GeneratedMessage {
   factory SwPos.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory SwPos.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SwPos', package: const $pb.PackageName(_omitMessageNames ? '' : 'demo_protocol'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SwPos', package: const $pb.PackageName(_omitMessageNames ? '' : 'archer_protocol'), createEmptyInstance: create)
     ..a<$core.int>(1, _omitFieldNames ? '' : 'cIdx', $pb.PbFieldType.O3)
     ..a<$core.int>(2, _omitFieldNames ? '' : 'reticleIdx', $pb.PbFieldType.O3)
     ..a<$core.int>(3, _omitFieldNames ? '' : 'zoom', $pb.PbFieldType.O3)
@@ -2099,7 +2383,7 @@ class HostProfile extends $pb.GeneratedMessage {
   factory HostProfile.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory HostProfile.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'HostProfile', package: const $pb.PackageName(_omitMessageNames ? '' : 'demo_protocol'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'HostProfile', package: const $pb.PackageName(_omitMessageNames ? '' : 'archer_protocol'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'profileName')
     ..aOS(2, _omitFieldNames ? '' : 'cartridgeName')
     ..aOS(3, _omitFieldNames ? '' : 'bulletName')
@@ -2397,147 +2681,27 @@ class HostProfile extends $pb.GeneratedMessage {
   void clearDeviceUuid() => clearField(29);
 }
 
-class ClientProfile extends $pb.GeneratedMessage {
-  factory ClientProfile({
-    $core.String? shortNameTop,
-    $core.String? shortNameBot,
-    $core.String? userNote,
-    $core.int? zeroX,
-    $core.int? zeroY,
-    $core.int? scHeight,
-    $core.int? rTwist,
-    $core.int? cMuzzleVelocity,
-    $core.int? cZeroTemperature,
-    $core.int? cTCoeff,
-    $core.int? cZeroDistanceIdx,
-    $core.int? cZeroAirTemperature,
-    $core.int? cZeroAirPressure,
-    $core.int? cZeroAirHumidity,
-    $core.int? cZeroWPitch,
-    $core.int? cZeroPTemperature,
-    $core.int? bDiameter,
-    $core.int? bWeight,
-    $core.int? bLength,
-    TwistDir? twistDir,
-    GType? bcType,
-    $core.Iterable<SwPos>? switches,
-    $core.Iterable<$core.int>? distances,
-    $core.Iterable<CoefRow>? coefRows,
-    $core.String? caliber,
-    $core.String? deviceUuid,
+class ProfileList extends $pb.GeneratedMessage {
+  factory ProfileList({
+    $core.Iterable<ProfileListEntry>? profileDesc,
+    $core.int? activeprofile,
   }) {
     final $result = create();
-    if (shortNameTop != null) {
-      $result.shortNameTop = shortNameTop;
+    if (profileDesc != null) {
+      $result.profileDesc.addAll(profileDesc);
     }
-    if (shortNameBot != null) {
-      $result.shortNameBot = shortNameBot;
-    }
-    if (userNote != null) {
-      $result.userNote = userNote;
-    }
-    if (zeroX != null) {
-      $result.zeroX = zeroX;
-    }
-    if (zeroY != null) {
-      $result.zeroY = zeroY;
-    }
-    if (scHeight != null) {
-      $result.scHeight = scHeight;
-    }
-    if (rTwist != null) {
-      $result.rTwist = rTwist;
-    }
-    if (cMuzzleVelocity != null) {
-      $result.cMuzzleVelocity = cMuzzleVelocity;
-    }
-    if (cZeroTemperature != null) {
-      $result.cZeroTemperature = cZeroTemperature;
-    }
-    if (cTCoeff != null) {
-      $result.cTCoeff = cTCoeff;
-    }
-    if (cZeroDistanceIdx != null) {
-      $result.cZeroDistanceIdx = cZeroDistanceIdx;
-    }
-    if (cZeroAirTemperature != null) {
-      $result.cZeroAirTemperature = cZeroAirTemperature;
-    }
-    if (cZeroAirPressure != null) {
-      $result.cZeroAirPressure = cZeroAirPressure;
-    }
-    if (cZeroAirHumidity != null) {
-      $result.cZeroAirHumidity = cZeroAirHumidity;
-    }
-    if (cZeroWPitch != null) {
-      $result.cZeroWPitch = cZeroWPitch;
-    }
-    if (cZeroPTemperature != null) {
-      $result.cZeroPTemperature = cZeroPTemperature;
-    }
-    if (bDiameter != null) {
-      $result.bDiameter = bDiameter;
-    }
-    if (bWeight != null) {
-      $result.bWeight = bWeight;
-    }
-    if (bLength != null) {
-      $result.bLength = bLength;
-    }
-    if (twistDir != null) {
-      $result.twistDir = twistDir;
-    }
-    if (bcType != null) {
-      $result.bcType = bcType;
-    }
-    if (switches != null) {
-      $result.switches.addAll(switches);
-    }
-    if (distances != null) {
-      $result.distances.addAll(distances);
-    }
-    if (coefRows != null) {
-      $result.coefRows.addAll(coefRows);
-    }
-    if (caliber != null) {
-      $result.caliber = caliber;
-    }
-    if (deviceUuid != null) {
-      $result.deviceUuid = deviceUuid;
+    if (activeprofile != null) {
+      $result.activeprofile = activeprofile;
     }
     return $result;
   }
-  ClientProfile._() : super();
-  factory ClientProfile.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory ClientProfile.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  ProfileList._() : super();
+  factory ProfileList.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory ProfileList.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ClientProfile', package: const $pb.PackageName(_omitMessageNames ? '' : 'demo_protocol'), createEmptyInstance: create)
-    ..aOS(4, _omitFieldNames ? '' : 'shortNameTop')
-    ..aOS(5, _omitFieldNames ? '' : 'shortNameBot')
-    ..aOS(6, _omitFieldNames ? '' : 'userNote')
-    ..a<$core.int>(7, _omitFieldNames ? '' : 'zeroX', $pb.PbFieldType.O3)
-    ..a<$core.int>(8, _omitFieldNames ? '' : 'zeroY', $pb.PbFieldType.O3)
-    ..a<$core.int>(9, _omitFieldNames ? '' : 'scHeight', $pb.PbFieldType.O3)
-    ..a<$core.int>(10, _omitFieldNames ? '' : 'rTwist', $pb.PbFieldType.O3)
-    ..a<$core.int>(11, _omitFieldNames ? '' : 'cMuzzleVelocity', $pb.PbFieldType.O3)
-    ..a<$core.int>(12, _omitFieldNames ? '' : 'cZeroTemperature', $pb.PbFieldType.O3)
-    ..a<$core.int>(13, _omitFieldNames ? '' : 'cTCoeff', $pb.PbFieldType.O3)
-    ..a<$core.int>(14, _omitFieldNames ? '' : 'cZeroDistanceIdx', $pb.PbFieldType.O3)
-    ..a<$core.int>(15, _omitFieldNames ? '' : 'cZeroAirTemperature', $pb.PbFieldType.O3)
-    ..a<$core.int>(16, _omitFieldNames ? '' : 'cZeroAirPressure', $pb.PbFieldType.O3)
-    ..a<$core.int>(17, _omitFieldNames ? '' : 'cZeroAirHumidity', $pb.PbFieldType.O3)
-    ..a<$core.int>(18, _omitFieldNames ? '' : 'cZeroWPitch', $pb.PbFieldType.O3)
-    ..a<$core.int>(19, _omitFieldNames ? '' : 'cZeroPTemperature', $pb.PbFieldType.O3)
-    ..a<$core.int>(20, _omitFieldNames ? '' : 'bDiameter', $pb.PbFieldType.O3)
-    ..a<$core.int>(21, _omitFieldNames ? '' : 'bWeight', $pb.PbFieldType.O3)
-    ..a<$core.int>(22, _omitFieldNames ? '' : 'bLength', $pb.PbFieldType.O3)
-    ..e<TwistDir>(23, _omitFieldNames ? '' : 'twistDir', $pb.PbFieldType.OE, defaultOrMaker: TwistDir.RIGHT, valueOf: TwistDir.valueOf, enumValues: TwistDir.values)
-    ..e<GType>(24, _omitFieldNames ? '' : 'bcType', $pb.PbFieldType.OE, defaultOrMaker: GType.G1, valueOf: GType.valueOf, enumValues: GType.values)
-    ..pc<SwPos>(25, _omitFieldNames ? '' : 'switches', $pb.PbFieldType.PM, subBuilder: SwPos.create)
-    ..p<$core.int>(26, _omitFieldNames ? '' : 'distances', $pb.PbFieldType.K3)
-    ..pc<CoefRow>(27, _omitFieldNames ? '' : 'coefRows', $pb.PbFieldType.PM, subBuilder: CoefRow.create)
-    ..aOS(28, _omitFieldNames ? '' : 'caliber')
-    ..aOS(29, _omitFieldNames ? '' : 'deviceUuid')
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ProfileList', package: const $pb.PackageName(_omitMessageNames ? '' : 'archer_protocol'), createEmptyInstance: create)
+    ..pc<ProfileListEntry>(1, _omitFieldNames ? '' : 'profileDesc', $pb.PbFieldType.PM, subBuilder: ProfileListEntry.create)
+    ..a<$core.int>(2, _omitFieldNames ? '' : 'activeprofile', $pb.PbFieldType.O3)
     ..hasRequiredFields = false
   ;
 
@@ -2545,238 +2709,360 @@ class ClientProfile extends $pb.GeneratedMessage {
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
   'Will be removed in next major version')
-  ClientProfile clone() => ClientProfile()..mergeFromMessage(this);
+  ProfileList clone() => ProfileList()..mergeFromMessage(this);
   @$core.Deprecated(
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
   'Will be removed in next major version')
-  ClientProfile copyWith(void Function(ClientProfile) updates) => super.copyWith((message) => updates(message as ClientProfile)) as ClientProfile;
+  ProfileList copyWith(void Function(ProfileList) updates) => super.copyWith((message) => updates(message as ProfileList)) as ProfileList;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static ClientProfile create() => ClientProfile._();
-  ClientProfile createEmptyInstance() => create();
-  static $pb.PbList<ClientProfile> createRepeated() => $pb.PbList<ClientProfile>();
+  static ProfileList create() => ProfileList._();
+  ProfileList createEmptyInstance() => create();
+  static $pb.PbList<ProfileList> createRepeated() => $pb.PbList<ProfileList>();
   @$core.pragma('dart2js:noInline')
-  static ClientProfile getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ClientProfile>(create);
-  static ClientProfile? _defaultInstance;
+  static ProfileList getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ProfileList>(create);
+  static ProfileList? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<ProfileListEntry> get profileDesc => $_getList(0);
+
+  @$pb.TagNumber(2)
+  $core.int get activeprofile => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set activeprofile($core.int v) { $_setSignedInt32(1, v); }
+  @$pb.TagNumber(2)
+  $core.bool hasActiveprofile() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearActiveprofile() => clearField(2);
+}
+
+class ProfileListEntry extends $pb.GeneratedMessage {
+  factory ProfileListEntry({
+    $core.String? profileName,
+    $core.String? cartridgeName,
+    $core.String? shortNameTop,
+    $core.String? shortNameBot,
+    $core.String? filePath,
+  }) {
+    final $result = create();
+    if (profileName != null) {
+      $result.profileName = profileName;
+    }
+    if (cartridgeName != null) {
+      $result.cartridgeName = cartridgeName;
+    }
+    if (shortNameTop != null) {
+      $result.shortNameTop = shortNameTop;
+    }
+    if (shortNameBot != null) {
+      $result.shortNameBot = shortNameBot;
+    }
+    if (filePath != null) {
+      $result.filePath = filePath;
+    }
+    return $result;
+  }
+  ProfileListEntry._() : super();
+  factory ProfileListEntry.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory ProfileListEntry.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ProfileListEntry', package: const $pb.PackageName(_omitMessageNames ? '' : 'archer_protocol'), createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'profileName')
+    ..aOS(2, _omitFieldNames ? '' : 'cartridgeName')
+    ..aOS(3, _omitFieldNames ? '' : 'shortNameTop')
+    ..aOS(4, _omitFieldNames ? '' : 'shortNameBot')
+    ..aOS(5, _omitFieldNames ? '' : 'filePath')
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
+  ProfileListEntry clone() => ProfileListEntry()..mergeFromMessage(this);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  ProfileListEntry copyWith(void Function(ProfileListEntry) updates) => super.copyWith((message) => updates(message as ProfileListEntry)) as ProfileListEntry;
+
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ProfileListEntry create() => ProfileListEntry._();
+  ProfileListEntry createEmptyInstance() => create();
+  static $pb.PbList<ProfileListEntry> createRepeated() => $pb.PbList<ProfileListEntry>();
+  @$core.pragma('dart2js:noInline')
+  static ProfileListEntry getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ProfileListEntry>(create);
+  static ProfileListEntry? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get profileName => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set profileName($core.String v) { $_setString(0, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasProfileName() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearProfileName() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get cartridgeName => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set cartridgeName($core.String v) { $_setString(1, v); }
+  @$pb.TagNumber(2)
+  $core.bool hasCartridgeName() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearCartridgeName() => clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.String get shortNameTop => $_getSZ(2);
+  @$pb.TagNumber(3)
+  set shortNameTop($core.String v) { $_setString(2, v); }
+  @$pb.TagNumber(3)
+  $core.bool hasShortNameTop() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearShortNameTop() => clearField(3);
 
   @$pb.TagNumber(4)
-  $core.String get shortNameTop => $_getSZ(0);
+  $core.String get shortNameBot => $_getSZ(3);
   @$pb.TagNumber(4)
-  set shortNameTop($core.String v) { $_setString(0, v); }
+  set shortNameBot($core.String v) { $_setString(3, v); }
   @$pb.TagNumber(4)
-  $core.bool hasShortNameTop() => $_has(0);
+  $core.bool hasShortNameBot() => $_has(3);
   @$pb.TagNumber(4)
-  void clearShortNameTop() => clearField(4);
+  void clearShortNameBot() => clearField(4);
 
   @$pb.TagNumber(5)
-  $core.String get shortNameBot => $_getSZ(1);
+  $core.String get filePath => $_getSZ(4);
   @$pb.TagNumber(5)
-  set shortNameBot($core.String v) { $_setString(1, v); }
+  set filePath($core.String v) { $_setString(4, v); }
   @$pb.TagNumber(5)
-  $core.bool hasShortNameBot() => $_has(1);
+  $core.bool hasFilePath() => $_has(4);
   @$pb.TagNumber(5)
-  void clearShortNameBot() => clearField(5);
+  void clearFilePath() => clearField(5);
+}
 
-  @$pb.TagNumber(6)
-  $core.String get userNote => $_getSZ(2);
-  @$pb.TagNumber(6)
-  set userNote($core.String v) { $_setString(2, v); }
-  @$pb.TagNumber(6)
-  $core.bool hasUserNote() => $_has(2);
-  @$pb.TagNumber(6)
-  void clearUserNote() => clearField(6);
+class FullProfileData extends $pb.GeneratedMessage {
+  factory FullProfileData({
+    ProfileList? table,
+    $core.Iterable<HostProfile>? profiles,
+  }) {
+    final $result = create();
+    if (table != null) {
+      $result.table = table;
+    }
+    if (profiles != null) {
+      $result.profiles.addAll(profiles);
+    }
+    return $result;
+  }
+  FullProfileData._() : super();
+  factory FullProfileData.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory FullProfileData.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  @$pb.TagNumber(7)
-  $core.int get zeroX => $_getIZ(3);
-  @$pb.TagNumber(7)
-  set zeroX($core.int v) { $_setSignedInt32(3, v); }
-  @$pb.TagNumber(7)
-  $core.bool hasZeroX() => $_has(3);
-  @$pb.TagNumber(7)
-  void clearZeroX() => clearField(7);
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'FullProfileData', package: const $pb.PackageName(_omitMessageNames ? '' : 'archer_protocol'), createEmptyInstance: create)
+    ..aOM<ProfileList>(1, _omitFieldNames ? '' : 'table', subBuilder: ProfileList.create)
+    ..pc<HostProfile>(2, _omitFieldNames ? '' : 'profiles', $pb.PbFieldType.PM, subBuilder: HostProfile.create)
+    ..hasRequiredFields = false
+  ;
 
-  @$pb.TagNumber(8)
-  $core.int get zeroY => $_getIZ(4);
-  @$pb.TagNumber(8)
-  set zeroY($core.int v) { $_setSignedInt32(4, v); }
-  @$pb.TagNumber(8)
-  $core.bool hasZeroY() => $_has(4);
-  @$pb.TagNumber(8)
-  void clearZeroY() => clearField(8);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
+  FullProfileData clone() => FullProfileData()..mergeFromMessage(this);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  FullProfileData copyWith(void Function(FullProfileData) updates) => super.copyWith((message) => updates(message as FullProfileData)) as FullProfileData;
 
-  @$pb.TagNumber(9)
-  $core.int get scHeight => $_getIZ(5);
-  @$pb.TagNumber(9)
-  set scHeight($core.int v) { $_setSignedInt32(5, v); }
-  @$pb.TagNumber(9)
-  $core.bool hasScHeight() => $_has(5);
-  @$pb.TagNumber(9)
-  void clearScHeight() => clearField(9);
+  $pb.BuilderInfo get info_ => _i;
 
-  @$pb.TagNumber(10)
-  $core.int get rTwist => $_getIZ(6);
-  @$pb.TagNumber(10)
-  set rTwist($core.int v) { $_setSignedInt32(6, v); }
-  @$pb.TagNumber(10)
-  $core.bool hasRTwist() => $_has(6);
-  @$pb.TagNumber(10)
-  void clearRTwist() => clearField(10);
+  @$core.pragma('dart2js:noInline')
+  static FullProfileData create() => FullProfileData._();
+  FullProfileData createEmptyInstance() => create();
+  static $pb.PbList<FullProfileData> createRepeated() => $pb.PbList<FullProfileData>();
+  @$core.pragma('dart2js:noInline')
+  static FullProfileData getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<FullProfileData>(create);
+  static FullProfileData? _defaultInstance;
 
-  @$pb.TagNumber(11)
-  $core.int get cMuzzleVelocity => $_getIZ(7);
-  @$pb.TagNumber(11)
-  set cMuzzleVelocity($core.int v) { $_setSignedInt32(7, v); }
-  @$pb.TagNumber(11)
-  $core.bool hasCMuzzleVelocity() => $_has(7);
-  @$pb.TagNumber(11)
-  void clearCMuzzleVelocity() => clearField(11);
+  @$pb.TagNumber(1)
+  ProfileList get table => $_getN(0);
+  @$pb.TagNumber(1)
+  set table(ProfileList v) { setField(1, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasTable() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearTable() => clearField(1);
+  @$pb.TagNumber(1)
+  ProfileList ensureTable() => $_ensure(0);
 
-  @$pb.TagNumber(12)
-  $core.int get cZeroTemperature => $_getIZ(8);
-  @$pb.TagNumber(12)
-  set cZeroTemperature($core.int v) { $_setSignedInt32(8, v); }
-  @$pb.TagNumber(12)
-  $core.bool hasCZeroTemperature() => $_has(8);
-  @$pb.TagNumber(12)
-  void clearCZeroTemperature() => clearField(12);
+  @$pb.TagNumber(2)
+  $core.List<HostProfile> get profiles => $_getList(1);
+}
 
-  @$pb.TagNumber(13)
-  $core.int get cTCoeff => $_getIZ(9);
-  @$pb.TagNumber(13)
-  set cTCoeff($core.int v) { $_setSignedInt32(9, v); }
-  @$pb.TagNumber(13)
-  $core.bool hasCTCoeff() => $_has(9);
-  @$pb.TagNumber(13)
-  void clearCTCoeff() => clearField(13);
+class Reticle extends $pb.GeneratedMessage {
+  factory Reticle({
+    $core.List<$core.int>? data,
+    $core.String? folderName,
+  }) {
+    final $result = create();
+    if (data != null) {
+      $result.data = data;
+    }
+    if (folderName != null) {
+      $result.folderName = folderName;
+    }
+    return $result;
+  }
+  Reticle._() : super();
+  factory Reticle.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory Reticle.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  @$pb.TagNumber(14)
-  $core.int get cZeroDistanceIdx => $_getIZ(10);
-  @$pb.TagNumber(14)
-  set cZeroDistanceIdx($core.int v) { $_setSignedInt32(10, v); }
-  @$pb.TagNumber(14)
-  $core.bool hasCZeroDistanceIdx() => $_has(10);
-  @$pb.TagNumber(14)
-  void clearCZeroDistanceIdx() => clearField(14);
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Reticle', package: const $pb.PackageName(_omitMessageNames ? '' : 'archer_protocol'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'data', $pb.PbFieldType.OY)
+    ..aOS(2, _omitFieldNames ? '' : 'folderName')
+    ..hasRequiredFields = false
+  ;
 
-  @$pb.TagNumber(15)
-  $core.int get cZeroAirTemperature => $_getIZ(11);
-  @$pb.TagNumber(15)
-  set cZeroAirTemperature($core.int v) { $_setSignedInt32(11, v); }
-  @$pb.TagNumber(15)
-  $core.bool hasCZeroAirTemperature() => $_has(11);
-  @$pb.TagNumber(15)
-  void clearCZeroAirTemperature() => clearField(15);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
+  Reticle clone() => Reticle()..mergeFromMessage(this);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  Reticle copyWith(void Function(Reticle) updates) => super.copyWith((message) => updates(message as Reticle)) as Reticle;
 
-  @$pb.TagNumber(16)
-  $core.int get cZeroAirPressure => $_getIZ(12);
-  @$pb.TagNumber(16)
-  set cZeroAirPressure($core.int v) { $_setSignedInt32(12, v); }
-  @$pb.TagNumber(16)
-  $core.bool hasCZeroAirPressure() => $_has(12);
-  @$pb.TagNumber(16)
-  void clearCZeroAirPressure() => clearField(16);
+  $pb.BuilderInfo get info_ => _i;
 
-  @$pb.TagNumber(17)
-  $core.int get cZeroAirHumidity => $_getIZ(13);
-  @$pb.TagNumber(17)
-  set cZeroAirHumidity($core.int v) { $_setSignedInt32(13, v); }
-  @$pb.TagNumber(17)
-  $core.bool hasCZeroAirHumidity() => $_has(13);
-  @$pb.TagNumber(17)
-  void clearCZeroAirHumidity() => clearField(17);
+  @$core.pragma('dart2js:noInline')
+  static Reticle create() => Reticle._();
+  Reticle createEmptyInstance() => create();
+  static $pb.PbList<Reticle> createRepeated() => $pb.PbList<Reticle>();
+  @$core.pragma('dart2js:noInline')
+  static Reticle getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Reticle>(create);
+  static Reticle? _defaultInstance;
 
-  @$pb.TagNumber(18)
-  $core.int get cZeroWPitch => $_getIZ(14);
-  @$pb.TagNumber(18)
-  set cZeroWPitch($core.int v) { $_setSignedInt32(14, v); }
-  @$pb.TagNumber(18)
-  $core.bool hasCZeroWPitch() => $_has(14);
-  @$pb.TagNumber(18)
-  void clearCZeroWPitch() => clearField(18);
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get data => $_getN(0);
+  @$pb.TagNumber(1)
+  set data($core.List<$core.int> v) { $_setBytes(0, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasData() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearData() => clearField(1);
 
-  @$pb.TagNumber(19)
-  $core.int get cZeroPTemperature => $_getIZ(15);
-  @$pb.TagNumber(19)
-  set cZeroPTemperature($core.int v) { $_setSignedInt32(15, v); }
-  @$pb.TagNumber(19)
-  $core.bool hasCZeroPTemperature() => $_has(15);
-  @$pb.TagNumber(19)
-  void clearCZeroPTemperature() => clearField(19);
+  @$pb.TagNumber(2)
+  $core.String get folderName => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set folderName($core.String v) { $_setString(1, v); }
+  @$pb.TagNumber(2)
+  $core.bool hasFolderName() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearFolderName() => clearField(2);
+}
 
-  @$pb.TagNumber(20)
-  $core.int get bDiameter => $_getIZ(16);
-  @$pb.TagNumber(20)
-  set bDiameter($core.int v) { $_setSignedInt32(16, v); }
-  @$pb.TagNumber(20)
-  $core.bool hasBDiameter() => $_has(16);
-  @$pb.TagNumber(20)
-  void clearBDiameter() => clearField(20);
+class Reticles extends $pb.GeneratedMessage {
+  factory Reticles({
+    $core.Iterable<Reticle>? rets,
+  }) {
+    final $result = create();
+    if (rets != null) {
+      $result.rets.addAll(rets);
+    }
+    return $result;
+  }
+  Reticles._() : super();
+  factory Reticles.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory Reticles.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  @$pb.TagNumber(21)
-  $core.int get bWeight => $_getIZ(17);
-  @$pb.TagNumber(21)
-  set bWeight($core.int v) { $_setSignedInt32(17, v); }
-  @$pb.TagNumber(21)
-  $core.bool hasBWeight() => $_has(17);
-  @$pb.TagNumber(21)
-  void clearBWeight() => clearField(21);
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Reticles', package: const $pb.PackageName(_omitMessageNames ? '' : 'archer_protocol'), createEmptyInstance: create)
+    ..pc<Reticle>(1, _omitFieldNames ? '' : 'rets', $pb.PbFieldType.PM, subBuilder: Reticle.create)
+    ..hasRequiredFields = false
+  ;
 
-  @$pb.TagNumber(22)
-  $core.int get bLength => $_getIZ(18);
-  @$pb.TagNumber(22)
-  set bLength($core.int v) { $_setSignedInt32(18, v); }
-  @$pb.TagNumber(22)
-  $core.bool hasBLength() => $_has(18);
-  @$pb.TagNumber(22)
-  void clearBLength() => clearField(22);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
+  Reticles clone() => Reticles()..mergeFromMessage(this);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  Reticles copyWith(void Function(Reticles) updates) => super.copyWith((message) => updates(message as Reticles)) as Reticles;
 
-  @$pb.TagNumber(23)
-  TwistDir get twistDir => $_getN(19);
-  @$pb.TagNumber(23)
-  set twistDir(TwistDir v) { setField(23, v); }
-  @$pb.TagNumber(23)
-  $core.bool hasTwistDir() => $_has(19);
-  @$pb.TagNumber(23)
-  void clearTwistDir() => clearField(23);
+  $pb.BuilderInfo get info_ => _i;
 
-  @$pb.TagNumber(24)
-  GType get bcType => $_getN(20);
-  @$pb.TagNumber(24)
-  set bcType(GType v) { setField(24, v); }
-  @$pb.TagNumber(24)
-  $core.bool hasBcType() => $_has(20);
-  @$pb.TagNumber(24)
-  void clearBcType() => clearField(24);
+  @$core.pragma('dart2js:noInline')
+  static Reticles create() => Reticles._();
+  Reticles createEmptyInstance() => create();
+  static $pb.PbList<Reticles> createRepeated() => $pb.PbList<Reticles>();
+  @$core.pragma('dart2js:noInline')
+  static Reticles getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Reticles>(create);
+  static Reticles? _defaultInstance;
 
-  @$pb.TagNumber(25)
-  $core.List<SwPos> get switches => $_getList(21);
+  @$pb.TagNumber(1)
+  $core.List<Reticle> get rets => $_getList(0);
+}
 
-  @$pb.TagNumber(26)
-  $core.List<$core.int> get distances => $_getList(22);
+class Payload extends $pb.GeneratedMessage {
+  factory Payload({
+    HostProfile? profile,
+  }) {
+    final $result = create();
+    if (profile != null) {
+      $result.profile = profile;
+    }
+    return $result;
+  }
+  Payload._() : super();
+  factory Payload.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory Payload.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  @$pb.TagNumber(27)
-  $core.List<CoefRow> get coefRows => $_getList(23);
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Payload', package: const $pb.PackageName(_omitMessageNames ? '' : 'archer_protocol'), createEmptyInstance: create)
+    ..aOM<HostProfile>(1, _omitFieldNames ? '' : 'profile', subBuilder: HostProfile.create)
+    ..hasRequiredFields = false
+  ;
 
-  @$pb.TagNumber(28)
-  $core.String get caliber => $_getSZ(24);
-  @$pb.TagNumber(28)
-  set caliber($core.String v) { $_setString(24, v); }
-  @$pb.TagNumber(28)
-  $core.bool hasCaliber() => $_has(24);
-  @$pb.TagNumber(28)
-  void clearCaliber() => clearField(28);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
+  Payload clone() => Payload()..mergeFromMessage(this);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  Payload copyWith(void Function(Payload) updates) => super.copyWith((message) => updates(message as Payload)) as Payload;
 
-  @$pb.TagNumber(29)
-  $core.String get deviceUuid => $_getSZ(25);
-  @$pb.TagNumber(29)
-  set deviceUuid($core.String v) { $_setString(25, v); }
-  @$pb.TagNumber(29)
-  $core.bool hasDeviceUuid() => $_has(25);
-  @$pb.TagNumber(29)
-  void clearDeviceUuid() => clearField(29);
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Payload create() => Payload._();
+  Payload createEmptyInstance() => create();
+  static $pb.PbList<Payload> createRepeated() => $pb.PbList<Payload>();
+  @$core.pragma('dart2js:noInline')
+  static Payload getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Payload>(create);
+  static Payload? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  HostProfile get profile => $_getN(0);
+  @$pb.TagNumber(1)
+  set profile(HostProfile v) { setField(1, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasProfile() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearProfile() => clearField(1);
+  @$pb.TagNumber(1)
+  HostProfile ensureProfile() => $_ensure(0);
 }
 
 

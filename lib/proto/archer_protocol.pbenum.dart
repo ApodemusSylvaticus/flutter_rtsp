@@ -1,6 +1,6 @@
 //
 //  Generated code. Do not modify.
-//  source: demo_protocol.proto
+//  source: archer_protocol.proto
 //
 // @dart = 2.12
 
@@ -43,6 +43,25 @@ class ErrorStatusCode extends $pb.ProtobufEnum {
   static ErrorStatusCode? valueOf($core.int value) => _byValue[value];
 
   const ErrorStatusCode._($core.int v, $core.String n) : super(v, n);
+}
+
+class HoldoffType extends $pb.ProtobufEnum {
+  static const HoldoffType UNDEFINED = HoldoffType._(0, _omitEnumNames ? '' : 'UNDEFINED');
+  static const HoldoffType MIL = HoldoffType._(1, _omitEnumNames ? '' : 'MIL');
+  static const HoldoffType MOA = HoldoffType._(2, _omitEnumNames ? '' : 'MOA');
+  static const HoldoffType CLICKS = HoldoffType._(3, _omitEnumNames ? '' : 'CLICKS');
+
+  static const $core.List<HoldoffType> values = <HoldoffType> [
+    UNDEFINED,
+    MIL,
+    MOA,
+    CLICKS,
+  ];
+
+  static final $core.Map<$core.int, HoldoffType> _byValue = $pb.ProtobufEnum.initByValue(values);
+  static HoldoffType? valueOf($core.int value) => _byValue[value];
+
+  const HoldoffType._($core.int v, $core.String n) : super(v, n);
 }
 
 class ColorScheme extends $pb.ProtobufEnum {

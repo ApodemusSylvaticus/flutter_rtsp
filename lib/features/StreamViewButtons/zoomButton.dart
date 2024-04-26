@@ -1,12 +1,13 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:one_more_try/features/StreamViewButtons/customButton.dart';
-import 'package:one_more_try/proto/demo_protocol.pb.dart';
+import 'package:one_more_try/proto/archer_protocol.pb.dart';
 
 class ZoomButton extends StatefulWidget {
   final void Function(Uint8List buffer) sendToServer;
   final HostDevStatus devStatus;
   ZoomButton(this.sendToServer, this.devStatus);
+
 
   @override
   _ZoomButtonState createState() => _ZoomButtonState();
@@ -14,7 +15,8 @@ class ZoomButton extends StatefulWidget {
 
 class _ZoomButtonState extends State<ZoomButton> {
   late int _currentZoomIndex;
-  final List<Zoom> _zoomValues = [Zoom.ZOOM_X1, Zoom.ZOOM_X2, Zoom.ZOOM_X3, Zoom.ZOOM_X4, Zoom.ZOOM_X6];
+  
+  late List<Zoom> _zoomValues = [Zoom.ZOOM_X1, Zoom.ZOOM_X2, Zoom.ZOOM_X3, Zoom.ZOOM_X4, Zoom.ZOOM_X6];
 
   void _changeZoom() {
     setState(() {
@@ -27,6 +29,26 @@ class _ZoomButtonState extends State<ZoomButton> {
   void initState() {
     super.initState();
     _currentZoomIndex = convertZoomToIndex(widget.devStatus.zoom);
+    switch(widget.devStatus.maxZoom){
+      case Zoom.ZOOM_X1: 
+      _zoomValues = [Zoom.ZOOM_X1];
+      break;
+      case Zoom.ZOOM_X2:
+      _zoomValues = [Zoom.ZOOM_X1, Zoom.ZOOM_X2];
+      break;
+
+         case Zoom.ZOOM_X3:
+      _zoomValues = [Zoom.ZOOM_X1, Zoom.ZOOM_X2, Zoom.ZOOM_X3];
+      break;
+         case Zoom.ZOOM_X4:
+      _zoomValues = [Zoom.ZOOM_X1, Zoom.ZOOM_X2, Zoom.ZOOM_X3, Zoom.ZOOM_X4];
+      break;
+
+         case Zoom.ZOOM_X6:
+      _zoomValues = [Zoom.ZOOM_X1, Zoom.ZOOM_X2, Zoom.ZOOM_X3, Zoom.ZOOM_X4, Zoom.ZOOM_X6];
+      break;
+    }
+    
   }
 
   int convertZoomToIndex(Zoom zoom) {

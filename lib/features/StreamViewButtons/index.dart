@@ -10,7 +10,7 @@ import 'package:one_more_try/features/StreamViewButtons/recordButton.dart';
 import 'package:one_more_try/features/StreamViewButtons/zoomButton.dart';
 import 'package:one_more_try/screen/streamView.dart';
 import 'package:web_socket_channel/io.dart';
-import 'package:one_more_try/proto/demo_protocol.pb.dart';
+import 'package:one_more_try/proto/archer_protocol.pb.dart';
 
 class StreamViewButtons extends StatefulWidget {
   final bool isRecording;
@@ -26,6 +26,7 @@ class StreamViewButtons extends StatefulWidget {
     required this.child,
     required this.takePhoto,
   }) : super();
+
 
   @override
   _StreamViewButtonsState createState() => _StreamViewButtonsState();
@@ -130,7 +131,7 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
   @override
   Widget build(BuildContext context) {
     if (devStatus != null && _isConnected) {
-      return Row(
+      return SafeArea(child: Row(
         children: [
           SizedBox(
             width: 140,
@@ -169,9 +170,9 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
             ),
           ),
         ],
-      );
+      ));
     } else {
-      return Row(
+      return SafeArea(child: Row(
         children: [
           SizedBox(
             width: 140,
@@ -219,7 +220,7 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
             ),
           )
         ],
-      );
+      ));
     }
   }
 }
