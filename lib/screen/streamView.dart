@@ -22,6 +22,9 @@ Future<bool> isSubnetCorrect(String url) async {
   List<String> parts = url.split(RegExp(r'[:/]'));
   List<String> octets = parts[0].split('.');
   final actualIp = await WiFiForIoTPlugin.getIP();
+  print('actualIp ${actualIp}');
+    print('url ${url}');
+
   if (actualIp == null) {
     return false;
   }
@@ -97,18 +100,7 @@ class _StreamViewPageState extends State<StreamViewPage> {
     connectivitySubscription = Connectivity()
         .onConnectivityChanged
         .listen((ConnectivityResult result) {
-      if (result != ConnectivityResult.wifi) {
-        setState(() {
-          isConnectedToWifi = false;
-        });
-        if (isRecording) {
-          stopRecording();
-        }
-        setPortraitOrientation();
-        Wakelock.disable();
-        return;
-      }
-      checkWifiAndInitializePlayer();
+          checkWifiAndInitializePlayer();
     });
   }
 
@@ -132,14 +124,6 @@ class _StreamViewPageState extends State<StreamViewPage> {
   }
 
   Future<void> checkWifiAndInitializePlayer() async {
-    var connectivityResult = await (Connectivity().checkConnectivity());
-    if (connectivityResult != ConnectivityResult.wifi) {
-      setState(() {
-        isConnectedToWifi = false;
-      });
-      return;
-    }
-
     isSubnetCorrect(widget.streamUrl).then((value) {
       if (value) {
         setState(() {
@@ -148,6 +132,8 @@ class _StreamViewPageState extends State<StreamViewPage> {
         initializePlayer();
       } else {
         setState(() {
+                    isConnectedToWifi = false;
+
           isReconnecting = true;
         });
       }
@@ -273,7 +259,13 @@ class _StreamViewPageState extends State<StreamViewPage> {
 
   Widget buildStreamView() {
     double screenWidth = MediaQuery.of(context).size.width;
-    double playerWidth = screenWidth - 280 - MediaQuery.of(context).padding.left - MediaQuery.of(context).padding.right;
+
+    double topPadding =
+        MediaQuery.of(context).padding.left > MediaQuery.of(context).padding.top
+            ? MediaQuery.of(context).padding.left
+            : MediaQuery.of(context).padding.top;
+
+    double playerWidth = screenWidth - 280 - topPadding;
     Widget playerWithScreenRecorder = Container(
       width: playerWidth,
       height: MediaQuery.of(context).size.height,

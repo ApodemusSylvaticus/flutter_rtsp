@@ -18,6 +18,7 @@ class StreamViewButtons extends StatefulWidget {
   final Function(bool) onRecordingChanged;
   final Widget child;
   final Function() takePhoto;
+  
 
   const StreamViewButtons({
     required this.isRecording,
@@ -42,6 +43,7 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
   @override
   void initState() {
     super.initState();
+      
     _connectToWebSocket();
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
       if (_isConnected && _requestQueue.length == 0) {
@@ -58,6 +60,7 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
   }
 
   Future<void> _connectToWebSocket() async {
+
     bool isCorrect = await isSubnetCorrect(widget.commandUrl);
     if(isCorrect == false){
       return;
@@ -130,8 +133,10 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
 
   @override
   Widget build(BuildContext context) {
+    double topPadding = MediaQuery.of(context).padding.left > MediaQuery.of(context).padding.top ? MediaQuery.of(context).padding.left : MediaQuery.of(context).padding.top;
+
     if (devStatus != null && _isConnected) {
-      return SafeArea(child: Row(
+      return  Padding(padding: EdgeInsets.only(left: topPadding), child: Row(
         children: [
           SizedBox(
             width: 140,
@@ -170,9 +175,9 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
             ),
           ),
         ],
-      ));
+      ),) ;
     } else {
-      return SafeArea(child: Row(
+      return Padding(padding: EdgeInsets.only(left: topPadding), child: Row(
         children: [
           SizedBox(
             width: 140,

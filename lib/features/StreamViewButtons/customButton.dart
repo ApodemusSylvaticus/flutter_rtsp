@@ -21,7 +21,7 @@ class CustomButton extends StatelessWidget {
         onPressed: onClick,
         style: ElevatedButton.styleFrom(
             backgroundColor: Colors.black,
-            padding: EdgeInsets.all(12),
+            padding: EdgeInsets.all(8),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(15),
             )),
@@ -32,7 +32,7 @@ class CustomButton extends StatelessWidget {
               text,
               style: TextStyle(
                   color: Colors.white,
-                  fontSize: 14,
+                  fontSize: 13,
                   fontWeight: FontWeight.w700),
             ),
             Expanded(child: Container()),

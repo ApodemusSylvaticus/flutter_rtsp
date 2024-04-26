@@ -47,7 +47,7 @@ class MyHomePage extends StatefulWidget {
 //192.168.1.117:8554/mystream
 class _MyHomePageState extends State<MyHomePage> {
   TextEditingController streamUrlController =
-      TextEditingController(text: '192.168.1.117:8554/mystream');
+      TextEditingController(text: '192.168.100.1:8888/stream0');
   TextEditingController commandUrlController =
       TextEditingController(text: '192.168.1.117:8080/websocket');
   bool isSubmitPressed = false;
@@ -69,7 +69,7 @@ class _MyHomePageState extends State<MyHomePage> {
               DefaultBg(
                   child: Scaffold(
                 backgroundColor: Colors.transparent,
-                body: Padding(
+                body: SafeArea(child: Padding(
                   padding: EdgeInsets.all(16.0),
                   child: Center(
                     child: Column(
@@ -131,7 +131,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       ],
                     ),
                   ),
-                ),
+                )) ,
               ))
             ],
           );
