@@ -1,11 +1,68 @@
 import 'package:flutter/material.dart';
+import 'package:one_more_try/features/loading.dart';
 import 'package:one_more_try/features/switch/index.dart';
 import 'package:one_more_try/features/textField/index.dart';
 import 'package:one_more_try/screen/streamView.dart';
 import 'package:one_more_try/containers/DefaultBg.dart';
+import 'package:wifi_iot/wifi_iot.dart';
 
 void main() {
   runApp(MyApp());
+}
+
+Future<Map<String, dynamic>> isSubnetCorrect() async {
+  final actualIp = await WiFiForIoTPlugin.getIP();
+  if (actualIp == null) {
+    return {'isSubnetCorrect': false};
+  }
+  final actualOctets = actualIp.split('.');
+  if (actualOctets.length < 3) {
+    return {'isSubnetCorrect': false};
+  }
+
+  print(actualOctets);
+
+// //TEST
+// if ('192' == actualOctets[0] &&
+//       '168' == actualOctets[1] &&
+//       '1' == actualOctets[2]) {
+//     return {
+//       'isSubnetCorrect': true,
+//       'streamUrlController': '192.168.1.118:8554/mystream',
+//       'commandUrlController': '192.168.1.117:8080/websocket',
+//       'isTCPsend': false
+//     };
+//   }
+
+
+// //
+
+
+
+
+  if ('192' == actualOctets[0] &&
+      '168' == actualOctets[1] &&
+      '1' == actualOctets[2]) {
+    return {
+      'isSubnetCorrect': true,
+      'streamUrlController': '192.168.1.1:555//ir.sdp',
+      'commandUrlController': '192.168.1.1:8080/websocket',
+      'isTCPsend': false
+    };
+  }
+
+  if ('192' == actualOctets[0] &&
+      '168' == actualOctets[1] &&
+      '100' == actualOctets[2]) {
+    return {
+      'isSubnetCorrect': true,
+      'streamUrlController': '192.168.100.1:8888/stream0',
+      'commandUrlController': '192.168.100.1:8080/websocket',
+      'isTCPsend': true
+    };
+  }
+
+  return {'isSubnetCorrect': false};
 }
 
 class MyApp extends StatelessWidget {
@@ -43,15 +100,42 @@ class MyHomePage extends StatefulWidget {
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
+
 // 192.168.100.1:8888/stream0
 //192.168.1.117:8554/mystream
 class _MyHomePageState extends State<MyHomePage> {
+  bool isFirstLoading = true;
   TextEditingController streamUrlController =
-      TextEditingController(text: '192.168.1.117:8554/mystream');
+      TextEditingController(text: '192.168.100.1:8888/stream0');
   TextEditingController commandUrlController =
-      TextEditingController(text: '192.168.1.117:8080/websocket');
+      TextEditingController(text: '192.168.100.1:8080/websocket');
   bool isSubmitPressed = false;
   bool shouldRunStreamView = false;
+
+  @override
+  void initState() {
+    super.initState();
+    getNetworkData();
+  }
+
+  getNetworkData() async {
+    final value = await isSubnetCorrect();
+    print(value);
+    if (value['isSubnetCorrect'] == false) {
+      setState(() {
+        isFirstLoading = false;
+      });
+    } else {
+          print('------------------------------------------');
+      setState(() {
+        streamUrlController = TextEditingController(text: value['streamUrlController']);
+        commandUrlController = TextEditingController(text: value['commandUrlController']);
+        isSubmitPressed = true;
+        shouldRunStreamView = value['isTCPsend'];
+        isFirstLoading = false;
+      });
+    }
+  }
 
   void resetAll() {
     setState(() {
@@ -61,6 +145,14 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    if (isFirstLoading) {
+      return DefaultBg(
+      child: const Center(
+        child: LoadingIndicator(isLoading: true),
+      ),
+    );
+    }
+
     return isSubmitPressed
         ? StreamViewPage(streamUrlController.text, commandUrlController.text,
             shouldRunStreamView, resetAll)

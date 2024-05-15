@@ -1,4 +1,4 @@
-name: Archer Link
+name: one_more_try
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -43,7 +43,7 @@ dependencies:
   path_provider: ^2.1.2
   gallery_saver: ^2.3.2
   protobuf: ^3.1.0
-  web_socket_channel: ^2.4.5
+  web_socket_channel: 2.4.0
   ffmpeg_kit_flutter: ^6.0.3
   wifi_iot: ^0.3.19
   flutter_launcher_icons: ^0.13.1

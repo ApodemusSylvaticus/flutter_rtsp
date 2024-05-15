@@ -22,10 +22,12 @@ Future<bool> isSubnetCorrect(String url) async {
   List<String> parts = url.split(RegExp(r'[:/]'));
   List<String> octets = parts[0].split('.');
   final actualIp = await WiFiForIoTPlugin.getIP();
+
   if (actualIp == null) {
     return false;
   }
   final actualOctets = actualIp.split('.');
+
   if (actualOctets.length < 3) {
     return false;
   }
@@ -160,7 +162,6 @@ class _StreamViewPageState extends State<StreamViewPage> {
       isLoading = true;
     });
     final parsed = ParsedData.fromString(widget.streamUrl);
-    print('initializePlayer');
     try {
       if (widget.shouldRunStreamView && parsed.host != null) {
         int port = int.parse(parsed.host!);
@@ -170,8 +171,6 @@ class _StreamViewPageState extends State<StreamViewPage> {
       }
 
       player.addListener(() {
-        print("player.state ${player.state}");
-
         if (player.state == FijkState.prepared) {
           setState(() {
             isLoading = false;
@@ -190,13 +189,20 @@ class _StreamViewPageState extends State<StreamViewPage> {
       if (player.state == FijkState.completed) {
         player.reset();
       }
+
       await player.setOption(FijkOption.hostCategory, "enable-snapshot", 1);
       await player.setOption(FijkOption.playerCategory, "packet-buffering", 0);
       await player.setOption(FijkOption.playerCategory, "framedrop", 1);
       await player.setVolume(0);
+      await player.setOption(FijkOption.playerCategory, "fflags", "nobuffer");
+      await player.setOption(FijkOption.formatCategory, "probesize", "32");
+      await player.setOption(
+          FijkOption.formatCategory, "analyzeduration", "32");
+      await player.setOption(FijkOption.playerCategory, "max_delay", "100000");
+      await player.setOption(FijkOption.playerCategory, "flush_packets", 1);
+      await player.setOption(
+          FijkOption.formatCategory, "rtsp_transport", "tcp");
 
-      player.setOption(FijkOption.playerCategory, "flush_packets", 1);
-      player.setOption(FijkOption.formatCategory, "rtsp_transport", "tcp");
       if (widget.shouldRunStreamView) {
         await player.setDataSource(
             "rtsp://${parsed.ipAddress}${parsed.rest != null ? '${parsed.rest}' : ''}",
@@ -206,7 +212,6 @@ class _StreamViewPageState extends State<StreamViewPage> {
             "rtsp://${parsed.ipAddress}${parsed.host != null ? ':${parsed.host}' : ''}${parsed.rest != null ? '${parsed.rest}' : ''}",
             autoPlay: true);
       }
-
       // Player configuration
 
       Wakelock.enable();
@@ -253,7 +258,7 @@ class _StreamViewPageState extends State<StreamViewPage> {
   }
 
   Widget buildBody() {
-    if (!isConnectedToWifi) {
+    if (isConnectedToWifi == false) {
       return WifiConnectPage(
         onConnectToWifi: openWifiSettings,
         resetAll: widget.resetAll,
@@ -273,7 +278,10 @@ class _StreamViewPageState extends State<StreamViewPage> {
 
   Widget buildStreamView() {
     double screenWidth = MediaQuery.of(context).size.width;
-    double playerWidth = screenWidth - 280 - MediaQuery.of(context).padding.left - MediaQuery.of(context).padding.right;
+    double playerWidth = screenWidth -
+        280 -
+        MediaQuery.of(context).padding.left -
+        MediaQuery.of(context).padding.right;
     Widget playerWithScreenRecorder = Container(
       width: playerWidth,
       height: MediaQuery.of(context).size.height,
