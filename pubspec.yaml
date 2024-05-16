@@ -47,6 +47,7 @@ dependencies:
   ffmpeg_kit_flutter: ^6.0.3
   wifi_iot: ^0.3.19
   flutter_launcher_icons: ^0.13.1
+  flutter_native_splash: ^2.3.10
 
 dev_dependencies:
   flutter_test:
@@ -87,6 +88,8 @@ flutter:
     - assets/actionButtonIcon/takePhoto.png
     - assets/actionButtonIcon/zoom.png
     - assets/app/image.png
+    - assets/splash/background.png
+    - assets/splash/icon.png
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
 

@@ -6,11 +6,14 @@ import 'package:one_more_try/screen/streamView.dart';
 import 'package:one_more_try/containers/DefaultBg.dart';
 import 'package:wifi_iot/wifi_iot.dart';
 
+
 void main() {
+
   runApp(MyApp());
 }
 
 Future<Map<String, dynamic>> isSubnetCorrect() async {
+  
   final actualIp = await WiFiForIoTPlugin.getIP();
   if (actualIp == null) {
     return {'isSubnetCorrect': false};
