@@ -126,7 +126,6 @@ class _MyHomePageState extends State<MyHomePage> {
         isFirstLoading = false;
       });
     } else {
-          print('------------------------------------------');
       setState(() {
         streamUrlController = TextEditingController(text: value['streamUrlController']);
         commandUrlController = TextEditingController(text: value['commandUrlController']);
@@ -161,7 +160,7 @@ class _MyHomePageState extends State<MyHomePage> {
               DefaultBg(
                   child: Scaffold(
                 backgroundColor: Colors.transparent,
-                body: Padding(
+                body: SafeArea(child: Padding(
                   padding: EdgeInsets.all(16.0),
                   child: Center(
                     child: Column(
@@ -223,7 +222,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       ],
                     ),
                   ),
-                ),
+                )),
               ))
             ],
           );

@@ -130,8 +130,11 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
 
   @override
   Widget build(BuildContext context) {
+        double topPadding = MediaQuery.of(context).padding.left > MediaQuery.of(context).padding.top ? MediaQuery.of(context).padding.left : MediaQuery.of(context).padding.top;
+
     if (devStatus != null && _isConnected) {
-      return SafeArea(child: Row(
+      
+      return Padding(padding:  EdgeInsets.only(left: topPadding), child: Row(
         children: [
           SizedBox(
             width: 140,
@@ -170,9 +173,9 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
             ),
           ),
         ],
-      ));
+      ),);
     } else {
-      return SafeArea(child: Row(
+      return Padding(padding: EdgeInsets.only(left: topPadding), child: Row(
         children: [
           SizedBox(
             width: 140,
@@ -220,7 +223,7 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
             ),
           )
         ],
-      ));
+      ),);
     }
   }
 }
