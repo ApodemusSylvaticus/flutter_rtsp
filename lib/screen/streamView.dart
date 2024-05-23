@@ -6,21 +6,37 @@ import 'package:ffmpeg_kit_flutter/ffmpeg_kit.dart';
 import 'package:fijkplayer/fijkplayer.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:gallery_saver/gallery_saver.dart';
-import 'package:one_more_try/features/StreamViewButtons/index.dart';
-import 'package:one_more_try/features/loading.dart';
-import 'package:one_more_try/features/reconnectView.dart';
-import 'package:one_more_try/features/wifiConnectPage.dart';
+import 'package:archer_link/features/StreamViewButtons/index.dart';
+import 'package:archer_link/features/loading.dart';
+import 'package:archer_link/features/reconnectView.dart';
+import 'package:archer_link/features/wifiConnectPage.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:android_intent_plus/android_intent.dart';
 import 'package:wakelock/wakelock.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:wifi_iot/wifi_iot.dart';
-import 'package:one_more_try/containers/DefaultBg.dart';
+import 'package:archer_link/containers/DefaultBg.dart';
+
+
+String? extractIP(String input) {
+  final RegExp ipRegex = RegExp(
+    r'\b((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b'
+  );
+
+  final Match? match = ipRegex.firstMatch(input);
+
+  return match?.group(0);
+}
 
 Future<bool> isSubnetCorrect(String url) async {
-  List<String> parts = url.split(RegExp(r'[:/]'));
-  List<String> octets = parts[0].split('.');
+  final ipFromUrl = extractIP(url);
+  if(ipFromUrl == null){
+    return true;
+  }
+
+  
+  List<String> octets = ipFromUrl.split('.');
   final actualIp = await WiFiForIoTPlugin.getIP();
 
   if (actualIp == null) {
@@ -99,6 +115,20 @@ class _StreamViewPageState extends State<StreamViewPage> {
     connectivitySubscription = Connectivity()
         .onConnectivityChanged
         .listen((ConnectivityResult result) {
+
+        
+    isSubnetCorrect(widget.streamUrl).then((value) {
+      if (value) {
+        setState(() {
+          isConnectedToWifi = true;
+        });
+        initializePlayer();
+      } else {
+        setState(() {
+          isReconnecting = true;
+        });
+      }
+    });
       if (result != ConnectivityResult.wifi) {
         setState(() {
           isConnectedToWifi = false;
@@ -134,13 +164,7 @@ class _StreamViewPageState extends State<StreamViewPage> {
   }
 
   Future<void> checkWifiAndInitializePlayer() async {
-    var connectivityResult = await (Connectivity().checkConnectivity());
-    if (connectivityResult != ConnectivityResult.wifi) {
-      setState(() {
-        isConnectedToWifi = false;
-      });
-      return;
-    }
+   
 
     isSubnetCorrect(widget.streamUrl).then((value) {
       if (value) {
@@ -203,17 +227,19 @@ class _StreamViewPageState extends State<StreamViewPage> {
       await player.setOption(
           FijkOption.formatCategory, "rtsp_transport", "tcp");
 
-      if (widget.shouldRunStreamView) {
-        await player.setDataSource(
-            "rtsp://${parsed.ipAddress}${parsed.rest != null ? '${parsed.rest}' : ''}",
-            autoPlay: true);
-      } else {
-        await player.setDataSource(
-            "rtsp://${parsed.ipAddress}${parsed.host != null ? ':${parsed.host}' : ''}${parsed.rest != null ? '${parsed.rest}' : ''}",
-            autoPlay: true);
-      }
+      // if (widget.shouldRunStreamView) {
+      //   await player.setDataSource(
+      //       "rtsp://${parsed.ipAddress}${parsed.rest != null ? '${parsed.rest}' : ''}",
+      //       autoPlay: true);
+      // } else {
+      //   await player.setDataSource(
+      //       "rtsp://${parsed.ipAddress}${parsed.host != null ? ':${parsed.host}' : ''}${parsed.rest != null ? '${parsed.rest}' : ''}",
+      //       autoPlay: true);
+      // }
       // Player configuration
+      
 
+      await player.setDataSource('rtsp://stream.trailcam.link:8554/mystream', autoPlay: true);
       Wakelock.enable();
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
 

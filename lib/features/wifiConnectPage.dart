@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:one_more_try/containers/DefaultBg.dart';
+import 'package:archer_link/containers/DefaultBg.dart';
 
 class WifiConnectPage extends StatelessWidget {
   final void Function() onConnectToWifi;

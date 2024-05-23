@@ -2,15 +2,15 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:one_more_try/features/StreamViewButtons/calibrationButton.dart';
-import 'package:one_more_try/features/StreamViewButtons/lightModeSelector.dart';
-import 'package:one_more_try/features/StreamViewButtons/makePhotoButton.dart';
-import 'package:one_more_try/features/StreamViewButtons/modeChangeButton.dart';
-import 'package:one_more_try/features/StreamViewButtons/recordButton.dart';
-import 'package:one_more_try/features/StreamViewButtons/zoomButton.dart';
-import 'package:one_more_try/screen/streamView.dart';
+import 'package:archer_link/features/StreamViewButtons/calibrationButton.dart';
+import 'package:archer_link/features/StreamViewButtons/lightModeSelector.dart';
+import 'package:archer_link/features/StreamViewButtons/makePhotoButton.dart';
+import 'package:archer_link/features/StreamViewButtons/modeChangeButton.dart';
+import 'package:archer_link/features/StreamViewButtons/recordButton.dart';
+import 'package:archer_link/features/StreamViewButtons/zoomButton.dart';
+import 'package:archer_link/screen/streamView.dart';
 import 'package:web_socket_channel/io.dart';
-import 'package:one_more_try/proto/archer_protocol.pb.dart';
+import 'package:archer_link/proto/archer_protocol.pb.dart';
 
 class StreamViewButtons extends StatefulWidget {
   final bool isRecording;
@@ -58,13 +58,14 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
   }
 
   Future<void> _connectToWebSocket() async {
-    bool isCorrect = await isSubnetCorrect(widget.commandUrl);
-    if(isCorrect == false){
-      return;
-    }
+    // bool isCorrect = await isSubnetCorrect(widget.commandUrl);
+    // if(isCorrect == false){
+    //   return;
+    // }
 
-    final wsUrl = Uri.parse('ws://${widget.commandUrl}');
+    final wsUrl = Uri.parse(widget.commandUrl);
 
+    
     _channel = IOWebSocketChannel.connect(wsUrl);
     getDevStatus();
   

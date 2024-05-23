@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:one_more_try/features/loading.dart';
-import 'package:one_more_try/features/switch/index.dart';
-import 'package:one_more_try/features/textField/index.dart';
-import 'package:one_more_try/screen/streamView.dart';
-import 'package:one_more_try/containers/DefaultBg.dart';
+import 'package:archer_link/features/loading.dart';
+import 'package:archer_link/features/switch/index.dart';
+import 'package:archer_link/features/textField/index.dart';
+import 'package:archer_link/screen/streamView.dart';
+import 'package:archer_link/containers/DefaultBg.dart';
 import 'package:wifi_iot/wifi_iot.dart';
+
 
 
 void main() {
 
   runApp(MyApp());
 }
+
+
 
 Future<Map<String, dynamic>> isSubnetCorrect() async {
   
@@ -25,20 +28,20 @@ Future<Map<String, dynamic>> isSubnetCorrect() async {
 
   print(actualOctets);
 
-// //TEST
-// if ('192' == actualOctets[0] &&
-//       '168' == actualOctets[1] &&
-//       '1' == actualOctets[2]) {
-//     return {
-//       'isSubnetCorrect': true,
-//       'streamUrlController': '192.168.1.118:8554/mystream',
-//       'commandUrlController': '192.168.1.117:8080/websocket',
-//       'isTCPsend': false
-//     };
-//   }
+//TEST
+if ('192' == actualOctets[0] &&
+      '168' == actualOctets[1] &&
+      '1' == actualOctets[2]) {
+    return {
+      'isSubnetCorrect': true,
+      'streamUrlController': 'rtsp://stream.trailcam.link:8554/mystream',
+      'commandUrlController': 'ws://stream.trailcam.link:8080/websocket',
+      'isTCPsend': false
+    };
+  }
 
 
-// //
+//
 
 
 
@@ -48,8 +51,8 @@ Future<Map<String, dynamic>> isSubnetCorrect() async {
       '1' == actualOctets[2]) {
     return {
       'isSubnetCorrect': true,
-      'streamUrlController': '192.168.1.1:555//ir.sdp',
-      'commandUrlController': '192.168.1.1:8080/websocket',
+      'streamUrlController': 'rtsp://192.168.1.1:555//ir.sdp',
+      'commandUrlController': 'ws://192.168.1.1:8080/websocket',
       'isTCPsend': false
     };
   }
@@ -59,8 +62,8 @@ Future<Map<String, dynamic>> isSubnetCorrect() async {
       '100' == actualOctets[2]) {
     return {
       'isSubnetCorrect': true,
-      'streamUrlController': '192.168.100.1:8888/stream0',
-      'commandUrlController': '192.168.100.1:8080/websocket',
+      'streamUrlController': 'rtsp://192.168.100.1:8888/stream0',
+      'commandUrlController': 'ws://192.168.100.1:8080/websocket',
       'isTCPsend': true
     };
   }
@@ -109,9 +112,9 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   bool isFirstLoading = true;
   TextEditingController streamUrlController =
-      TextEditingController(text: '192.168.100.1:8888/stream0');
+      TextEditingController(text: 'rtsp://stream.trailcam.link:8554/mystream');
   TextEditingController commandUrlController =
-      TextEditingController(text: '192.168.100.1:8080/websocket');
+      TextEditingController(text: 'ws://stream.trailcam.link:8080/websocket');
   bool isSubmitPressed = false;
   bool shouldRunStreamView = false;
 
@@ -192,7 +195,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           controller: commandUrlController,
                         ),
                         SizedBox(height: 10.0),
-                        Row(
+                         Row(
                           children: [
                             const Text(
                               'Should run TRANS_START:',

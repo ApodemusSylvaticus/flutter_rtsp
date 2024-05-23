@@ -1,8 +1,8 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:one_more_try/features/StreamViewButtons/customButton.dart';
-import 'package:one_more_try/proto/archer_protocol.pb.dart' as archer_protocol;
-import 'package:one_more_try/proto/archer_protocol.pbserver.dart';
+import 'package:archer_link/features/StreamViewButtons/customButton.dart';
+import 'package:archer_link/proto/archer_protocol.pb.dart' as archer_protocol;
+import 'package:archer_link/proto/archer_protocol.pbserver.dart';
 
 class LightModeSelector extends StatefulWidget {
   final void Function(Uint8List buffer) sendToServer;
