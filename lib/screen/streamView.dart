@@ -156,6 +156,8 @@ class _StreamViewPageState extends State<StreamViewPage> {
       }
 
       player.addListener(() {
+print('___________________________________player state = ${player.state}__________________');
+
         if (player.state == FijkState.prepared) {
           setState(() {
             isLoading = false;
@@ -164,6 +166,7 @@ class _StreamViewPageState extends State<StreamViewPage> {
         }
 
         if (player.state == FijkState.error) {
+        
           setState(() {
             showReconnectButton = true;
             isLoading = false;
@@ -278,6 +281,7 @@ class _StreamViewPageState extends State<StreamViewPage> {
         panelBuilder: (_, __, ___, ____, _____) => Container(),
       ),
     );
+
 
     return StreamViewButtons(
       child: playerWithScreenRecorder,

@@ -9,8 +9,8 @@ import 'package:archer_link/features/StreamViewButtons/makePhotoButton.dart';
 import 'package:archer_link/features/StreamViewButtons/modeChangeButton.dart';
 import 'package:archer_link/features/StreamViewButtons/recordButton.dart';
 import 'package:archer_link/features/StreamViewButtons/zoomButton.dart';
-import 'package:web_socket_channel/io.dart';
 import 'package:archer_link/proto/archer_protocol.pb.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 class StreamViewButtons extends StatefulWidget {
   final bool isRecording;
@@ -33,10 +33,12 @@ class StreamViewButtons extends StatefulWidget {
 }
 
 class _StreamViewButtonsState extends State<StreamViewButtons> {
-  late IOWebSocketChannel _channel;
+  late  WebSocketChannel _channel;
   bool _isConnected = false;
+  bool _isTryingToConnect = false;
   HostDevStatus? devStatus;
   late Timer _timer;
+  late Timer _reconnectTimer;
   final Queue<Uint8List> _requestQueue = Queue<Uint8List>();
 
   @override
@@ -44,38 +46,58 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
     super.initState();
     _connectToWebSocket();
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
-      if (_isConnected && _requestQueue.length == 0) {
+      print('_isConnected ${_isConnected}, _requestQueue.isEmpty ${_requestQueue.isEmpty}');
+      if (_isConnected && _requestQueue.isEmpty) {
         getDevStatus();
       }
+    });
+
+     _reconnectTimer = Timer.periodic(Duration(seconds: 1), (timer) {
+      if(_isTryingToConnect == false && _isConnected == false){
+        _connectToWebSocket();
+      }
+
     });
   }
 
   @override
   void dispose() {
     _channel.sink.close();
-    _timer.cancel(); // Cancel the timer when disposing the widget
+    _reconnectTimer.cancel();
+    _timer.cancel();
     super.dispose();
   }
 
   Future<void> _connectToWebSocket() async {
+    
     bool isCorrect = await isConnected(widget.commandUrl);
+
+
     if(isCorrect == false){
       return;
     }
+_isTryingToConnect = true;
+   final wsUrl = Uri.parse('ws://${widget.commandUrl}');
 
-    final wsUrl = Uri.parse('ws://${widget.commandUrl}');
 
+     _channel = WebSocketChannel.connect(wsUrl);
+  try {
+    await _channel.ready;
+  } catch (e) {
+   // handle exception here
+   print("WebsocketChannel was unable to establishconnection, ${e}");
+   _isTryingToConnect = false;
 
-    _channel = IOWebSocketChannel.connect(wsUrl);
-    getDevStatus();
+   return;
+  }
   
 
-
-
-    _channel.stream.listen((event) {
-      final commandResp = HostPayload.fromBuffer(event);
+Stream stream = _channel.stream;
+    stream.listen((event) {
+       final commandResp = HostPayload.fromBuffer(event);
 
       _requestQueue.removeLast();
+
 
       if (_requestQueue.length != 0) {
         _channel.sink.add(_requestQueue.last);
@@ -90,13 +112,16 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
       setState(() {
         _isConnected = true;
       });
-    }, onError: (error) {
+         _isTryingToConnect = false;
 
-      print('onError ${error}');
+    },onError: (error) {
+
       _requestQueue.clear();
       setState(() {
         _isConnected = false;
       });
+               _isTryingToConnect = false;
+
     }, onDone: () {
 
       print('onDone');
@@ -105,7 +130,15 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
       setState(() {
         _isConnected = false;
       });
-    });
+               _isTryingToConnect = false;
+
+    },
+    cancelOnError: true
+    );
+
+    getDevStatus();
+
+   
   }
 
   Future<void> getDevStatus() async {
@@ -120,9 +153,7 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
   }
 
   void _sendToServer(Uint8List buffer) {
-    print('_sendToServer, ${buffer}');
     _requestQueue.addFirst(buffer);
-    print('_requestQueue, ${_requestQueue}');
 
     if (_requestQueue.length == 1) {
       _channel.sink.add(buffer);
@@ -209,7 +240,7 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'Unable to establish a WebSocket connection. Please check your command ws URL.',
+                          'Unable to establish a WebSocket connection. Trying to connect...',
                           style: TextStyle(
                           
                               color: Colors.white.withOpacity(0.45),
