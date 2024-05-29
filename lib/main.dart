@@ -43,16 +43,16 @@ Future<Map<String, dynamic>> isSubnetCorrect() async {
 
 
 
-  if ('192' == actualOctets[0] &&
-      '168' == actualOctets[1] &&
-      '1' == actualOctets[2]) {
-    return {
-      'isSubnetCorrect': true,
-      'streamUrlController': '192.168.1.117:8554/mystream',
-      'commandUrlController': '192.168.1.117:8080/websocket',
-      'isTCPsend': false
-    };
-  }
+  // if ('192' == actualOctets[0] &&
+  //     '168' == actualOctets[1] &&
+  //     '1' == actualOctets[2]) {
+  //   return {
+  //     'isSubnetCorrect': true,
+  //     'streamUrlController': '192.168.1.117:8554/mystream',
+  //     'commandUrlController': '192.168.1.117:8080/websocket',
+  //     'isTCPsend': false
+  //   };
+  // }
 
 
   if ('192' == actualOctets[0] &&
