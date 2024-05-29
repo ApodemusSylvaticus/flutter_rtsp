@@ -28,20 +28,20 @@ Future<Map<String, dynamic>> isSubnetCorrect() async {
 
   print(actualOctets);
 
-//TEST
-if ('192' == actualOctets[0] &&
-      '168' == actualOctets[1] &&
-      '1' == actualOctets[2]) {
-    return {
-      'isSubnetCorrect': true,
-      'streamUrlController': 'rtsp://stream.trailcam.link:8554/mystream',
-      'commandUrlController': 'ws://stream.trailcam.link:8080/websocket',
-      'isTCPsend': false
-    };
-  }
+// //TEST
+// if ('192' == actualOctets[0] &&
+//       '168' == actualOctets[1] &&
+//       '1' == actualOctets[2]) {
+//     return {
+//       'isSubnetCorrect': true,
+//       'streamUrlController': 'stream.trailcam.link:8554/mystream',
+//       'commandUrlController': 'stream.trailcam.link:8080/websocket',
+//       'isTCPsend': false
+//     };
+//   }
 
 
-//
+
 
 
 
@@ -51,8 +51,8 @@ if ('192' == actualOctets[0] &&
       '1' == actualOctets[2]) {
     return {
       'isSubnetCorrect': true,
-      'streamUrlController': 'rtsp://192.168.1.1:555//ir.sdp',
-      'commandUrlController': 'ws://192.168.1.1:8080/websocket',
+      'streamUrlController': '192.168.1.1:555//ir.sdp',
+      'commandUrlController': '192.168.1.1:8080/websocket',
       'isTCPsend': false
     };
   }
@@ -62,8 +62,8 @@ if ('192' == actualOctets[0] &&
       '100' == actualOctets[2]) {
     return {
       'isSubnetCorrect': true,
-      'streamUrlController': 'rtsp://192.168.100.1:8888/stream0',
-      'commandUrlController': 'ws://192.168.100.1:8080/websocket',
+      'streamUrlController': '192.168.100.1:8888/stream0',
+      'commandUrlController': '192.168.100.1:8080/websocket',
       'isTCPsend': true
     };
   }
@@ -88,13 +88,11 @@ class MyApp extends StatelessWidget {
     });
 
     return MaterialApp(
-      title: 'URL Input Demo',
+      title: 'Archer Link',
       theme: ThemeData(
         textSelectionTheme: TextSelectionThemeData(
-          // cursorColor: Color.fromRGBO(52, 198, 89, 1), // Цвет курсора
-          // selectionColor: Color.fromRGBO(52, 198, 89, 1), // Цвет фона выделения
           selectionHandleColor:
-              Color.fromRGBO(52, 198, 89, 1), // Цвет индикаторов выделения
+              Color.fromRGBO(52, 198, 89, 1),
         ),
       ),
       home: MyHomePage(),
@@ -112,9 +110,9 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   bool isFirstLoading = true;
   TextEditingController streamUrlController =
-      TextEditingController(text: 'rtsp://stream.trailcam.link:8554/mystream');
+      TextEditingController(text: 'stream.trailcam.link:8554/mystream');
   TextEditingController commandUrlController =
-      TextEditingController(text: 'ws://stream.trailcam.link:8080/websocket');
+      TextEditingController(text: 'stream.trailcam.link:8080/websocket');
   bool isSubmitPressed = false;
   bool shouldRunStreamView = false;
 

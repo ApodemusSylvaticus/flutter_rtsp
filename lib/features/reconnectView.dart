@@ -1,3 +1,4 @@
+import 'package:archer_link/features/loading.dart';
 import 'package:flutter/material.dart';
 import 'package:archer_link/containers/DefaultBg.dart';
 
@@ -22,7 +23,7 @@ class ReconnectView extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           if (isReconnecting)
-            CircularProgressIndicator()
+           LoadingIndicator(isLoading: true)
           else ...[
             Text(
               'Check your connection and try again.',

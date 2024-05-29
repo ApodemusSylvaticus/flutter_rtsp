@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:archer_link/helper/isConnected.dart';
 import 'package:ffmpeg_kit_flutter/return_code.dart';
 import 'package:flutter/material.dart';
 import 'package:ffmpeg_kit_flutter/ffmpeg_kit.dart';
@@ -15,69 +16,29 @@ import 'package:android_intent_plus/android_intent.dart';
 import 'package:wakelock/wakelock.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:wifi_iot/wifi_iot.dart';
 import 'package:archer_link/containers/DefaultBg.dart';
-
-
-String? extractIP(String input) {
-  final RegExp ipRegex = RegExp(
-    r'\b((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b'
-  );
-
-  final Match? match = ipRegex.firstMatch(input);
-
-  return match?.group(0);
-}
-
-Future<bool> isSubnetCorrect(String url) async {
-  final ipFromUrl = extractIP(url);
-  if(ipFromUrl == null){
-    return true;
-  }
-
-  
-  List<String> octets = ipFromUrl.split('.');
-  final actualIp = await WiFiForIoTPlugin.getIP();
-
-  if (actualIp == null) {
-    return false;
-  }
-  final actualOctets = actualIp.split('.');
-
-  if (actualOctets.length < 3) {
-    return false;
-  }
-
-  if (octets[0] == actualOctets[0] &&
-      octets[1] == actualOctets[1] &&
-      octets[2] == actualOctets[2]) {
-    return true;
-  }
-  return false;
-}
 
 class ParsedData {
   final String? ipAddress;
-  final String? host;
+  final String? port;
   final String? rest;
 
-  ParsedData({this.ipAddress, this.host, this.rest});
+  ParsedData({this.ipAddress, this.port, this.rest});
 
   factory ParsedData.fromString(String input) {
-    var regex =
-        RegExp(r'^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::(\d+))?(.*)$');
+    var regex = RegExp(r'^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::(\d+))?(.*)$');
     var match = regex.firstMatch(input);
+
     if (match != null) {
       var ip = match.group(1);
-      var host = match.group(2) != null ? match.group(2) : null;
+      var port = match.group(2);
       var link = match.group(3);
-      return ParsedData(ipAddress: ip, host: host, rest: link);
+      return ParsedData(ipAddress: ip, port: port, rest: link);
     } else {
-      throw FormatException('Invalid input format');
+      return ParsedData(); 
     }
   }
 }
-
 class StreamViewPage extends StatefulWidget {
   final String streamUrl;
   final String commandUrl;
@@ -114,33 +75,29 @@ class _StreamViewPageState extends State<StreamViewPage> {
   void monitorWifiConnection() {
     connectivitySubscription = Connectivity()
         .onConnectivityChanged
-        .listen((ConnectivityResult result) {
+        .listen((ConnectivityResult result) async {
+          print('qwerty');
+      final streamIp = extractIP(widget.streamUrl);
 
-        
-    isSubnetCorrect(widget.streamUrl).then((value) {
-      if (value) {
-        setState(() {
-          isConnectedToWifi = true;
-        });
-        initializePlayer();
-      } else {
-        setState(() {
-          isReconnecting = true;
-        });
-      }
-    });
-      if (result != ConnectivityResult.wifi) {
-        setState(() {
-          isConnectedToWifi = false;
-        });
-        if (isRecording) {
-          stopRecording();
+      if (streamIp == null) {
+        bool isConnected = await connectivityCheck();
+
+        if (!isConnected) {
+          setState(() {
+            isConnectedToWifi = false;
+          });
+
+          if (isRecording) {
+            stopRecording();
+          }
+
+          setPortraitOrientation();
+          Wakelock.disable();
+          return;
         }
-        setPortraitOrientation();
-        Wakelock.disable();
-        return;
+
+        checkWifiAndInitializePlayer();
       }
-      checkWifiAndInitializePlayer();
     });
   }
 
@@ -164,9 +121,9 @@ class _StreamViewPageState extends State<StreamViewPage> {
   }
 
   Future<void> checkWifiAndInitializePlayer() async {
-   
-
-    isSubnetCorrect(widget.streamUrl).then((value) {
+       print('qwerty2');
+    isConnected(widget.streamUrl).then((value) {
+      print('value ${value}');
       if (value) {
         setState(() {
           isConnectedToWifi = true;
@@ -174,7 +131,8 @@ class _StreamViewPageState extends State<StreamViewPage> {
         initializePlayer();
       } else {
         setState(() {
-          isReconnecting = true;
+          isLoading = false;
+          showReconnectButton = true;
         });
       }
     });
@@ -185,10 +143,13 @@ class _StreamViewPageState extends State<StreamViewPage> {
       isReconnecting = true;
       isLoading = true;
     });
+    print('initializePlayer');
     final parsed = ParsedData.fromString(widget.streamUrl);
     try {
-      if (widget.shouldRunStreamView && parsed.host != null) {
-        int port = int.parse(parsed.host!);
+      if (widget.shouldRunStreamView && parsed.port != null && parsed.ipAddress != null) {
+     
+        int port = int.parse(parsed.port!);
+
         var socket = await Socket.connect(parsed.ipAddress, port);
         socket.writeln('CMD_RTSP_TRANS_START');
         await socket.flush();
@@ -227,19 +188,17 @@ class _StreamViewPageState extends State<StreamViewPage> {
       await player.setOption(
           FijkOption.formatCategory, "rtsp_transport", "tcp");
 
-      // if (widget.shouldRunStreamView) {
-      //   await player.setDataSource(
-      //       "rtsp://${parsed.ipAddress}${parsed.rest != null ? '${parsed.rest}' : ''}",
-      //       autoPlay: true);
-      // } else {
-      //   await player.setDataSource(
-      //       "rtsp://${parsed.ipAddress}${parsed.host != null ? ':${parsed.host}' : ''}${parsed.rest != null ? '${parsed.rest}' : ''}",
-      //       autoPlay: true);
-      // }
-      // Player configuration
-      
 
-      await player.setDataSource('rtsp://stream.trailcam.link:8554/mystream', autoPlay: true);
+      if (widget.shouldRunStreamView) {
+        await player.setDataSource(
+            "rtsp://${parsed.ipAddress}${parsed.rest != null ? '${parsed.rest}' : ''}",
+            autoPlay: true);
+      } else {
+        await player.setDataSource(
+            "rtsp://${widget.streamUrl}",
+            autoPlay: true);
+      }
+
       Wakelock.enable();
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
 
@@ -304,7 +263,7 @@ class _StreamViewPageState extends State<StreamViewPage> {
 
   Widget buildStreamView() {
     double screenWidth = MediaQuery.of(context).size.width;
-  double topPadding =
+    double topPadding =
         MediaQuery.of(context).padding.left > MediaQuery.of(context).padding.top
             ? MediaQuery.of(context).padding.left
             : MediaQuery.of(context).padding.top;

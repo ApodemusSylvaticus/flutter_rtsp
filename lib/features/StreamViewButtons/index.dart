@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:typed_data';
+import 'package:archer_link/helper/isConnected.dart';
 import 'package:flutter/material.dart';
 import 'package:archer_link/features/StreamViewButtons/calibrationButton.dart';
 import 'package:archer_link/features/StreamViewButtons/lightModeSelector.dart';
@@ -8,7 +9,6 @@ import 'package:archer_link/features/StreamViewButtons/makePhotoButton.dart';
 import 'package:archer_link/features/StreamViewButtons/modeChangeButton.dart';
 import 'package:archer_link/features/StreamViewButtons/recordButton.dart';
 import 'package:archer_link/features/StreamViewButtons/zoomButton.dart';
-import 'package:archer_link/screen/streamView.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:archer_link/proto/archer_protocol.pb.dart';
 
@@ -58,14 +58,14 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
   }
 
   Future<void> _connectToWebSocket() async {
-    // bool isCorrect = await isSubnetCorrect(widget.commandUrl);
-    // if(isCorrect == false){
-    //   return;
-    // }
+    bool isCorrect = await isConnected(widget.commandUrl);
+    if(isCorrect == false){
+      return;
+    }
 
-    final wsUrl = Uri.parse(widget.commandUrl);
+    final wsUrl = Uri.parse('ws://${widget.commandUrl}');
 
-    
+
     _channel = IOWebSocketChannel.connect(wsUrl);
     getDevStatus();
   
