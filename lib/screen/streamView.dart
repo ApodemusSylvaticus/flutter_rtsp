@@ -162,21 +162,20 @@ class _StreamViewPageState extends State<StreamViewPage> {
 
   Future<void> initializePlayer() async {
     try {
+      await player.setOption(FijkOption.playerCategory, "fflags", "nobuffer");
+      // await player.setOption(FijkOption.formatCategory, "probesize", "32");
+      await player.setOption(
+          FijkOption.formatCategory, "analyzeduration", "32");
+      await player.setOption(FijkOption.playerCategory, "max_delay", "100000");
+
       await player.setOption(FijkOption.hostCategory, "enable-snapshot", 1);
       await player.setOption(FijkOption.playerCategory, "packet-buffering", 0);
       await player.setOption(FijkOption.playerCategory, "framedrop", 1);
       await player.setVolume(0);
-      await player.setOption(FijkOption.playerCategory, "fflags", "nobuffer");
-      await player.setOption(FijkOption.formatCategory, "probesize", "32");
-      await player.setOption(
-          FijkOption.formatCategory, "analyzeduration", "32");
-      await player.setOption(FijkOption.playerCategory, "max_delay", "100000");
-      await player.setOption(FijkOption.playerCategory, "flush_packets", 1);
-      await player.setOption(
-          FijkOption.formatCategory, "rtsp_transport", "tcp");
 
-      await player.setDataSource("rtsp://${widget.streamUrl}", autoPlay: true);
-
+      player.setOption(FijkOption.playerCategory, "flush_packets", 1);
+      player.setOption(FijkOption.formatCategory, "rtsp_transport", "tcp");
+await player.setDataSource("rtsp://${widget.streamUrl}", autoPlay: true);
       Wakelock.enable();
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
 
@@ -208,7 +207,7 @@ class _StreamViewPageState extends State<StreamViewPage> {
     });
     print('initializePlayer');
 
-    try{
+    try {
       if (widget.shouldRunStreamView) {
         final parsed = ParsedData.fromString(widget.tcpCommandUrl);
         int port = int.parse(parsed.port!);
@@ -233,15 +232,15 @@ class _StreamViewPageState extends State<StreamViewPage> {
         try {
           String result = await completer.future;
           print('Received response: $result');
-          initializePlayer();
+                    Future.delayed(Duration(milliseconds: 500), initializePlayer);
+
         } catch (e) {
           print('Error receiving response: $e');
         }
-      } else{
+      } else {
         initializePlayer();
       }
-    }
-    catch (e) {
+    } catch (e) {
       print('Failed to connect: $e');
       setState(() {
         showReconnectButton = true;
@@ -257,10 +256,6 @@ class _StreamViewPageState extends State<StreamViewPage> {
         }
       });
     }
-      
-
- 
-    
   }
 
   @override
