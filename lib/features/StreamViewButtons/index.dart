@@ -85,7 +85,7 @@ _isTryingToConnect = true;
     await _channel.ready;
   } catch (e) {
    // handle exception here
-   print("WebsocketChannel was unable to establishconnection, ${e}");
+  //  print("WebsocketChannel was unable to establishconnection, ${e}");
    _isTryingToConnect = false;
 
    return;

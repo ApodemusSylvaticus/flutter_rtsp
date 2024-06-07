@@ -72,6 +72,26 @@ class _StreamViewPageState extends State<StreamViewPage> {
   @override
   void initState() {
     super.initState();
+    player.addListener(() {
+      print('player.state ${player.state}');
+      if (player.state == FijkState.prepared) {
+        setState(() {
+          isLoading = false;
+          setLandscapeOrientation();
+        });
+      }
+
+      if (player.state == FijkState.error) {
+        setState(() {
+          showReconnectButton = true;
+          isLoading = false;
+        });
+      }
+    });
+
+    if (player.state == FijkState.completed) {
+      player.reset();
+    }
     monitorWifiConnection();
     checkWifiAndInitializePlayer();
   }
@@ -130,7 +150,7 @@ class _StreamViewPageState extends State<StreamViewPage> {
         setState(() {
           isConnectedToWifi = true;
         });
-        initializePlayer();
+        initializeDeviceConnection();
       } else {
         setState(() {
           isLoading = false;
@@ -141,62 +161,7 @@ class _StreamViewPageState extends State<StreamViewPage> {
   }
 
   Future<void> initializePlayer() async {
-    setState(() {
-      isReconnecting = true;
-      isLoading = true;
-    });
-    print('initializePlayer');
     try {
-      if (widget.shouldRunStreamView) {
-        final parsed = ParsedData.fromString(widget.tcpCommandUrl);
-        int port = int.parse(parsed.port!);
-
-        var socket = await Socket.connect(parsed.ipAddress, port);
-        socket.writeln('CMD_RTSP_TRANS_START');
-        await socket.flush();
-
-        Completer<String> completer = Completer<String>();
-
-        // Listen for data from the socket
-        socket.listen((data) {
-          // Process the received data
-          String response = utf8.decode(data);
-          completer.complete(response);
-        }, onError: (error) {
-          completer.completeError(error);
-        }, onDone: () {
-          print('onDONE');
-        });
-
- try {
-    String result = await completer.future;
-    print('Received response: $result');
-  } catch (e) {
-    print('Error receiving response: $e');
-  }
-
-      }
-
-      player.addListener(() {
-        if (player.state == FijkState.prepared) {
-          setState(() {
-            isLoading = false;
-            setLandscapeOrientation();
-          });
-        }
-
-        if (player.state == FijkState.error) {
-          setState(() {
-            showReconnectButton = true;
-            isLoading = false;
-          });
-        }
-      });
-
-      if (player.state == FijkState.completed) {
-        player.reset();
-      }
-
       await player.setOption(FijkOption.hostCategory, "enable-snapshot", 1);
       await player.setOption(FijkOption.playerCategory, "packet-buffering", 0);
       await player.setOption(FijkOption.playerCategory, "framedrop", 1);
@@ -234,6 +199,68 @@ class _StreamViewPageState extends State<StreamViewPage> {
         }
       });
     }
+  }
+
+  Future<void> initializeDeviceConnection() async {
+    setState(() {
+      isReconnecting = true;
+      isLoading = true;
+    });
+    print('initializePlayer');
+
+    try{
+      if (widget.shouldRunStreamView) {
+        final parsed = ParsedData.fromString(widget.tcpCommandUrl);
+        int port = int.parse(parsed.port!);
+
+        var socket = await Socket.connect(parsed.ipAddress, port);
+        socket.writeln('CMD_RTSP_TRANS_START');
+        await socket.flush();
+
+        Completer<String> completer = Completer<String>();
+
+        // Listen for data from the socket
+        socket.listen((data) {
+          // Process the received data
+          String response = utf8.decode(data);
+          completer.complete(response);
+        }, onError: (error) {
+          completer.completeError(error);
+        }, onDone: () {
+          print('onDONE');
+        });
+
+        try {
+          String result = await completer.future;
+          print('Received response: $result');
+          initializePlayer();
+        } catch (e) {
+          print('Error receiving response: $e');
+        }
+      } else{
+        initializePlayer();
+      }
+    }
+    catch (e) {
+      print('Failed to connect: $e');
+      setState(() {
+        showReconnectButton = true;
+        isLoading = false;
+      });
+    } finally {
+      setState(() {
+        isReconnecting = false;
+        if (player.state == FijkState.completed) {
+          setState(() {
+            setLandscapeOrientation();
+          });
+        }
+      });
+    }
+      
+
+ 
+    
   }
 
   @override
@@ -382,7 +409,6 @@ class _StreamViewPageState extends State<StreamViewPage> {
       }
     });
   }
-  
 
   Future<void> createVideoFromImages(int desiredVideoLengthInSeconds) async {
     final directory = await getTemporaryDirectory();
