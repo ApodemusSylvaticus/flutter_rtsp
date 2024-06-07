@@ -17,6 +17,7 @@ import 'package:wakelock/wakelock.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:archer_link/containers/DefaultBg.dart';
+import 'dart:convert';
 
 class ParsedData {
   final String? ipAddress;
@@ -26,7 +27,8 @@ class ParsedData {
   ParsedData({this.ipAddress, this.port, this.rest});
 
   factory ParsedData.fromString(String input) {
-    var regex = RegExp(r'^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::(\d+))?(.*)$');
+    var regex =
+        RegExp(r'^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::(\d+))?(.*)$');
     var match = regex.firstMatch(input);
 
     if (match != null) {
@@ -35,18 +37,20 @@ class ParsedData {
       var link = match.group(3);
       return ParsedData(ipAddress: ip, port: port, rest: link);
     } else {
-      return ParsedData(); 
+      return ParsedData();
     }
   }
 }
+
 class StreamViewPage extends StatefulWidget {
   final String streamUrl;
   final String commandUrl;
+  final String tcpCommandUrl;
   final bool shouldRunStreamView;
   final void Function() resetAll;
 
-  const StreamViewPage(
-      this.streamUrl, this.commandUrl, this.shouldRunStreamView, this.resetAll,
+  const StreamViewPage(this.streamUrl, this.commandUrl,
+      this.shouldRunStreamView, this.resetAll, this.tcpCommandUrl,
       {super.key});
 
   @override
@@ -76,7 +80,7 @@ class _StreamViewPageState extends State<StreamViewPage> {
     connectivitySubscription = Connectivity()
         .onConnectivityChanged
         .listen((ConnectivityResult result) async {
-          print('qwerty');
+      print('qwerty');
       final streamIp = extractIP(widget.streamUrl);
 
       if (streamIp == null) {
@@ -121,9 +125,7 @@ class _StreamViewPageState extends State<StreamViewPage> {
   }
 
   Future<void> checkWifiAndInitializePlayer() async {
-       print('qwerty2');
     isConnected(widget.streamUrl).then((value) {
-      print('value ${value}');
       if (value) {
         setState(() {
           isConnectedToWifi = true;
@@ -144,20 +146,38 @@ class _StreamViewPageState extends State<StreamViewPage> {
       isLoading = true;
     });
     print('initializePlayer');
-    final parsed = ParsedData.fromString(widget.streamUrl);
     try {
-      if (widget.shouldRunStreamView && parsed.port != null && parsed.ipAddress != null) {
-     
+      if (widget.shouldRunStreamView) {
+        final parsed = ParsedData.fromString(widget.tcpCommandUrl);
         int port = int.parse(parsed.port!);
 
         var socket = await Socket.connect(parsed.ipAddress, port);
         socket.writeln('CMD_RTSP_TRANS_START');
         await socket.flush();
+
+        Completer<String> completer = Completer<String>();
+
+        // Listen for data from the socket
+        socket.listen((data) {
+          // Process the received data
+          String response = utf8.decode(data);
+          completer.complete(response);
+        }, onError: (error) {
+          completer.completeError(error);
+        }, onDone: () {
+          print('onDONE');
+        });
+
+ try {
+    String result = await completer.future;
+    print('Received response: $result');
+  } catch (e) {
+    print('Error receiving response: $e');
+  }
+
       }
 
       player.addListener(() {
-print('___________________________________player state = ${player.state}__________________');
-
         if (player.state == FijkState.prepared) {
           setState(() {
             isLoading = false;
@@ -166,7 +186,6 @@ print('___________________________________player state = ${player.state}________
         }
 
         if (player.state == FijkState.error) {
-        
           setState(() {
             showReconnectButton = true;
             isLoading = false;
@@ -191,16 +210,7 @@ print('___________________________________player state = ${player.state}________
       await player.setOption(
           FijkOption.formatCategory, "rtsp_transport", "tcp");
 
-
-      if (widget.shouldRunStreamView) {
-        await player.setDataSource(
-            "rtsp://${parsed.ipAddress}${parsed.rest != null ? '${parsed.rest}' : ''}",
-            autoPlay: true);
-      } else {
-        await player.setDataSource(
-            "rtsp://${widget.streamUrl}",
-            autoPlay: true);
-      }
+      await player.setDataSource("rtsp://${widget.streamUrl}", autoPlay: true);
 
       Wakelock.enable();
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
@@ -281,7 +291,6 @@ print('___________________________________player state = ${player.state}________
         panelBuilder: (_, __, ___, ____, _____) => Container(),
       ),
     );
-
 
     return StreamViewButtons(
       child: playerWithScreenRecorder,
@@ -373,6 +382,7 @@ print('___________________________________player state = ${player.state}________
       }
     });
   }
+  
 
   Future<void> createVideoFromImages(int desiredVideoLengthInSeconds) async {
     final directory = await getTemporaryDirectory();

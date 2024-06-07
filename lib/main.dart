@@ -6,17 +6,11 @@ import 'package:archer_link/screen/streamView.dart';
 import 'package:archer_link/containers/DefaultBg.dart';
 import 'package:wifi_iot/wifi_iot.dart';
 
-
-
 void main() {
-
   runApp(MyApp());
 }
 
-
-
 Future<Map<String, dynamic>> isSubnetCorrect() async {
-  
   final actualIp = await WiFiForIoTPlugin.getIP();
   if (actualIp == null) {
     return {'isSubnetCorrect': false};
@@ -28,7 +22,7 @@ Future<Map<String, dynamic>> isSubnetCorrect() async {
 
   print(actualOctets);
 
-// //TEST
+//TEST
 // if ('192' == actualOctets[0] &&
 //       '168' == actualOctets[1] &&
 //       '1' == actualOctets[2]) {
@@ -39,9 +33,6 @@ Future<Map<String, dynamic>> isSubnetCorrect() async {
 //       'isTCPsend': false
 //     };
 //   }
-
-
-
 
   // if ('192' == actualOctets[0] &&
   //     '168' == actualOctets[1] &&
@@ -54,7 +45,6 @@ Future<Map<String, dynamic>> isSubnetCorrect() async {
   //   };
   // }
 
-
   if ('192' == actualOctets[0] &&
       '168' == actualOctets[1] &&
       '1' == actualOctets[2]) {
@@ -62,6 +52,7 @@ Future<Map<String, dynamic>> isSubnetCorrect() async {
       'isSubnetCorrect': true,
       'streamUrlController': '192.168.1.1:555//ir.sdp',
       'commandUrlController': '192.168.1.1:8080/websocket',
+      "tcpUrlController": '',
       'isTCPsend': false
     };
   }
@@ -71,8 +62,9 @@ Future<Map<String, dynamic>> isSubnetCorrect() async {
       '100' == actualOctets[2]) {
     return {
       'isSubnetCorrect': true,
-      'streamUrlController': '192.168.100.1:8888/stream0',
+      'streamUrlController': '192.168.100.1/stream0',
       'commandUrlController': '192.168.100.1:8080/websocket',
+      "tcpUrlController": '192.168.100.1:8888',
       'isTCPsend': true
     };
   }
@@ -100,8 +92,7 @@ class MyApp extends StatelessWidget {
       title: 'Archer Link',
       theme: ThemeData(
         textSelectionTheme: TextSelectionThemeData(
-          selectionHandleColor:
-              Color.fromRGBO(52, 198, 89, 1),
+          selectionHandleColor: Color.fromRGBO(52, 198, 89, 1),
         ),
       ),
       home: MyHomePage(),
@@ -114,14 +105,14 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-// 192.168.100.1:8888/stream0
-//192.168.1.117:8554/mystream
 class _MyHomePageState extends State<MyHomePage> {
   bool isFirstLoading = true;
   TextEditingController streamUrlController =
       TextEditingController(text: 'stream.trailcam.link:8554/mystream');
   TextEditingController commandUrlController =
       TextEditingController(text: 'stream.trailcam.link:8080/websocket');
+  TextEditingController tcpUrlController =
+      TextEditingController(text: '192.168.100.1:8888');
   bool isSubmitPressed = false;
   bool shouldRunStreamView = false;
 
@@ -140,8 +131,12 @@ class _MyHomePageState extends State<MyHomePage> {
       });
     } else {
       setState(() {
-        streamUrlController = TextEditingController(text: value['streamUrlController']);
-        commandUrlController = TextEditingController(text: value['commandUrlController']);
+        streamUrlController =
+            TextEditingController(text: value['streamUrlController']);
+        commandUrlController =
+            TextEditingController(text: value['commandUrlController']);
+        tcpUrlController =
+            TextEditingController(text: value['tcpUrlController']);
         isSubmitPressed = true;
         shouldRunStreamView = value['isTCPsend'];
         isFirstLoading = false;
@@ -159,83 +154,98 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     if (isFirstLoading) {
       return DefaultBg(
-      child: const Center(
-        child: LoadingIndicator(isLoading: true),
-      ),
-    );
+        child: const Center(
+          child: LoadingIndicator(isLoading: true),
+        ),
+      );
     }
 
     return isSubmitPressed
         ? StreamViewPage(streamUrlController.text, commandUrlController.text,
-            shouldRunStreamView, resetAll)
+            shouldRunStreamView, resetAll, tcpUrlController.text)
         : Stack(
             children: [
               DefaultBg(
                   child: Scaffold(
                 backgroundColor: Colors.transparent,
-                body: SafeArea(child: Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: <Widget>[
-                        const Text(
-                          'Enter stream URL:',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500),
-                        ),
-                        CustomTextField(
-                          controller: streamUrlController,
-                        ),
-                        SizedBox(height: 20.0),
-                        const Text(
-                          'Enter command websocket URL:',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500),
-                        ),
-                        CustomTextField(
-                          controller: commandUrlController,
-                        ),
-                        SizedBox(height: 10.0),
-                         Row(
-                          children: [
+                body: SafeArea(
+                  child: Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: <Widget>[
+                          const Text(
+                            'Enter stream URL:',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500),
+                          ),
+                          CustomTextField(
+                            controller: streamUrlController,
+                          ),
+                          SizedBox(height: 20.0),
+                          const Text(
+                            'Enter command websocket URL:',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500),
+                          ),
+                          CustomTextField(
+                            controller: commandUrlController,
+                          ),
+                          SizedBox(height: 10.0),
+                          Row(
+                            children: [
+                              const Text(
+                                'Should run TRANS_START:',
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500),
+                              ),
+                              SizedBox(width: 10.0),
+                              CustomSwitch(
+                                  value: shouldRunStreamView,
+                                  onChanged: (newValue) {
+                                    setState(() {
+                                      shouldRunStreamView = newValue;
+                                    });
+                                  }),
+                            ],
+                          ),
+                          if (shouldRunStreamView) ...[
+                            SizedBox(height: 20.0),
                             const Text(
-                              'Should run TRANS_START:',
+                              'Enter TCP URL:',
                               style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 16,
                                   fontWeight: FontWeight.w500),
                             ),
-                            SizedBox(width: 10.0),
-                            CustomSwitch(
-                                value: shouldRunStreamView,
-                                onChanged: (newValue) {
-                                  setState(() {
-                                    shouldRunStreamView = newValue;
-                                  });
-                                }),
+                            CustomTextField(
+                              controller: tcpUrlController,
+                            ),
                           ],
-                        ),
-                        SizedBox(height: 10.0),
-                        ElevatedButton(
-                          onPressed: () {
-                            setState(() {
-                              isSubmitPressed = true;
-                            });
-                          },
-                          child: Text('Submit',
-                              style: TextStyle(
-                                  fontSize: 18.0, color: Colors.black)),
-                        ),
-                      ],
+                          SizedBox(height: 10.0),
+                          ElevatedButton(
+                            onPressed: () {
+                              setState(() {
+                                isSubmitPressed = true;
+                              });
+                            },
+                            child: Text('Submit',
+                                style: TextStyle(
+                                    fontSize: 18.0, color: Colors.black)),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                )),
+                ),
               ))
             ],
           );
