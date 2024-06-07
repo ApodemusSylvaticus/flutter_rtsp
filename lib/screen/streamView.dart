@@ -413,7 +413,7 @@ await player.setDataSource("rtsp://${widget.streamUrl}", autoPlay: true);
         print(entity.path);
       });
     } else {
-      print('Каталог не существует');
+      print('Temporary directory doesnt exist');
     }
 
     String timestamp = DateTime.now().millisecondsSinceEpoch.toString();

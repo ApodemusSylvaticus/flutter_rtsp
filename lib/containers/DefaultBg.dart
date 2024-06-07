@@ -18,11 +18,15 @@ class DefaultBg extends StatelessWidget {
       decoration: BoxDecoration(
         color: backgroundColor,
         image: DecorationImage(
-                    image: AssetImage(backgroundImageAsset),
-                    fit: BoxFit.cover,
-                    opacity: backgroundImageOpacity,
-      )),
-      child: child,
+          image: AssetImage(backgroundImageAsset),
+          fit: BoxFit.cover,
+          opacity: backgroundImageOpacity,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        child: child,
+      ),
     );
   }
 }

@@ -128,6 +128,14 @@ class _MyHomePageState extends State<MyHomePage> {
     if (value['isSubnetCorrect'] == false) {
       setState(() {
         isFirstLoading = false;
+ streamUrlController =
+            TextEditingController(text: '');
+        commandUrlController =
+            TextEditingController(text: '');
+        tcpUrlController =
+            TextEditingController(text: '');
+              isSubmitPressed = true;
+
       });
     } else {
       setState(() {

@@ -87,6 +87,7 @@ flutter:
     - assets/actionButtonIcon/stopRecording.png
     - assets/actionButtonIcon/takePhoto.png
     - assets/actionButtonIcon/zoom.png
+    - assets/actionButtonIcon/settings.png
     - assets/app/image.png
     - assets/splash/background.png
     - assets/splash/icon.png

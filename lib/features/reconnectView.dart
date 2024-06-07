@@ -17,39 +17,60 @@ class ReconnectView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DefaultBg(
-      child: Center(
-          child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: Stack(
         children: [
-          if (isReconnecting)
-           LoadingIndicator(isLoading: true)
-          else ...[
-            Text(
-              'Check your connection and try again.',
-              style: TextStyle(
-                 decoration: TextDecoration.none,
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500),
+          Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (isReconnecting)
+                  LoadingIndicator(isLoading: true)
+                else ...[
+                  const Text(
+                    'Check your connection and try again.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      decoration: TextDecoration.none,
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  ElevatedButton(
+                    onPressed: onReconnect,
+                    child: const SizedBox(
+                      width: double.infinity,
+                      child: Text(
+                        'Reconnect',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
             ),
-            SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: onReconnect,
-              child: Text(
-                'Reconnect',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.black),
+          ),
+          Positioned(
+            bottom: 10,
+            left: 10,
+            child: GestureDetector(
+              onTap: resetAll,
+              child: Image.asset(
+                'assets/actionButtonIcon/settings.png',
+                width: 50,
+                height: 50,
               ),
             ),
-            SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: resetAll,
-              child: Text('Reset',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.black)),
-            ),
-          ],
+          ),
         ],
-      )),
+      ),
     );
   }
 }
