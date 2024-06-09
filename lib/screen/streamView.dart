@@ -62,7 +62,8 @@ class _StreamViewPageState extends State<StreamViewPage> {
   bool showReconnectButton = false;
   bool isReconnecting = false;
   bool isLoading = true;
-  Timer? snapshotTimer;
+  DateTime lastSnapshotTime = DateTime.now();
+  int debounceDurationMillis = 40;
 
   StreamSubscription<ConnectivityResult>? connectivitySubscription;
   bool isConnectedToWifi = true;
@@ -346,10 +347,7 @@ class _StreamViewPageState extends State<StreamViewPage> {
     ]);
   }
 
-
-
   Future<void> startRecording() async {
-    
     final directory = await getTemporaryDirectory();
     // Clean directory before starting recording
     if (directory.existsSync()) {
@@ -366,27 +364,22 @@ class _StreamViewPageState extends State<StreamViewPage> {
     int index = 0;
 
     while (isRecording) {
-      Uint8List? imageData = await player.takeSnapShot();
-      String fileName = 'image_${index.toString().padLeft(6, '0')}.jpg';
-      String filePath = '${directory.path}/$fileName';
-      File file = File(filePath);
-      await file.writeAsBytes(imageData);
-      imagePaths.add(filePath);
-      index++;
+      DateTime now = DateTime.now();
+      int difference = now.difference(lastSnapshotTime).inMilliseconds - debounceDurationMillis;
+          
+      if (difference >= debounceDurationMillis) {
+        lastSnapshotTime = now;
+        Uint8List? imageData = await player.takeSnapShot();
+        String fileName = 'image_${index.toString().padLeft(6, '0')}.jpg';
+        String filePath = '${directory.path}/$fileName';
+        File file = File(filePath);
+        await file.writeAsBytes(imageData);
+        imagePaths.add(filePath);
+        index++;
+      } else {
+        await Future.delayed(Duration(milliseconds: difference));
+      }
     }
-  }
-
-  Future<void> stopRecording() async {
-    isRecording = false;
-    stopwatch.stop();
-    await createVideoFromImages(stopwatch.elapsed.inSeconds);
-
-    // Clear temporary images after creating the video
-    imagePaths.forEach((path) {
-      File(path).delete();
-    });
-    imagePaths.clear();
-    stopwatch.reset();
   }
 
   Future<void> takeSnapShot() async {
@@ -406,6 +399,19 @@ class _StreamViewPageState extends State<StreamViewPage> {
         print("Failed to save snapshot to gallery.");
       }
     });
+  }
+
+  Future<void> stopRecording() async {
+    isRecording = false;
+    stopwatch.stop();
+    await createVideoFromImages(stopwatch.elapsed.inSeconds);
+
+    // Clear temporary images after creating the video
+    imagePaths.forEach((path) {
+      File(path).delete();
+    });
+    imagePaths.clear();
+    stopwatch.reset();
   }
 
   Future<void> createVideoFromImages(int desiredVideoLengthInSeconds) async {
@@ -452,6 +458,4 @@ class _StreamViewPageState extends State<StreamViewPage> {
       }
     });
   }
-
-
 }
