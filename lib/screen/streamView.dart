@@ -63,7 +63,7 @@ class _StreamViewPageState extends State<StreamViewPage> {
   bool isReconnecting = false;
   bool isLoading = true;
   DateTime lastSnapshotTime = DateTime.now();
-  int debounceDurationMillis = 40;
+  int debounceDurationMillis = 20;
 
   StreamSubscription<ConnectivityResult>? connectivitySubscription;
   bool isConnectedToWifi = true;
