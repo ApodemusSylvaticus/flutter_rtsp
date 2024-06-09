@@ -62,6 +62,7 @@ class _StreamViewPageState extends State<StreamViewPage> {
   bool showReconnectButton = false;
   bool isReconnecting = false;
   bool isLoading = true;
+  Timer? snapshotTimer;
 
   StreamSubscription<ConnectivityResult>? connectivitySubscription;
   bool isConnectedToWifi = true;
@@ -175,7 +176,7 @@ class _StreamViewPageState extends State<StreamViewPage> {
 
       player.setOption(FijkOption.playerCategory, "flush_packets", 1);
       player.setOption(FijkOption.formatCategory, "rtsp_transport", "tcp");
-await player.setDataSource("rtsp://${widget.streamUrl}", autoPlay: true);
+      await player.setDataSource("rtsp://${widget.streamUrl}", autoPlay: true);
       Wakelock.enable();
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
 
@@ -232,8 +233,7 @@ await player.setDataSource("rtsp://${widget.streamUrl}", autoPlay: true);
         try {
           String result = await completer.future;
           print('Received response: $result');
-                    Future.delayed(Duration(milliseconds: 500), initializePlayer);
-
+          Future.delayed(Duration(milliseconds: 500), initializePlayer);
         } catch (e) {
           print('Error receiving response: $e');
         }
@@ -272,12 +272,12 @@ await player.setDataSource("rtsp://${widget.streamUrl}", autoPlay: true);
   Widget build(BuildContext context) {
     return DefaultBg(
       child: Center(
-        child: buildBody(),
+        child: buildBody(context),
       ),
     );
   }
 
-  Widget buildBody() {
+  Widget buildBody(BuildContext context) {
     if (isConnectedToWifi == false) {
       return WifiConnectPage(
         onConnectToWifi: openWifiSettings,
@@ -303,7 +303,7 @@ await player.setDataSource("rtsp://${widget.streamUrl}", autoPlay: true);
             ? MediaQuery.of(context).padding.left
             : MediaQuery.of(context).padding.top;
 
-    double playerWidth = screenWidth - 280 - topPadding;
+    double playerWidth = screenWidth - 280 - 16 - topPadding;
     Widget playerWithScreenRecorder = Container(
       width: playerWidth,
       height: MediaQuery.of(context).size.height,
@@ -346,7 +346,10 @@ await player.setDataSource("rtsp://${widget.streamUrl}", autoPlay: true);
     ]);
   }
 
+
+
   Future<void> startRecording() async {
+    
     final directory = await getTemporaryDirectory();
     // Clean directory before starting recording
     if (directory.existsSync()) {
@@ -449,4 +452,6 @@ await player.setDataSource("rtsp://${widget.streamUrl}", autoPlay: true);
       }
     });
   }
+
+
 }

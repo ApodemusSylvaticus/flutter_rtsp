@@ -1,4 +1,3 @@
-import 'package:archer_link/flutter/packages/flutter/lib/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:archer_link/containers/DefaultBg.dart';
 
@@ -14,7 +13,7 @@ class WifiConnectPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DefaultBg(
+    return SafeArea(child: DefaultBg(
       child: Stack(
         children: [
           Center(
@@ -51,8 +50,7 @@ class WifiConnectPage extends StatelessWidget {
               ],
             ),
           ),
-          SafeArea(
-            child: Positioned(
+         Positioned(
                 bottom: 10,
                 left: 0,
                 child: GestureDetector(
@@ -63,9 +61,8 @@ class WifiConnectPage extends StatelessWidget {
                     height: 50,
                   ),
                 )),
-          ),
         ],
       ),
-    );
+    ));
   }
 }

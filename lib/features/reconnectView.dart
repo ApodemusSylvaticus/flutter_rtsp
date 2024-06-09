@@ -16,7 +16,7 @@ class ReconnectView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DefaultBg(
+    return SafeArea(child: DefaultBg(
       child: Stack(
         children: [
           Center(
@@ -59,7 +59,8 @@ class ReconnectView extends StatelessWidget {
           ),
           Positioned(
             bottom: 10,
-            left: 10,
+            left: 0
+            ,
             child: GestureDetector(
               onTap: resetAll,
               child: Image.asset(
@@ -71,6 +72,6 @@ class ReconnectView extends StatelessWidget {
           ),
         ],
       ),
-    );
+    ));
   }
 }
