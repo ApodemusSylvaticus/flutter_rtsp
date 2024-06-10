@@ -75,7 +75,6 @@ class _StreamViewPageState extends State<StreamViewPage> {
   void initState() {
     super.initState();
     player.addListener(() {
-      print('player.state ${player.state}');
       if (player.state == FijkState.prepared) {
         setState(() {
           isLoading = false;
@@ -102,7 +101,6 @@ class _StreamViewPageState extends State<StreamViewPage> {
     connectivitySubscription = Connectivity()
         .onConnectivityChanged
         .listen((ConnectivityResult result) async {
-      print('qwerty');
       final streamIp = extractIP(widget.streamUrl);
 
       if (streamIp == null) {
@@ -207,7 +205,6 @@ class _StreamViewPageState extends State<StreamViewPage> {
       isReconnecting = true;
       isLoading = true;
     });
-    print('initializePlayer');
 
     try {
       if (widget.shouldRunStreamView) {
@@ -228,7 +225,7 @@ class _StreamViewPageState extends State<StreamViewPage> {
         }, onError: (error) {
           completer.completeError(error);
         }, onDone: () {
-          print('onDONE');
+          print('onDone');
         });
 
         try {

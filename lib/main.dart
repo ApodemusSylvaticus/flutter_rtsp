@@ -20,7 +20,6 @@ Future<Map<String, dynamic>> isSubnetCorrect() async {
     return {'isSubnetCorrect': false};
   }
 
-  print(actualOctets);
 
 //TEST
 // if ('192' == actualOctets[0] &&
@@ -34,16 +33,16 @@ Future<Map<String, dynamic>> isSubnetCorrect() async {
 //     };
 //   }
 
-  if ('192' == actualOctets[0] &&
-      '168' == actualOctets[1] &&
-      '1' == actualOctets[2]) {
-    return {
-      'isSubnetCorrect': true,
-      'streamUrlController': '192.168.1.117:8554/mystream',
-      'commandUrlController': '192.168.1.117:8080/websocket',
-      'isTCPsend': false
-    };
-  }
+  // if ('192' == actualOctets[0] &&
+  //     '168' == actualOctets[1] &&
+  //     '1' == actualOctets[2]) {
+  //   return {
+  //     'isSubnetCorrect': true,
+  //     'streamUrlController': '192.168.1.117:8554/mystream',
+  //     'commandUrlController': '192.168.1.117:8080/websocket',
+  //     'isTCPsend': false
+  //   };
+  // }
 
   if ('192' == actualOctets[0] &&
       '168' == actualOctets[1] &&
@@ -124,18 +123,13 @@ class _MyHomePageState extends State<MyHomePage> {
 
   getNetworkData() async {
     final value = await isSubnetCorrect();
-    print(value);
     if (value['isSubnetCorrect'] == false) {
       setState(() {
         isFirstLoading = false;
- streamUrlController =
-            TextEditingController(text: '');
-        commandUrlController =
-            TextEditingController(text: '');
-        tcpUrlController =
-            TextEditingController(text: '');
-              isSubmitPressed = true;
-
+        streamUrlController = TextEditingController(text: '');
+        commandUrlController = TextEditingController(text: '');
+        tcpUrlController = TextEditingController(text: '');
+        isSubmitPressed = true;
       });
     } else {
       setState(() {
@@ -155,6 +149,11 @@ class _MyHomePageState extends State<MyHomePage> {
   void resetAll() {
     setState(() {
       isSubmitPressed = false;
+      streamUrlController =
+          TextEditingController(text: 'stream.trailcam.link:8554/mystream');
+      commandUrlController =
+          TextEditingController(text: 'stream.trailcam.link:8080/websocket');
+      tcpUrlController = TextEditingController(text: '192.168.100.1:8888');
     });
   }
 
