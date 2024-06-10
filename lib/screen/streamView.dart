@@ -102,7 +102,7 @@ class _StreamViewPageState extends State<StreamViewPage> {
     connectivitySubscription = Connectivity()
         .onConnectivityChanged
         .listen((ConnectivityResult result) async {
-      print('qwerty');
+    
       final streamIp = extractIP(widget.streamUrl);
 
       if (streamIp == null) {

@@ -11,9 +11,29 @@ class WifiConnectPage extends StatelessWidget {
     required this.resetAll,
   }) : super(key: key);
 
+  void func(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return GestureDetector(
+          onTap: () {
+            Navigator.of(context).pop();
+          },
+          child: Container(
+            color: Colors.black,
+            child: Center(
+              child: Image.asset('assets/wifi_info.png'),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return SafeArea(child: DefaultBg(
+    return SafeArea(
+        child: DefaultBg(
       child: Stack(
         children: [
           Center(
@@ -50,17 +70,29 @@ class WifiConnectPage extends StatelessWidget {
               ],
             ),
           ),
-         Positioned(
-                bottom: 10,
-                left: 0,
-                child: GestureDetector(
-                  onTap: resetAll,
-                  child: Image.asset(
-                    'assets/actionButtonIcon/settings.png',
-                    width: 50,
-                    height: 50,
-                  ),
-                )),
+          Positioned(
+              bottom: 10,
+              left: 0,
+              child: GestureDetector(
+                onTap: resetAll,
+                child: Image.asset(
+                  'assets/actionButtonIcon/settings.png',
+                  width: 50,
+                  height: 50,
+                ),
+              )),
+          Positioned(
+            bottom: 10,
+            right: 0,
+            child: GestureDetector(
+              onTap: () => func(context),
+              child: Image.asset(
+                'assets/actionButtonIcon/infoIcon.png',
+                width: 50,
+                height: 50,
+              ),
+            ),
+          )
         ],
       ),
     ));

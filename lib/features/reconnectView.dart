@@ -14,7 +14,26 @@ class ReconnectView extends StatelessWidget {
     required this.resetAll,
   }) : super(key: key);
 
-  @override
+   void func(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return GestureDetector(
+          onTap: () {
+            Navigator.of(context).pop();
+          },
+          child: Container(
+            color: Colors.black,
+            child: Center(
+              child: Image.asset('assets/wifi_info.png'),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+@override
   Widget build(BuildContext context) {
     return SafeArea(child: DefaultBg(
       child: Stack(
@@ -59,8 +78,7 @@ class ReconnectView extends StatelessWidget {
           ),
           Positioned(
             bottom: 10,
-            left: 0
-            ,
+            left: 0,
             child: GestureDetector(
               onTap: resetAll,
               child: Image.asset(
@@ -70,8 +88,22 @@ class ReconnectView extends StatelessWidget {
               ),
             ),
           ),
+          Positioned(
+            bottom: 10,
+            right: 0,
+            child: GestureDetector(
+             onTap: () => func(context),
+              child: Image.asset(
+                'assets/actionButtonIcon/infoIcon.png',
+                width: 50,
+                height: 50,
+              ),
+            ),
+          )
         ],
+        
       ),
     ));
   }
 }
+   
