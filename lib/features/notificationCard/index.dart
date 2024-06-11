@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+enum NotificationType { defaultType, error }
+
 class NotificationCard extends StatelessWidget {
   final String message;
   final NotificationType type;
@@ -27,20 +29,22 @@ class NotificationCard extends StatelessWidget {
     }
 
     return Container(
-      padding: EdgeInsets.all(16),
+      margin: EdgeInsets.only(top: 10, left: MediaQuery.of(context).size.width * 0.1, right: MediaQuery.of(context).size.width * 0.1),
+      padding: EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Text(
-        message,
-        style: TextStyle(
-          color: textColor,
-          fontSize: 16,
+      child: Center(
+        child: Text(
+          message,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: textColor,
+            fontSize: 16,
+          ),
         ),
       ),
     );
   }
 }
-
-enum NotificationType { defaultType, error }

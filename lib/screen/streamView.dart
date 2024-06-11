@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ffi';
 import 'dart:io';
 import 'package:archer_link/features/notificationCard/index.dart';
 import 'package:archer_link/main.dart';
@@ -57,6 +58,8 @@ class _StreamViewPageState extends State<StreamViewPage> {
   bool showReconnectButton = false;
   bool isReconnecting = false;
   bool isLoading = true;
+  int value = 0;
+  int value2 = 0;
   DateTime lastSnapshotTime = DateTime.now();
   int debounceDurationMillis = 20;
 
@@ -67,9 +70,12 @@ class _StreamViewPageState extends State<StreamViewPage> {
 
   @override
   void initState() {
+    print('init state');
     super.initState();
     player.addListener(() {
-      if (player.state == FijkState.prepared) {
+      print('player state ${value}, ${player.state}');
+      value = value + 1;
+      if (player.state == FijkState.started) {
         setState(() {
           isLoading = false;
           setLandscapeOrientation();
@@ -92,6 +98,7 @@ class _StreamViewPageState extends State<StreamViewPage> {
 
   Future<void> initializePlayer() async {
     try {
+      player.reset();
       await player.setOption(FijkOption.playerCategory, "fflags", "nobuffer");
       // await player.setOption(FijkOption.formatCategory, "probesize", "32");
       await player.setOption(
@@ -127,6 +134,7 @@ class _StreamViewPageState extends State<StreamViewPage> {
   }
 
   Future<void> initializeDeviceConnection() async {
+    print('initializeDeviceConnection');
     setState(() {
       isReconnecting = true;
       isLoading = true;
@@ -182,6 +190,7 @@ class _StreamViewPageState extends State<StreamViewPage> {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
         overlays: SystemUiOverlay.values);
     player.release();
+    player.dispose();
     connectivitySubscription?.cancel();
     Wakelock.disable();
     super.dispose();
@@ -213,14 +222,15 @@ class _StreamViewPageState extends State<StreamViewPage> {
     }
   }
 
-  showNotification() {
+  showNotification(NotificationType notificationType, String msg) {
     InAppNotification.show(
       child: NotificationCard(
-        type: NotificationType.defaultType,
-        message: 'msg',
+        type: notificationType,
+        message: msg,
       ),
       context: context,
       onTap: () => print('Notification tapped!'),
+      duration: Duration(seconds: 5),
     );
   }
 
@@ -291,43 +301,57 @@ class _StreamViewPageState extends State<StreamViewPage> {
     int index = 0;
 
     while (isRecording) {
-      DateTime now = DateTime.now();
-      int difference = now.difference(lastSnapshotTime).inMilliseconds -
-          debounceDurationMillis;
+      try {
+        DateTime now = DateTime.now();
+        int difference = now.difference(lastSnapshotTime).inMilliseconds -
+            debounceDurationMillis;
 
-      if (difference >= debounceDurationMillis) {
-        lastSnapshotTime = now;
-        Uint8List? imageData = await player.takeSnapShot();
-        String fileName = 'image_${index.toString().padLeft(6, '0')}.jpg';
-        String filePath = '${directory.path}/$fileName';
-        File file = File(filePath);
-        await file.writeAsBytes(imageData);
-        imagePaths.add(filePath);
-        index++;
-      } else {
-        await Future.delayed(Duration(milliseconds: difference));
+        if (difference >= debounceDurationMillis) {
+          lastSnapshotTime = now;
+          Uint8List? imageData = await player.takeSnapShot();
+          String fileName = 'image_${index.toString().padLeft(6, '0')}.jpg';
+          String filePath = '${directory.path}/$fileName';
+          File file = File(filePath);
+          await file.writeAsBytes(imageData);
+          imagePaths.add(filePath);
+          index++;
+        } else {
+          await Future.delayed(Duration(milliseconds: difference));
+        }
+      } catch (e) {
+        showNotification(NotificationType.error,
+            'Something went wrong. Video recording stopped.');
+        stopRecording();
       }
     }
   }
 
   Future<void> takeSnapShot() async {
-    DateTime now = DateTime.now();
+    try {
+      DateTime now = DateTime.now();
 
-    int timestamp = now.millisecondsSinceEpoch;
-    Uint8List? imageData = await player.takeSnapShot();
-    final directory = await getTemporaryDirectory();
-    String fileName = 'snapshot_$timestamp.jpg';
-    String filePath = '${directory.path}/$fileName';
-    File file = File(filePath);
-    await file.writeAsBytes(imageData);
-    GallerySaver.saveImage(filePath).then((bool? success) {
-      if (success == true) {
-        print("Snapshot successfully saved to gallery.");
-        showNotification();
-      } else {
-        print("Failed to save snapshot to gallery.");
-      }
-    });
+      int timestamp = now.millisecondsSinceEpoch;
+      Uint8List? imageData = await player.takeSnapShot();
+      final directory = await getTemporaryDirectory();
+      String fileName = 'snapshot_$timestamp.jpg';
+      String filePath = '${directory.path}/$fileName';
+      File file = File(filePath);
+      await file.writeAsBytes(imageData);
+      GallerySaver.saveImage(filePath).then((bool? success) {
+        if (success == true) {
+          print("Snapshot successfully saved to gallery.");
+          showNotification(NotificationType.defaultType,
+              'Snapshot successfully saved to gallery.');
+        } else {
+          print("Failed to save snapshot to gallery.");
+          showNotification(
+              NotificationType.error, 'Failed to save snapshot to gallery.');
+        }
+      });
+    } catch (e) {
+      showNotification(
+          NotificationType.error, 'Failed to save snapshot to gallery.');
+    }
   }
 
   Future<void> stopRecording() async {
@@ -375,8 +399,12 @@ class _StreamViewPageState extends State<StreamViewPage> {
         GallerySaver.saveVideo(outputPath).then((bool? success) {
           if (success == true) {
             print("Video successfully saved to gallery.");
+            showNotification(NotificationType.defaultType,
+                'Video successfully saved to gallery.');
           } else {
             print("Failed to save video to gallery.");
+            showNotification(
+                NotificationType.error, 'Failed to save video to gallery.');
           }
         });
       } else {
