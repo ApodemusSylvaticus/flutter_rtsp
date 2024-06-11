@@ -3,13 +3,17 @@ import 'package:android_intent_plus/android_intent.dart';
 import 'package:flutter/material.dart';
 import 'package:archer_link/containers/DefaultBg.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:wifi_iot/wifi_iot.dart';
 
 class WifiConnectPage extends StatelessWidget {
   final void Function() openSettings;
-
+  final Future<void> Function() getNetworkData;
+  final Future<void> Function() checkConnection;
   const WifiConnectPage({
     Key? key,
     required this.openSettings,
+    required this.getNetworkData,
+    required this.checkConnection,
   }) : super(key: key);
 
   void func(BuildContext context) {
@@ -31,7 +35,7 @@ class WifiConnectPage extends StatelessWidget {
     );
   }
 
-    void openWifiSettings() async {
+  void openWifiSettings() async {
     if (Platform.isAndroid) {
       final AndroidIntent intent = AndroidIntent(
         action: 'android.settings.WIFI_SETTINGS',
@@ -42,7 +46,14 @@ class WifiConnectPage extends StatelessWidget {
       // Note: This may not always work due to iOS restrictions
       const String url = 'App-Prefs:root=WIFI';
       if (await canLaunch(url)) {
-        await launch(url);
+        final actualIp = await WiFiForIoTPlugin.getIP();
+        if (actualIp == null) {
+          await launch(url);
+          return;
+        } else {
+          await getNetworkData();
+          await checkConnection();
+        }
       } else {
         // Consider showing an alert or some other indication that the Wi-Fi settings couldn't be opened
         print('Could not launch $url');

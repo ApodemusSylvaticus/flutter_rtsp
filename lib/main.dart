@@ -11,7 +11,6 @@ import 'package:wifi_iot/wifi_iot.dart';
 import 'package:flutter/services.dart';
 import 'package:in_app_notification/in_app_notification.dart';
 
-
 void main() {
   runApp(MyApp());
 }
@@ -108,7 +107,7 @@ class MyApp extends StatelessWidget {
       900: Color(0xFF2C5700),
     });
 
-  return InAppNotification(
+    return InAppNotification(
       child: MaterialApp(
         title: 'Archer Link',
         theme: ThemeData(
@@ -153,11 +152,13 @@ class _MyHomePageState extends State<MyHomePage> {
     ]);
   }
 
-  getNetworkData() async {
+  Future<void> getNetworkData() async {
     setState(() {
       isLoading = true;
     });
+
     StreamConfig actualStreamConfig = await getStreamConfig();
+
     setState(() {
       isLoading = false;
       streamConfig = actualStreamConfig;
@@ -165,12 +166,9 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> checkConnection() async {
-
     setState(() {
       isLoading = true;
     });
-
-   
 
     try {
       if (streamConfig.streamUrl == 'stream.trailcam.link:8554/mystream') {
@@ -240,7 +238,10 @@ class _MyHomePageState extends State<MyHomePage> {
     if (isAvailableToConnect == false) {
       setPortraitOrientation();
 
-      return WifiConnectPage(openSettings: openSettings);
+      return WifiConnectPage(
+          openSettings: openSettings,
+          getNetworkData: getNetworkData,
+          checkConnection: checkConnection);
     }
 
     return StreamViewPage(streamConfig, openSettings);

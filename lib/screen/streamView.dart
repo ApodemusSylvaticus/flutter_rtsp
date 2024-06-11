@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ffi';
 import 'dart:io';
 import 'package:archer_link/features/notificationCard/index.dart';
 import 'package:archer_link/main.dart';

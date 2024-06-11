@@ -23,8 +23,8 @@ class NotificationCard extends StatelessWidget {
         break;
       case NotificationType.defaultType:
       default:
-        backgroundColor = Color(0xFF34C759); // Цвет вашей кнопки
-        textColor = Colors.black;
+        backgroundColor = Colors.green;
+        textColor = Colors.white;
         break;
     }
 
