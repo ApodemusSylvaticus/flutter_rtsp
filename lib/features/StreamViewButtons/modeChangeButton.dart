@@ -7,13 +7,14 @@ import 'package:archer_link/proto/archer_protocol.pb.dart';
 class ModeChangeButton extends StatefulWidget {
   final void Function(Uint8List buffer) sendToServer;
   final HostDevStatus devStatus;
+
   ModeChangeButton(this.sendToServer, this.devStatus);
 
   @override
-  _ModeChangeButton createState() => _ModeChangeButton();
+  _ModeChangeButtonState createState() => _ModeChangeButtonState();
 }
 
-class _ModeChangeButton extends State<ModeChangeButton> {
+class _ModeChangeButtonState extends State<ModeChangeButton> {
   late int _currentModeIndex;
   final List<AGCMode> modeList = [
     AGCMode.AUTO_1,
@@ -24,10 +25,23 @@ class _ModeChangeButton extends State<ModeChangeButton> {
   @override
   void initState() {
     super.initState();
+    _initializeMode();
+  }
+
+  @override
+  void didUpdateWidget(covariant ModeChangeButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.devStatus.modAGC != oldWidget.devStatus.modAGC) {
+      setState(() {
+        _initializeMode();
+      });
+    }
+  }
+
+  void _initializeMode() {
     if (widget.devStatus.modAGC == AGCMode.UNKNOWN_AGC_MODE) {
       throw ArgumentError('Unknown modAGC: ${widget.devStatus.modAGC}');
     }
-
     _currentModeIndex = modeList.indexOf(widget.devStatus.modAGC);
   }
 
@@ -35,16 +49,13 @@ class _ModeChangeButton extends State<ModeChangeButton> {
     setState(() {
       _currentModeIndex = (_currentModeIndex + 1) % modeList.length;
     });
-
-    sendComand(modeList[_currentModeIndex]);
+    sendCommand(modeList[_currentModeIndex]);
   }
 
-  void sendComand(AGCMode agcMode) {
-    final setAgc = SetAgcMode(mode: agcMode);
-    final command = Command(setAgc: setAgc);
-
-    final clientPayload = ClientPayload(command: command);
-
+  void sendCommand(AGCMode agcMode) {
+    final setAgc = SetAgcMode()..mode = agcMode;
+    final command = Command()..setAgc = setAgc;
+    final clientPayload = ClientPayload()..command = command;
     final buffer = clientPayload.writeToBuffer();
     widget.sendToServer(buffer);
   }

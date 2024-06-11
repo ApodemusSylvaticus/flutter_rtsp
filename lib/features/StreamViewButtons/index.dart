@@ -27,18 +27,18 @@ class StreamViewButtons extends StatefulWidget {
     required this.takePhoto,
   }) : super();
 
-
   @override
   _StreamViewButtonsState createState() => _StreamViewButtonsState();
 }
 
 class _StreamViewButtonsState extends State<StreamViewButtons> {
-  late  WebSocketChannel _channel;
+  late WebSocketChannel _channel;
   bool _isConnected = false;
   bool _isTryingToConnect = false;
   HostDevStatus? devStatus;
   late Timer _timer;
   late Timer _reconnectTimer;
+  int i = 0;
   final Queue<Uint8List> _requestQueue = Queue<Uint8List>();
 
   @override
@@ -46,17 +46,17 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
     super.initState();
     _connectToWebSocket();
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
-      print('_isConnected ${_isConnected}, _requestQueue.isEmpty ${_requestQueue.isEmpty}');
+      print(
+          '_isConnected ${_isConnected}, _requestQueue  ${_requestQueue.length} ');
       if (_isConnected && _requestQueue.isEmpty) {
         getDevStatus();
       }
     });
 
-     _reconnectTimer = Timer.periodic(Duration(seconds: 1), (timer) {
-      if(_isTryingToConnect == false && _isConnected == false){
+    _reconnectTimer = Timer.periodic(Duration(seconds: 1), (timer) {
+      if (_isTryingToConnect == false && _isConnected == false) {
         _connectToWebSocket();
       }
-
     });
   }
 
@@ -69,76 +69,64 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
   }
 
   Future<void> _connectToWebSocket() async {
-    
     bool isCorrect = await isConnected(widget.commandUrl);
 
-
-    if(isCorrect == false){
+    if (isCorrect == false) {
       return;
     }
-_isTryingToConnect = true;
-   final wsUrl = Uri.parse('ws://${widget.commandUrl}');
+    _isTryingToConnect = true;
+    final wsUrl = Uri.parse('ws://${widget.commandUrl}');
 
+    _channel = WebSocketChannel.connect(wsUrl);
+    try {
+      await _channel.ready;
+    } catch (e) {
+      // handle exception here
+      //  print("WebsocketChannel was unable to establishconnection, ${e}");
+      _isTryingToConnect = false;
 
-     _channel = WebSocketChannel.connect(wsUrl);
-  try {
-    await _channel.ready;
-  } catch (e) {
-   // handle exception here
-  //  print("WebsocketChannel was unable to establishconnection, ${e}");
-   _isTryingToConnect = false;
+      return;
+    }
 
-   return;
-  }
-  
-
-Stream stream = _channel.stream;
+    Stream stream = _channel.stream;
     stream.listen((event) {
-       final commandResp = HostPayload.fromBuffer(event);
+      final commandResp = HostPayload.fromBuffer(event);
+
+      print('serverAnswer ${i++}');
 
       _requestQueue.removeLast();
-
 
       if (_requestQueue.length != 0) {
         _channel.sink.add(_requestQueue.last);
       }
 
       if (commandResp.hasDevStatus()) {
-        setState(() {
-          devStatus = commandResp.devStatus;
-        });
+       setState(() {
+            devStatus = commandResp.devStatus;
+          });
       }
 
       setState(() {
         _isConnected = true;
       });
-         _isTryingToConnect = false;
-
-    },onError: (error) {
-
+      _isTryingToConnect = false;
+    }, onError: (error) {
       _requestQueue.clear();
       setState(() {
         _isConnected = false;
       });
-               _isTryingToConnect = false;
-
+      _isTryingToConnect = false;
     }, onDone: () {
-
       print('onDone');
       _requestQueue.clear();
 
       setState(() {
         _isConnected = false;
       });
-               _isTryingToConnect = false;
-
-    },
-    cancelOnError: true
-    );
+      _isTryingToConnect = false;
+    }, cancelOnError: true);
 
     getDevStatus();
-
-   
   }
 
   Future<void> getDevStatus() async {
@@ -162,100 +150,107 @@ Stream stream = _channel.stream;
 
   @override
   Widget build(BuildContext context) {
-        double topPadding = MediaQuery.of(context).padding.left > MediaQuery.of(context).padding.top ? MediaQuery.of(context).padding.left : MediaQuery.of(context).padding.top;
+    double topPadding =
+        MediaQuery.of(context).padding.left > MediaQuery.of(context).padding.top
+            ? MediaQuery.of(context).padding.left
+            : MediaQuery.of(context).padding.top;
 
     if (devStatus != null && _isConnected) {
-      
-      return Padding(padding:  EdgeInsets.only(left: topPadding), child: Row(
-        children: [
-          SizedBox(
-            width: 140,
-            height: MediaQuery.of(context).size.height,
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  MakePhotoButton(takePhoto: widget.takePhoto),
-                  SizedBox(height: 10),
-                  RecordButton(
-                    isRecording: widget.isRecording,
-                    onToggle: widget.onRecordingChanged,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Center(child: widget.child),
-          SizedBox(
-            width: 140,
-            height: MediaQuery.of(context).size.height,
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  LightModeSelector(_sendToServer, devStatus!),
-                  SizedBox(height: 10),
-                  ModeChangeButton(_sendToServer, devStatus!),
-                  SizedBox(height: 10),
-                  ZoomButton(_sendToServer, devStatus!),
-                  SizedBox(height: 10),
-                  CalibrationButton(_sendToServer)
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),);
-    } else {
-      return Padding(padding: EdgeInsets.only(left: topPadding), child: Row(
-        children: [
-          SizedBox(
-            width: 140,
-            height: MediaQuery.of(context).size.height,
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  MakePhotoButton(takePhoto: widget.takePhoto),
-                  SizedBox(height: 10),
-                  RecordButton(
-                    isRecording: widget.isRecording,
-                    onToggle: widget.onRecordingChanged,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Center(child: widget.child),
-          SizedBox(
-            width: 140,
-            height: MediaQuery.of(context).size.height,
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 10),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Unable to establish a WebSocket connection. Trying to connect...',
-                          style: TextStyle(
-                          
-                              color: Colors.white.withOpacity(0.45),
-                              fontSize: 12,
-                              decoration: TextDecoration.none),
-                        ),
-                      ],
+      return Padding(
+        padding: EdgeInsets.only(left: topPadding),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 140,
+              height: MediaQuery.of(context).size.height,
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    MakePhotoButton(takePhoto: widget.takePhoto),
+                    SizedBox(height: 10),
+                    RecordButton(
+                      isRecording: widget.isRecording,
+                      onToggle: widget.onRecordingChanged,
                     ),
-                  )
-                ],
+                  ],
+                ),
               ),
             ),
-          )
-        ],
-      ),);
+            Center(child: widget.child),
+            SizedBox(
+              width: 140,
+              height: MediaQuery.of(context).size.height,
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    LightModeSelector(_sendToServer, devStatus!),
+                    SizedBox(height: 10),
+                    ModeChangeButton(_sendToServer, devStatus!),
+                    SizedBox(height: 10),
+                    ZoomButton(_sendToServer, devStatus!),
+                    SizedBox(height: 10),
+                    CalibrationButton(_sendToServer)
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    } else {
+      return Padding(
+        padding: EdgeInsets.only(left: topPadding),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 140,
+              height: MediaQuery.of(context).size.height,
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    MakePhotoButton(takePhoto: widget.takePhoto),
+                    SizedBox(height: 10),
+                    RecordButton(
+                      isRecording: widget.isRecording,
+                      onToggle: widget.onRecordingChanged,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Center(child: widget.child),
+            SizedBox(
+              width: 140,
+              height: MediaQuery.of(context).size.height,
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 10),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Unable to establish a WebSocket connection. Trying to connect...',
+                            style: TextStyle(
+                                color: Colors.white.withOpacity(0.45),
+                                fontSize: 12,
+                                decoration: TextDecoration.none),
+                          ),
+                        ],
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            )
+          ],
+        ),
+      );
     }
   }
 }

@@ -50,16 +50,16 @@ Future<StreamConfig> getStreamConfig() async {
     );
   }
 
-  //  if ('192' == actualOctets[0] &&
-  //     '168' == actualOctets[1] &&
-  //     '1' == actualOctets[2]) {
-  //   return StreamConfig(
-  //     streamUrl: '192.168.1.117:8554/mystream',
-  //     commandUrl: '192.168.1.117:8080/websocket',
-  //     tcpCommandUrl: '',
-  //     shouldRunStreamView: false,
-  //   );
-  // }
+   if ('192' == actualOctets[0] &&
+      '168' == actualOctets[1] &&
+      '1' == actualOctets[2]) {
+    return StreamConfig(
+      streamUrl: '192.168.1.117:8554/mystream',
+      commandUrl: '192.168.1.117:8080/websocket',
+      tcpCommandUrl: '',
+      shouldRunStreamView: false,
+    );
+  }
 
   if ('192' == actualOctets[0] &&
       '168' == actualOctets[1] &&
