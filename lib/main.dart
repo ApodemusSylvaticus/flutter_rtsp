@@ -1,74 +1,82 @@
+import 'dart:async';
+import 'package:archer_link/features/wifiConnectPage.dart';
+import 'package:archer_link/helper/isConnected.dart';
+import 'package:archer_link/screen/settings.dart';
+import 'package:archer_link/screen/streamView.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:archer_link/features/loading.dart';
-import 'package:archer_link/features/switch/index.dart';
-import 'package:archer_link/features/textField/index.dart';
-import 'package:archer_link/screen/streamView.dart';
 import 'package:archer_link/containers/DefaultBg.dart';
 import 'package:wifi_iot/wifi_iot.dart';
+import 'package:flutter/services.dart';
 
 void main() {
   runApp(MyApp());
 }
 
-Future<Map<String, dynamic>> isSubnetCorrect() async {
+class StreamConfig {
+  final String streamUrl;
+  final String commandUrl;
+  final String tcpCommandUrl;
+  final bool shouldRunStreamView;
+
+  StreamConfig({
+    required this.streamUrl,
+    required this.commandUrl,
+    required this.tcpCommandUrl,
+    required this.shouldRunStreamView,
+  });
+}
+
+Future<StreamConfig> getStreamConfig() async {
   final actualIp = await WiFiForIoTPlugin.getIP();
   if (actualIp == null) {
-    return {'isSubnetCorrect': false};
+    return StreamConfig(
+      streamUrl: '',
+      commandUrl: '',
+      tcpCommandUrl: '',
+      shouldRunStreamView: false,
+    );
   }
+
   final actualOctets = actualIp.split('.');
   if (actualOctets.length < 3) {
-    return {'isSubnetCorrect': false};
+    return StreamConfig(
+      streamUrl: '',
+      commandUrl: '',
+      tcpCommandUrl: '',
+      shouldRunStreamView: false,
+    );
   }
-
-
-//TEST
-// if ('192' == actualOctets[0] &&
-//       '168' == actualOctets[1] &&
-//       '1' == actualOctets[2]) {
-//     return {
-//       'isSubnetCorrect': true,
-//       'streamUrlController': 'stream.trailcam.link:8554/mystream',
-//       'commandUrlController': 'stream.trailcam.link:8080/websocket',
-//       'isTCPsend': false
-//     };
-//   }
-
-  // if ('192' == actualOctets[0] &&
-  //     '168' == actualOctets[1] &&
-  //     '1' == actualOctets[2]) {
-  //   return {
-  //     'isSubnetCorrect': true,
-  //     'streamUrlController': '192.168.1.117:8554/mystream',
-  //     'commandUrlController': '192.168.1.117:8080/websocket',
-  //     'isTCPsend': false
-  //   };
-  // }
 
   if ('192' == actualOctets[0] &&
       '168' == actualOctets[1] &&
       '1' == actualOctets[2]) {
-    return {
-      'isSubnetCorrect': true,
-      'streamUrlController': '192.168.1.1:555//ir.sdp',
-      'commandUrlController': '192.168.1.1:8080/websocket',
-      "tcpUrlController": '',
-      'isTCPsend': false
-    };
+    return StreamConfig(
+      streamUrl: '192.168.1.1:555//ir.sdp',
+      commandUrl: '192.168.1.1:8080/websocket',
+      tcpCommandUrl: '',
+      shouldRunStreamView: true,
+    );
   }
 
   if ('192' == actualOctets[0] &&
       '168' == actualOctets[1] &&
       '100' == actualOctets[2]) {
-    return {
-      'isSubnetCorrect': true,
-      'streamUrlController': '192.168.100.1/stream0',
-      'commandUrlController': '192.168.100.1:8080/websocket',
-      "tcpUrlController": '192.168.100.1:8888',
-      'isTCPsend': true
-    };
+    return StreamConfig(
+      streamUrl: '192.168.100.1/stream0',
+      commandUrl: '192.168.100.1:8080/websocket',
+      tcpCommandUrl: '192.168.100.1:8888',
+      shouldRunStreamView: true,
+    );
   }
 
-  return {'isSubnetCorrect': false};
+  return StreamConfig(
+    streamUrl: '',
+    commandUrl: '',
+    tcpCommandUrl: '',
+    shouldRunStreamView: false,
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -105,61 +113,108 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  bool isFirstLoading = true;
-  TextEditingController streamUrlController =
-      TextEditingController(text: 'stream.trailcam.link:8554/mystream');
-  TextEditingController commandUrlController =
-      TextEditingController(text: 'stream.trailcam.link:8080/websocket');
-  TextEditingController tcpUrlController =
-      TextEditingController(text: '192.168.100.1:8888');
-  bool isSubmitPressed = false;
-  bool shouldRunStreamView = false;
+  bool isLoading = false;
+  bool isAvailableToConnect = false;
+  bool isSettingsOpen = false;
+  StreamConfig streamConfig = StreamConfig(
+    commandUrl: '',
+    tcpCommandUrl: '',
+    shouldRunStreamView: false,
+    streamUrl: '',
+  );
+  StreamSubscription<ConnectivityResult>? connectivitySubscription;
 
   @override
   void initState() {
     super.initState();
     getNetworkData();
+    monitorWifiConnection();
+  }
+
+  void setPortraitOrientation() {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
   }
 
   getNetworkData() async {
-    final value = await isSubnetCorrect();
-    if (value['isSubnetCorrect'] == false) {
+    setState(() {
+      isLoading = true;
+    });
+    StreamConfig actualStreamConfig = await getStreamConfig();
+    setState(() {
+      isLoading = false;
+      streamConfig = actualStreamConfig;
+    });
+  }
+
+  Future<void> checkConnection() async {
+
+    setState(() {
+      isLoading = true;
+    });
+
+   
+
+    try {
+      if (streamConfig.streamUrl == 'stream.trailcam.link:8554/mystream') {
+        bool isAvailable = await connectivityCheck();
+
+        setState(() {
+          isAvailableToConnect = isAvailable;
+          isLoading = false;
+        });
+        return;
+      }
+
+      bool isAvailable = await isConnected(streamConfig.streamUrl);
+
       setState(() {
-        isFirstLoading = false;
-        streamUrlController = TextEditingController(text: '');
-        commandUrlController = TextEditingController(text: '');
-        tcpUrlController = TextEditingController(text: '');
-        isSubmitPressed = true;
+        isAvailableToConnect = isAvailable;
+        isLoading = false;
       });
-    } else {
+    } catch (e) {
       setState(() {
-        streamUrlController =
-            TextEditingController(text: value['streamUrlController']);
-        commandUrlController =
-            TextEditingController(text: value['commandUrlController']);
-        tcpUrlController =
-            TextEditingController(text: value['tcpUrlController']);
-        isSubmitPressed = true;
-        shouldRunStreamView = value['isTCPsend'];
-        isFirstLoading = false;
+        isAvailableToConnect = false;
+        isLoading = false;
       });
     }
   }
 
-  void resetAll() {
-    setState(() {
-      isSubmitPressed = false;
-      streamUrlController =
-          TextEditingController(text: 'stream.trailcam.link:8554/mystream');
-      commandUrlController =
-          TextEditingController(text: 'stream.trailcam.link:8080/websocket');
-      tcpUrlController = TextEditingController(text: '192.168.100.1:8888');
+  void monitorWifiConnection() {
+    connectivitySubscription = Connectivity()
+        .onConnectivityChanged
+        .listen((ConnectivityResult _) async {
+      await checkConnection();
     });
+  }
+
+  void openSettings() {
+    setState(() => isSettingsOpen = true);
+  }
+
+  void closeSettings() {
+    setState(() => isSettingsOpen = false);
+  }
+
+  void resetAll(StreamConfig newStreamConfig) {
+    closeSettings();
+    setState(() => streamConfig = newStreamConfig);
+    checkConnection();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (isFirstLoading) {
+    if (isSettingsOpen) {
+      setPortraitOrientation();
+
+      return SettingsPage(streamConfig, resetAll, closeSettings);
+    }
+
+    if (isLoading) {
+      setPortraitOrientation();
+
       return DefaultBg(
         child: const Center(
           child: LoadingIndicator(isLoading: true),
@@ -167,94 +222,16 @@ class _MyHomePageState extends State<MyHomePage> {
       );
     }
 
-    return isSubmitPressed
-        ? StreamViewPage(streamUrlController.text, commandUrlController.text,
-            shouldRunStreamView, resetAll, tcpUrlController.text)
-        : Stack(
-            children: [
-              DefaultBg(
-                  child: Scaffold(
-                backgroundColor: Colors.transparent,
-                body: SafeArea(
-                  child: Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: <Widget>[
-                          const Text(
-                            'Enter stream URL:',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500),
-                          ),
-                          CustomTextField(
-                            controller: streamUrlController,
-                          ),
-                          SizedBox(height: 20.0),
-                          const Text(
-                            'Enter command websocket URL:',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500),
-                          ),
-                          CustomTextField(
-                            controller: commandUrlController,
-                          ),
-                          SizedBox(height: 10.0),
-                          Row(
-                            children: [
-                              const Text(
-                                'Should run TRANS_START:',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w500),
-                              ),
-                              SizedBox(width: 10.0),
-                              CustomSwitch(
-                                  value: shouldRunStreamView,
-                                  onChanged: (newValue) {
-                                    setState(() {
-                                      shouldRunStreamView = newValue;
-                                    });
-                                  }),
-                            ],
-                          ),
-                          if (shouldRunStreamView) ...[
-                            SizedBox(height: 20.0),
-                            const Text(
-                              'Enter TCP URL:',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500),
-                            ),
-                            CustomTextField(
-                              controller: tcpUrlController,
-                            ),
-                          ],
-                          SizedBox(height: 10.0),
-                          ElevatedButton(
-                            onPressed: () {
-                              setState(() {
-                                isSubmitPressed = true;
-                              });
-                            },
-                            child: Text('Submit',
-                                style: TextStyle(
-                                    fontSize: 18.0, color: Colors.black)),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ))
-            ],
-          );
+    if (isAvailableToConnect == false) {
+      setPortraitOrientation();
+
+      return DefaultBg(
+          child: DefaultBg(
+              child: Center(
+        child: WifiConnectPage(openSettings: openSettings),
+      )));
+    }
+
+    return StreamViewPage(streamConfig, openSettings);
   }
 }

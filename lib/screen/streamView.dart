@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:archer_link/helper/isConnected.dart';
+import 'package:archer_link/main.dart';
 import 'package:ffmpeg_kit_flutter/return_code.dart';
 import 'package:flutter/material.dart';
 import 'package:ffmpeg_kit_flutter/ffmpeg_kit.dart';
@@ -10,9 +10,6 @@ import 'package:gallery_saver/gallery_saver.dart';
 import 'package:archer_link/features/StreamViewButtons/index.dart';
 import 'package:archer_link/features/loading.dart';
 import 'package:archer_link/features/reconnectView.dart';
-import 'package:archer_link/features/wifiConnectPage.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:android_intent_plus/android_intent.dart';
 import 'package:wakelock/wakelock.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
@@ -43,15 +40,11 @@ class ParsedData {
 }
 
 class StreamViewPage extends StatefulWidget {
-  final String streamUrl;
-  final String commandUrl;
-  final String tcpCommandUrl;
-  final bool shouldRunStreamView;
-  final void Function() resetAll;
+  final StreamConfig streamConfig;
 
-  const StreamViewPage(this.streamUrl, this.commandUrl,
-      this.shouldRunStreamView, this.resetAll, this.tcpCommandUrl,
-      {super.key});
+  final void Function() openSettings;
+
+  const StreamViewPage(this.streamConfig, this.openSettings, {super.key});
 
   @override
   State<StreamViewPage> createState() => _StreamViewPageState();
@@ -66,7 +59,6 @@ class _StreamViewPageState extends State<StreamViewPage> {
   int debounceDurationMillis = 20;
 
   StreamSubscription<ConnectivityResult>? connectivitySubscription;
-  bool isConnectedToWifi = true;
   bool isRecording = false;
   Stopwatch stopwatch = Stopwatch();
   List<String> imagePaths = [];
@@ -93,72 +85,11 @@ class _StreamViewPageState extends State<StreamViewPage> {
     if (player.state == FijkState.completed) {
       player.reset();
     }
-    monitorWifiConnection();
-    checkWifiAndInitializePlayer();
+    initializeDeviceConnection();
   }
 
-  void monitorWifiConnection() {
-    connectivitySubscription = Connectivity()
-        .onConnectivityChanged
-        .listen((ConnectivityResult result) async {
-      final streamIp = extractIP(widget.streamUrl);
 
-      if (streamIp == null) {
-        bool isConnected = await connectivityCheck();
 
-        if (!isConnected) {
-          setState(() {
-            isConnectedToWifi = false;
-          });
-
-          if (isRecording) {
-            stopRecording();
-          }
-
-          setPortraitOrientation();
-          Wakelock.disable();
-          return;
-        }
-
-        checkWifiAndInitializePlayer();
-      }
-    });
-  }
-
-  void openWifiSettings() async {
-    if (Platform.isAndroid) {
-      final AndroidIntent intent = AndroidIntent(
-        action: 'android.settings.WIFI_SETTINGS',
-      );
-      await intent.launch();
-    } else if (Platform.isIOS) {
-      // For iOS, try to open Wi-Fi settings URL
-      // Note: This may not always work due to iOS restrictions
-      const String url = 'App-Prefs:root=WIFI';
-      if (await canLaunch(url)) {
-        await launch(url);
-      } else {
-        // Consider showing an alert or some other indication that the Wi-Fi settings couldn't be opened
-        print('Could not launch $url');
-      }
-    }
-  }
-
-  Future<void> checkWifiAndInitializePlayer() async {
-    isConnected(widget.streamUrl).then((value) {
-      if (value) {
-        setState(() {
-          isConnectedToWifi = true;
-        });
-        initializeDeviceConnection();
-      } else {
-        setState(() {
-          isLoading = false;
-          showReconnectButton = true;
-        });
-      }
-    });
-  }
 
   Future<void> initializePlayer() async {
     try {
@@ -175,7 +106,7 @@ class _StreamViewPageState extends State<StreamViewPage> {
 
       player.setOption(FijkOption.playerCategory, "flush_packets", 1);
       player.setOption(FijkOption.formatCategory, "rtsp_transport", "tcp");
-      await player.setDataSource("rtsp://${widget.streamUrl}", autoPlay: true);
+      await player.setDataSource("rtsp://${widget.streamConfig.streamUrl}", autoPlay: true);
       Wakelock.enable();
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
 
@@ -191,11 +122,7 @@ class _StreamViewPageState extends State<StreamViewPage> {
     } finally {
       setState(() {
         isReconnecting = false;
-        if (player.state == FijkState.completed) {
-          setState(() {
-            setLandscapeOrientation();
-          });
-        }
+    
       });
     }
   }
@@ -207,8 +134,8 @@ class _StreamViewPageState extends State<StreamViewPage> {
     });
 
     try {
-      if (widget.shouldRunStreamView) {
-        final parsed = ParsedData.fromString(widget.tcpCommandUrl);
+      if (widget.streamConfig.shouldRunStreamView) {
+        final parsed = ParsedData.fromString(widget.streamConfig.tcpCommandUrl);
         int port = int.parse(parsed.port!);
 
         var socket = await Socket.connect(parsed.ipAddress, port);
@@ -247,11 +174,6 @@ class _StreamViewPageState extends State<StreamViewPage> {
     } finally {
       setState(() {
         isReconnecting = false;
-        if (player.state == FijkState.completed) {
-          setState(() {
-            setLandscapeOrientation();
-          });
-        }
       });
     }
   }
@@ -276,20 +198,19 @@ class _StreamViewPageState extends State<StreamViewPage> {
   }
 
   Widget buildBody(BuildContext context) {
-    if (isConnectedToWifi == false) {
-      return WifiConnectPage(
-        onConnectToWifi: openWifiSettings,
-        resetAll: widget.resetAll,
-      );
-    } else if (isLoading == true) {
+     if (isLoading == true) {
+      setPortraitOrientation();
       return LoadingIndicator(isLoading: isLoading);
     } else if (showReconnectButton) {
+      setPortraitOrientation();
       return ReconnectView(
+        
         isReconnecting: isReconnecting,
-        onReconnect: checkWifiAndInitializePlayer,
-        resetAll: widget.resetAll,
+        onReconnect: initializeDeviceConnection,
+        openSettings: widget.openSettings,
       );
     } else {
+      setLandscapeOrientation();
       return buildStreamView();
     }
   }
@@ -325,7 +246,7 @@ class _StreamViewPageState extends State<StreamViewPage> {
         });
       },
       isRecording: isRecording,
-      commandUrl: widget.commandUrl,
+      commandUrl: widget.streamConfig.commandUrl,
       takePhoto: takeSnapShot,
     );
   }
@@ -362,8 +283,9 @@ class _StreamViewPageState extends State<StreamViewPage> {
 
     while (isRecording) {
       DateTime now = DateTime.now();
-      int difference = now.difference(lastSnapshotTime).inMilliseconds - debounceDurationMillis;
-          
+      int difference = now.difference(lastSnapshotTime).inMilliseconds -
+          debounceDurationMillis;
+
       if (difference >= debounceDurationMillis) {
         lastSnapshotTime = now;
         Uint8List? imageData = await player.takeSnapShot();

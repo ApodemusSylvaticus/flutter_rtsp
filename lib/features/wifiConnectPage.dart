@@ -1,14 +1,15 @@
+import 'dart:io';
+import 'package:android_intent_plus/android_intent.dart';
 import 'package:flutter/material.dart';
 import 'package:archer_link/containers/DefaultBg.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class WifiConnectPage extends StatelessWidget {
-  final void Function() onConnectToWifi;
-  final void Function() resetAll;
+  final void Function() openSettings;
 
   const WifiConnectPage({
     Key? key,
-    required this.onConnectToWifi,
-    required this.resetAll,
+    required this.openSettings,
   }) : super(key: key);
 
   void func(BuildContext context) {
@@ -28,6 +29,25 @@ class WifiConnectPage extends StatelessWidget {
         );
       },
     );
+  }
+
+    void openWifiSettings() async {
+    if (Platform.isAndroid) {
+      final AndroidIntent intent = AndroidIntent(
+        action: 'android.settings.WIFI_SETTINGS',
+      );
+      await intent.launch();
+    } else if (Platform.isIOS) {
+      // For iOS, try to open Wi-Fi settings URL
+      // Note: This may not always work due to iOS restrictions
+      const String url = 'App-Prefs:root=WIFI';
+      if (await canLaunch(url)) {
+        await launch(url);
+      } else {
+        // Consider showing an alert or some other indication that the Wi-Fi settings couldn't be opened
+        print('Could not launch $url');
+      }
+    }
   }
 
   @override
@@ -53,7 +73,7 @@ class WifiConnectPage extends StatelessWidget {
                 ),
                 SizedBox(height: 10),
                 ElevatedButton(
-                  onPressed: onConnectToWifi,
+                  onPressed: openWifiSettings,
                   child: const SizedBox(
                     width: double.infinity,
                     child: Text(
@@ -74,7 +94,7 @@ class WifiConnectPage extends StatelessWidget {
               bottom: 10,
               left: 0,
               child: GestureDetector(
-                onTap: resetAll,
+                onTap: () => openSettings(),
                 child: Image.asset(
                   'assets/actionButtonIcon/settings.png',
                   width: 50,

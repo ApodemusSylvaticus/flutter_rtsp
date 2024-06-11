@@ -15,6 +15,7 @@ Future<bool> connectivityCheck() async{
       ConnectivityResult result = await (Connectivity().checkConnectivity());
     return result == ConnectivityResult.wifi ||
         result == ConnectivityResult.ethernet ||
+                result == ConnectivityResult.vpn ||
         result == ConnectivityResult.mobile;
 }
 
@@ -23,7 +24,7 @@ Future<bool> isConnected(
 ) async {
   final ipFromUrl = extractIP(url);
   if (ipFromUrl == null) {
-    return connectivityCheck();
+    return false;
   }
 
   List<String> octets = ipFromUrl.split('.');

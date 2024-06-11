@@ -5,13 +5,13 @@ import 'package:archer_link/containers/DefaultBg.dart';
 class ReconnectView extends StatelessWidget {
   final bool isReconnecting;
   final VoidCallback onReconnect;
-  final void Function() resetAll;
+  final void Function() openSettings;
 
   const ReconnectView({
     Key? key,
     required this.isReconnecting,
     required this.onReconnect,
-    required this.resetAll,
+    required this.openSettings,
   }) : super(key: key);
 
    void func(BuildContext context) {
@@ -80,7 +80,7 @@ class ReconnectView extends StatelessWidget {
             bottom: 10,
             left: 0,
             child: GestureDetector(
-              onTap: resetAll,
+              onTap: openSettings,
               child: Image.asset(
                 'assets/actionButtonIcon/settings.png',
                 width: 50,
