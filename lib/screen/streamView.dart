@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:archer_link/features/notificationCard/index.dart';
 import 'package:archer_link/main.dart';
 import 'package:ffmpeg_kit_flutter/return_code.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +11,7 @@ import 'package:gallery_saver/gallery_saver.dart';
 import 'package:archer_link/features/StreamViewButtons/index.dart';
 import 'package:archer_link/features/loading.dart';
 import 'package:archer_link/features/reconnectView.dart';
+import 'package:in_app_notification/in_app_notification.dart';
 import 'package:wakelock/wakelock.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
@@ -88,9 +90,6 @@ class _StreamViewPageState extends State<StreamViewPage> {
     initializeDeviceConnection();
   }
 
-
-
-
   Future<void> initializePlayer() async {
     try {
       await player.setOption(FijkOption.playerCategory, "fflags", "nobuffer");
@@ -106,7 +105,8 @@ class _StreamViewPageState extends State<StreamViewPage> {
 
       player.setOption(FijkOption.playerCategory, "flush_packets", 1);
       player.setOption(FijkOption.formatCategory, "rtsp_transport", "tcp");
-      await player.setDataSource("rtsp://${widget.streamConfig.streamUrl}", autoPlay: true);
+      await player.setDataSource("rtsp://${widget.streamConfig.streamUrl}",
+          autoPlay: true);
       Wakelock.enable();
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
 
@@ -122,7 +122,6 @@ class _StreamViewPageState extends State<StreamViewPage> {
     } finally {
       setState(() {
         isReconnecting = false;
-    
       });
     }
   }
@@ -198,13 +197,12 @@ class _StreamViewPageState extends State<StreamViewPage> {
   }
 
   Widget buildBody(BuildContext context) {
-     if (isLoading == true) {
+    if (isLoading == true) {
       setPortraitOrientation();
       return LoadingIndicator(isLoading: isLoading);
     } else if (showReconnectButton) {
       setPortraitOrientation();
       return ReconnectView(
-        
         isReconnecting: isReconnecting,
         onReconnect: initializeDeviceConnection,
         openSettings: widget.openSettings,
@@ -213,6 +211,17 @@ class _StreamViewPageState extends State<StreamViewPage> {
       setLandscapeOrientation();
       return buildStreamView();
     }
+  }
+
+  showNotification() {
+    InAppNotification.show(
+      child: NotificationCard(
+        type: NotificationType.defaultType,
+        message: 'msg',
+      ),
+      context: context,
+      onTap: () => print('Notification tapped!'),
+    );
   }
 
   Widget buildStreamView() {
@@ -314,6 +323,7 @@ class _StreamViewPageState extends State<StreamViewPage> {
     GallerySaver.saveImage(filePath).then((bool? success) {
       if (success == true) {
         print("Snapshot successfully saved to gallery.");
+        showNotification();
       } else {
         print("Failed to save snapshot to gallery.");
       }

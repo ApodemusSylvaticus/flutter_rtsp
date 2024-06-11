@@ -9,6 +9,8 @@ import 'package:archer_link/features/loading.dart';
 import 'package:archer_link/containers/DefaultBg.dart';
 import 'package:wifi_iot/wifi_iot.dart';
 import 'package:flutter/services.dart';
+import 'package:in_app_notification/in_app_notification.dart';
+
 
 void main() {
   runApp(MyApp());
@@ -49,6 +51,17 @@ Future<StreamConfig> getStreamConfig() async {
     );
   }
 
+   if ('192' == actualOctets[0] &&
+      '168' == actualOctets[1] &&
+      '1' == actualOctets[2]) {
+    return StreamConfig(
+      streamUrl: '192.168.1.117:8554/mystream',
+      commandUrl: '192.168.1.117:8080/websocket',
+      tcpCommandUrl: '',
+      shouldRunStreamView: false,
+    );
+  }
+
   if ('192' == actualOctets[0] &&
       '168' == actualOctets[1] &&
       '1' == actualOctets[2]) {
@@ -56,7 +69,7 @@ Future<StreamConfig> getStreamConfig() async {
       streamUrl: '192.168.1.1:555//ir.sdp',
       commandUrl: '192.168.1.1:8080/websocket',
       tcpCommandUrl: '',
-      shouldRunStreamView: true,
+      shouldRunStreamView: false,
     );
   }
 
@@ -95,14 +108,16 @@ class MyApp extends StatelessWidget {
       900: Color(0xFF2C5700),
     });
 
-    return MaterialApp(
-      title: 'Archer Link',
-      theme: ThemeData(
-        textSelectionTheme: TextSelectionThemeData(
-          selectionHandleColor: Color.fromRGBO(52, 198, 89, 1),
+  return InAppNotification(
+      child: MaterialApp(
+        title: 'Archer Link',
+        theme: ThemeData(
+          textSelectionTheme: TextSelectionThemeData(
+            selectionHandleColor: Color.fromRGBO(52, 198, 89, 1),
+          ),
         ),
+        home: MyHomePage(),
       ),
-      home: MyHomePage(),
     );
   }
 }
