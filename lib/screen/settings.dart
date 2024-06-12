@@ -39,10 +39,10 @@ class _SettingsPageState extends State<SettingsPage> {
   void initState() {
     super.initState();
     streamUrlController = widget.actualStreamConfig.streamUrl == ''
-        ? TextEditingController(text: 'stream.trailcam.link:8554/mystream')
+        ? TextEditingController(text: '192.168.100.1/stream0')
         : TextEditingController(text: widget.actualStreamConfig.streamUrl);
     commandUrlController = widget.actualStreamConfig.commandUrl == ''
-        ? TextEditingController(text: 'stream.trailcam.link:8080/websocket')
+        ? TextEditingController(text: '192.168.100.1:8080/websocket')
         : TextEditingController(text: widget.actualStreamConfig.commandUrl);
     tcpUrlController = widget.actualStreamConfig.commandUrl == ''
         ? TextEditingController(text: '192.168.100.1:8888')
