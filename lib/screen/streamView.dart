@@ -72,9 +72,9 @@ class _StreamViewPageState extends State<StreamViewPage> {
     print('init state');
     super.initState();
     player.addListener(() {
-      print('player state ${value}, ${player.state}');
+      print('player state ${value}, ${player.state}, ${player.value.videoRenderStart}');
       value = value + 1;
-      if (player.state == FijkState.started) {
+      if (player.state == FijkState.started && player.value.videoRenderStart) {
         setState(() {
           isLoading = false;
           setLandscapeOrientation();
@@ -330,7 +330,11 @@ class _StreamViewPageState extends State<StreamViewPage> {
       DateTime now = DateTime.now();
 
       int timestamp = now.millisecondsSinceEpoch;
+
       Uint8List? imageData = await player.takeSnapShot();
+      if (imageData == null || imageData.isEmpty) {
+      throw Exception("Failed to take snapshot: No data available.");
+    }
       final directory = await getTemporaryDirectory();
       String fileName = 'snapshot_$timestamp.jpg';
       String filePath = '${directory.path}/$fileName';
