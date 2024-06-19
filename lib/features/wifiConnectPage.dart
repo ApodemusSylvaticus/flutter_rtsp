@@ -73,7 +73,7 @@ class WifiConnectPage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'Please connect to Wi-Fi to continue.',
+                  'Please connect your device to continue.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     decoration: TextDecoration.none,
@@ -88,7 +88,7 @@ class WifiConnectPage extends StatelessWidget {
                   child: const SizedBox(
                     width: double.infinity,
                     child: Text(
-                      'Connect to Wi-Fi',
+                      'Connect',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 16,

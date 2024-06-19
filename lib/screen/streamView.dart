@@ -81,6 +81,8 @@ class _StreamViewPageState extends State<StreamViewPage> {
         });
       }
 
+
+
       if (player.state == FijkState.error) {
         setState(() {
           showReconnectButton = true;
@@ -97,6 +99,7 @@ class _StreamViewPageState extends State<StreamViewPage> {
 
   Future<void> initializePlayer() async {
     try {
+      print('tyt');
       player.reset();
       await player.setOption(FijkOption.playerCategory, "fflags", "nobuffer");
       // await player.setOption(FijkOption.formatCategory, "probesize", "32");
@@ -141,25 +144,32 @@ class _StreamViewPageState extends State<StreamViewPage> {
 
     try {
       if (widget.streamConfig.shouldRunStreamView) {
+        print('tyt2');
         final parsed = ParsedData.fromString(widget.streamConfig.tcpCommandUrl);
         int port = int.parse(parsed.port!);
 
         var socket = await Socket.connect(parsed.ipAddress, port);
+      
         socket.writeln('CMD_RTSP_TRANS_START');
-        await socket.flush();
+
 
         Completer<String> completer = Completer<String>();
 
         // Listen for data from the socket
         socket.listen((data) {
+                    print('1');
+
           // Process the received data
           String response = utf8.decode(data);
           completer.complete(response);
         }, onError: (error) {
+          print('errir');
           completer.completeError(error);
         }, onDone: () {
           print('onDone');
         });
+
+        await socket.flush();
 
         try {
           String result = await completer.future;
@@ -229,7 +239,7 @@ class _StreamViewPageState extends State<StreamViewPage> {
       ),
       context: context,
       onTap: () => print('Notification tapped!'),
-      duration: Duration(seconds: 5),
+      duration: Duration(seconds: 4),
     );
   }
 

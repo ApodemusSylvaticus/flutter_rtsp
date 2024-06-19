@@ -46,8 +46,7 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
     super.initState();
     _connectToWebSocket();
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
-      print(
-          '_isConnected ${_isConnected}, _requestQueue  ${_requestQueue.length} ');
+
       if (_isConnected && _requestQueue.isEmpty) {
         getDevStatus();
       }
@@ -92,7 +91,6 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
     stream.listen((event) {
       final commandResp = HostPayload.fromBuffer(event);
 
-      print('serverAnswer ${i++}');
 
       _requestQueue.removeLast();
 
@@ -130,7 +128,6 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
   }
 
   Future<void> getDevStatus() async {
-    print('getDevStatus');
     GetHostDevStatus getHostDevStatus = GetHostDevStatus();
     Command command = Command(getHostDevStatus: getHostDevStatus);
 

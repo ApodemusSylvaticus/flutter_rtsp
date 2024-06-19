@@ -10,7 +10,6 @@ import 'package:archer_link/containers/DefaultBg.dart';
 import 'package:wifi_iot/wifi_iot.dart';
 import 'package:flutter/services.dart';
 import 'package:in_app_notification/in_app_notification.dart';
-
 void main() {
   runApp(MyApp());
 }
@@ -166,6 +165,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> checkConnection() async {
+    print('checkConnection');
     setState(() {
       isLoading = true;
     });
@@ -182,6 +182,7 @@ class _MyHomePageState extends State<MyHomePage> {
       }
 
       bool isAvailable = await isConnected(streamConfig.streamUrl);
+      print('isAvailable ${isAvailable}');
 
       setState(() {
         isAvailableToConnect = isAvailable;
@@ -198,8 +199,9 @@ class _MyHomePageState extends State<MyHomePage> {
   void monitorWifiConnection() {
     connectivitySubscription = Connectivity()
         .onConnectivityChanged
-        .listen((ConnectivityResult _) async {
-      await checkConnection();
+        .listen((ConnectivityResult _)  {
+          print('result _ ${_}');
+       checkConnection();
     });
   }
 
@@ -237,6 +239,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     if (isAvailableToConnect == false) {
       setPortraitOrientation();
+
 
       return WifiConnectPage(
           openSettings: openSettings,

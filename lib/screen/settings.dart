@@ -59,9 +59,7 @@ class _SettingsPageState extends State<SettingsPage> {
           child: Scaffold(
             backgroundColor: Colors.transparent,
             body: SafeArea(
-              child: Padding(
-                padding: EdgeInsets.all(16.0),
-                child: Center(
+              child:Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -130,13 +128,12 @@ class _SettingsPageState extends State<SettingsPage> {
                     ],
                   ),
                 ),
-              ),
             ),
           ),
         ),
         Positioned(
           bottom: 10,
-          left: 16,
+          left: 8,
           child: GestureDetector(
             onTap: widget.closeSettings,
             child: Image.asset(
