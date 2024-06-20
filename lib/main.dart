@@ -10,6 +10,7 @@ import 'package:archer_link/containers/DefaultBg.dart';
 import 'package:wifi_iot/wifi_iot.dart';
 import 'package:flutter/services.dart';
 import 'package:in_app_notification/in_app_notification.dart';
+
 void main() {
   runApp(MyApp());
 }
@@ -129,6 +130,8 @@ class _MyHomePageState extends State<MyHomePage> {
   bool isLoading = false;
   bool isAvailableToConnect = false;
   bool isSettingsOpen = false;
+  Timer? _timer;
+
   StreamConfig streamConfig = StreamConfig(
     commandUrl: '',
     tcpCommandUrl: '',
@@ -142,6 +145,20 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
     getNetworkData();
     monitorWifiConnection();
+    handleMonitorWifiConnection();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    connectivitySubscription?.cancel();
+    super.dispose();
+  }
+
+  void handleMonitorWifiConnection() {
+    _timer = Timer.periodic(Duration(seconds: 2), (timer) {
+      getNetworkData();
+    });
   }
 
   void setPortraitOrientation() {
@@ -151,21 +168,24 @@ class _MyHomePageState extends State<MyHomePage> {
     ]);
   }
 
+ 
+
   Future<void> getNetworkData() async {
-    setState(() {
-      isLoading = true;
-    });
-
     StreamConfig actualStreamConfig = await getStreamConfig();
+    print('getNetworkData, ${actualStreamConfig.streamUrl} !== ${streamConfig.streamUrl }');
 
-    setState(() {
-      isLoading = false;
-      streamConfig = actualStreamConfig;
-    });
+    if (actualStreamConfig.streamUrl != streamConfig.streamUrl &&
+        streamConfig.streamUrl != 'stream.trailcam.link:8554/mystream') {
+      setState(() {
+        streamConfig = actualStreamConfig;
+        isLoading = false;
+      });
+      print('checkConnection');
+      checkConnection();
+    }
   }
 
   Future<void> checkConnection() async {
-    print('checkConnection');
     setState(() {
       isLoading = true;
     });
@@ -182,7 +202,6 @@ class _MyHomePageState extends State<MyHomePage> {
       }
 
       bool isAvailable = await isConnected(streamConfig.streamUrl);
-      print('isAvailable ${isAvailable}');
 
       setState(() {
         isAvailableToConnect = isAvailable;
@@ -197,11 +216,9 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void monitorWifiConnection() {
-    connectivitySubscription = Connectivity()
-        .onConnectivityChanged
-        .listen((ConnectivityResult _)  {
-          print('result _ ${_}');
-       checkConnection();
+    connectivitySubscription =
+        Connectivity().onConnectivityChanged.listen((ConnectivityResult _) {
+      checkConnection();
     });
   }
 
@@ -240,11 +257,9 @@ class _MyHomePageState extends State<MyHomePage> {
     if (isAvailableToConnect == false) {
       setPortraitOrientation();
 
-
       return WifiConnectPage(
-          openSettings: openSettings,
-          getNetworkData: getNetworkData,
-          checkConnection: checkConnection);
+        openSettings: openSettings,
+      );
     }
 
     return StreamViewPage(streamConfig, openSettings);

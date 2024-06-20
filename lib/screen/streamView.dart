@@ -152,6 +152,7 @@ class _StreamViewPageState extends State<StreamViewPage> {
       
         socket.writeln('CMD_RTSP_TRANS_START');
 
+        await socket.flush();
 
         Completer<String> completer = Completer<String>();
 
@@ -169,7 +170,6 @@ class _StreamViewPageState extends State<StreamViewPage> {
           print('onDone');
         });
 
-        await socket.flush();
 
         try {
           String result = await completer.future;
@@ -199,7 +199,7 @@ class _StreamViewPageState extends State<StreamViewPage> {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
         overlays: SystemUiOverlay.values);
     player.release();
-    player.dispose();
+    player.removeListener(() {});
     connectivitySubscription?.cancel();
     Wakelock.disable();
     super.dispose();
@@ -250,16 +250,19 @@ class _StreamViewPageState extends State<StreamViewPage> {
             ? MediaQuery.of(context).padding.left
             : MediaQuery.of(context).padding.top;
 
-    double playerWidth = screenWidth - 280 - 16 - topPadding;
-    Widget playerWithScreenRecorder = Container(
-      width: playerWidth,
-      height: MediaQuery.of(context).size.height,
-      child: FijkView(
-        player: player,
-        color: Colors.transparent,
-        panelBuilder: (_, __, ___, ____, _____) => Container(),
-      ),
-    );
+    double playerWidth = screenWidth - 240 - 8 - 8 - topPadding;
+    Widget playerWithScreenRecorder = Padding(
+  padding: const EdgeInsets.all(4.0), // Adding padding of 8 pixels on all sides
+  child: Container(
+    width: playerWidth,
+    height: MediaQuery.of(context).size.height,
+    child: FijkView(
+      player: player,
+      color: Colors.transparent,
+      panelBuilder: (_, __, ___, ____, _____) => Container(),
+    ),
+  ),
+);
 
     return StreamViewButtons(
       child: playerWithScreenRecorder,

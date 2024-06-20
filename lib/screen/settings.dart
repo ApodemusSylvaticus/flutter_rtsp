@@ -133,7 +133,7 @@ class _SettingsPageState extends State<SettingsPage> {
         ),
         Positioned(
           bottom: 10,
-          left: 8,
+          left: 4,
           child: GestureDetector(
             onTap: widget.closeSettings,
             child: Image.asset(

@@ -7,13 +7,9 @@ import 'package:wifi_iot/wifi_iot.dart';
 
 class WifiConnectPage extends StatelessWidget {
   final void Function() openSettings;
-  final Future<void> Function() getNetworkData;
-  final Future<void> Function() checkConnection;
   const WifiConnectPage({
     Key? key,
     required this.openSettings,
-    required this.getNetworkData,
-    required this.checkConnection,
   }) : super(key: key);
 
   void func(BuildContext context) {
@@ -46,14 +42,7 @@ class WifiConnectPage extends StatelessWidget {
       // Note: This may not always work due to iOS restrictions
       const String url = 'App-Prefs:root=WIFI';
       if (await canLaunch(url)) {
-        final actualIp = await WiFiForIoTPlugin.getIP();
-        if (actualIp == null) {
-          await launch(url);
-          return;
-        } else {
-          await getNetworkData();
-          await checkConnection();
-        }
+        await launch(url);
       } else {
         // Consider showing an alert or some other indication that the Wi-Fi settings couldn't be opened
         print('Could not launch $url');

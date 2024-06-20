@@ -158,7 +158,7 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
         child: Row(
           children: [
             SizedBox(
-              width: 140,
+              width: 120,
               height: MediaQuery.of(context).size.height,
               child: Center(
                 child: Column(
@@ -176,7 +176,7 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
             ),
             Center(child: widget.child),
             SizedBox(
-              width: 140,
+              width: 120,
               height: MediaQuery.of(context).size.height,
               child: Center(
                 child: Column(
@@ -202,7 +202,7 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
         child: Row(
           children: [
             SizedBox(
-              width: 140,
+              width: 120,
               height: MediaQuery.of(context).size.height,
               child: Center(
                 child: Column(
@@ -220,7 +220,7 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
             ),
             Center(child: widget.child),
             SizedBox(
-              width: 140,
+              width: 120,
               height: MediaQuery.of(context).size.height,
               child: Center(
                 child: Column(
