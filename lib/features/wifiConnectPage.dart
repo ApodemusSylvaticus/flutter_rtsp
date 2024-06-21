@@ -3,7 +3,6 @@ import 'package:android_intent_plus/android_intent.dart';
 import 'package:flutter/material.dart';
 import 'package:archer_link/containers/DefaultBg.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:wifi_iot/wifi_iot.dart';
 
 class WifiConnectPage extends StatelessWidget {
   final void Function() openSettings;

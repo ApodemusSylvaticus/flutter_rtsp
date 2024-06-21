@@ -251,8 +251,9 @@ class _StreamViewPageState extends State<StreamViewPage> {
             : MediaQuery.of(context).padding.top;
 
     double playerWidth = screenWidth - 240 - 8 - 8 - topPadding;
+
     Widget playerWithScreenRecorder = Padding(
-  padding: const EdgeInsets.all(4.0), // Adding padding of 8 pixels on all sides
+  padding: const EdgeInsets.fromLTRB(4.0, 0, 4, 0), // Adding padding of 8 pixels on all sides
   child: Container(
     width: playerWidth,
     height: MediaQuery.of(context).size.height,
