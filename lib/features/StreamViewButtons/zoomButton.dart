@@ -39,6 +39,8 @@ class _ZoomButtonState extends State<ZoomButton> {
   }
 
   void _initializeZoomValues() {
+    print('widget.devStatus.maxZoom');
+    print(widget.devStatus.maxZoom);
     switch (widget.devStatus.maxZoom) {
       case Zoom.ZOOM_X1: 
         _zoomValues = [Zoom.ZOOM_X1];
@@ -69,6 +71,8 @@ class _ZoomButtonState extends State<ZoomButton> {
   }
 
   int convertZoomToIndex(Zoom zoom) {
+     print('convertZoomToIndex');
+     print(zoom);
     switch (zoom) {
       case Zoom.ZOOM_X1:
         return 0;
@@ -81,13 +85,15 @@ class _ZoomButtonState extends State<ZoomButton> {
       case Zoom.ZOOM_X6:
         return 4;
       case Zoom.UNKNOWN_ZOOM_LEVEL:
-        throw ArgumentError('Unknown zoom level: $zoom');
+         return 0;
       default:
-        throw ArgumentError('Unexpected zoom level: $zoom');
+      return 0;
     }
   }
 
   void sendZoomCommand(Zoom zoom) {
+    print('sendZoomCommand');
+    print(zoom);
     final setZoom = SetZoomLevel()..zoomLevel = zoom;
     final command = Command()..setZoom = setZoom;
     final clientPayload = ClientPayload()..command = command;
