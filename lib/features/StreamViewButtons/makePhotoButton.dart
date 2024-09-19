@@ -19,7 +19,7 @@ class _CalibrationButtonState extends State<MakePhotoButton> {
 
   @override
   Widget build(BuildContext context) {
-    return CustomButton(
+    return CustomSmallButton(
       onClick: widget.takePhoto,
       text: 'Photo',
       additionalData: Image.asset('assets/actionButtonIcon/takePhoto.png', width: 20, height: 20,),

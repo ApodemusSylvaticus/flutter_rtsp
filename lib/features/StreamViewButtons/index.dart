@@ -158,7 +158,7 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
         child: Row(
           children: [
             SizedBox(
-              width: 120,
+              width: 60,
               height: MediaQuery.of(context).size.height,
               child: Center(
                 child: Column(

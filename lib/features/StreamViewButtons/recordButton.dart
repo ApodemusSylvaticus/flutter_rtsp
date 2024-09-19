@@ -14,7 +14,7 @@ class RecordButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomButton(
+    return CustomSmallButton(
       onClick: () => {onToggle(!isRecording)},
       text: 'REC',
       additionalData: isRecording
