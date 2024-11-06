@@ -47,29 +47,42 @@ class ReconnectView extends StatelessWidget {
                   LoadingIndicator(isLoading: true)
                 else ...[
                   const Text(
-                    'Check your connection and try again.',
+                    'Check your connection and try again',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       decoration: TextDecoration.none,
                       color: Colors.white,
-                      fontSize: 15,
+                      fontSize: 16,
+                      height: 1.5,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                   SizedBox(height: 10),
-                  ElevatedButton(
+                   ElevatedButton(
                     onPressed: onReconnect,
-                    child: const SizedBox(
-                      width: double.infinity,
-                      child: Text(
-                        'Reconnect',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.black,
+                    style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                      minimumSize: Size(0, 0), 
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          'assets/actionButtonIcon/reconnectButtonIcon.png',
+                          width: 20,
+                          height: 20,
                         ),
-                      ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Reconnect',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],

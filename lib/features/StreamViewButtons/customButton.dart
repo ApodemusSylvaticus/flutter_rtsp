@@ -21,7 +21,7 @@ class CustomButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: onClick,
         style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.black,
+            backgroundColor: Color.fromRGBO(70, 69, 69, 1),
             padding: EdgeInsets.all(8),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(15),
@@ -60,15 +60,15 @@ class CustomSmallButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 60,
-      width: 60,
+      height: 56,
+      width: 56,
       child: ElevatedButton(
         onPressed: onClick,
         style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.black,
+            backgroundColor: Color.fromRGBO(70, 69, 69, 1),
             padding: EdgeInsets.all(8),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15),
+              borderRadius: BorderRadius.circular(30),
             )),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

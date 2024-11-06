@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:archer_link/containers/StreamViewContainer.dart';
 import 'package:archer_link/features/notificationCard/index.dart';
 import 'package:archer_link/main.dart';
 import 'package:ffmpeg_kit_flutter/return_code.dart';
@@ -15,8 +16,9 @@ import 'package:in_app_notification/in_app_notification.dart';
 import 'package:wakelock/wakelock.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:archer_link/containers/DefaultBg.dart';
 import 'dart:convert';
+import 'package:flutter_storage_info/flutter_storage_info.dart';
+
 
 class ParsedData {
   final String? ipAddress;
@@ -69,10 +71,8 @@ class _StreamViewPageState extends State<StreamViewPage> {
 
   @override
   void initState() {
-    print('init state');
     super.initState();
     player.addListener(() {
-      print('player state ${value}, ${player.state}, ${player.value.videoRenderStart}');
       value = value + 1;
       if (player.state == FijkState.started && player.value.videoRenderStart) {
         setState(() {
@@ -99,7 +99,6 @@ class _StreamViewPageState extends State<StreamViewPage> {
 
   Future<void> initializePlayer() async {
     try {
-      print('tyt');
       player.reset();
       await player.setOption(FijkOption.playerCategory, "fflags", "nobuffer");
       // await player.setOption(FijkOption.formatCategory, "probesize", "32");
@@ -136,7 +135,6 @@ class _StreamViewPageState extends State<StreamViewPage> {
   }
 
   Future<void> initializeDeviceConnection() async {
-    print('initializeDeviceConnection');
     setState(() {
       isReconnecting = true;
       isLoading = true;
@@ -144,7 +142,6 @@ class _StreamViewPageState extends State<StreamViewPage> {
 
     try {
       if (widget.streamConfig.shouldRunStreamView) {
-        print('tyt2');
         final parsed = ParsedData.fromString(widget.streamConfig.tcpCommandUrl);
         int port = int.parse(parsed.port!);
 
@@ -158,16 +155,13 @@ class _StreamViewPageState extends State<StreamViewPage> {
 
         // Listen for data from the socket
         socket.listen((data) {
-                    print('1');
 
           // Process the received data
           String response = utf8.decode(data);
           completer.complete(response);
         }, onError: (error) {
-          print('errir');
           completer.completeError(error);
         }, onDone: () {
-          print('onDone');
         });
 
 
@@ -207,7 +201,7 @@ class _StreamViewPageState extends State<StreamViewPage> {
 
   @override
   Widget build(BuildContext context) {
-    return DefaultBg(
+    return Streamviewcontainer(
       child: Center(
         child: buildBody(context),
       ),
@@ -253,7 +247,7 @@ class _StreamViewPageState extends State<StreamViewPage> {
     double playerWidth = screenWidth - 240 + 60 - 8 - 8 - topPadding;
 
     Widget playerWithScreenRecorder = Padding(
-  padding: const EdgeInsets.fromLTRB(4.0, 0, 4, 0), // Adding padding of 8 pixels on all sides
+  padding: const EdgeInsets.fromLTRB(4, 0, 4, 0), // Adding padding of 8 pixels on all sides
   child: Container(
     width: playerWidth,
     height: MediaQuery.of(context).size.height,
@@ -272,6 +266,7 @@ class _StreamViewPageState extends State<StreamViewPage> {
           isRecording = value;
           if (isRecording) {
             startRecording();
+ 
           } else {
             stopRecording();
           }
@@ -298,47 +293,63 @@ class _StreamViewPageState extends State<StreamViewPage> {
   }
 
   Future<void> startRecording() async {
-    final directory = await getTemporaryDirectory();
-    // Clean directory before starting recording
-    if (directory.existsSync()) {
-      directory.listSync().forEach((entity) {
-        if (entity is File) {
-          entity.deleteSync();
-        }
-      });
-    } else {
-      print('Directory does not exist');
-    }
-    isRecording = true;
-    stopwatch.start();
-    int index = 0;
-
-    while (isRecording) {
-      try {
-        DateTime now = DateTime.now();
-        int difference = now.difference(lastSnapshotTime).inMilliseconds -
-            debounceDurationMillis;
-
-        if (difference >= debounceDurationMillis) {
-          lastSnapshotTime = now;
-          Uint8List? imageData = await player.takeSnapShot();
-          String fileName = 'image_${index.toString().padLeft(6, '0')}.jpg';
-          String filePath = '${directory.path}/$fileName';
-          File file = File(filePath);
-          await file.writeAsBytes(imageData);
-          imagePaths.add(filePath);
-          index++;
-        } else {
-          await Future.delayed(Duration(milliseconds: difference));
-        }
-      } catch (e) {
-        showNotification(NotificationType.error,
-            'Something went wrong. Video recording stopped.');
-        stopRecording();
+  final directory = await getTemporaryDirectory();
+  // Clean directory before starting recording
+  if (directory.existsSync()) {
+    directory.listSync().forEach((entity) {
+      if (entity is File) {
+        entity.deleteSync();
       }
+    });
+  } else {
+    print('Directory does not exist');
+  }
+  
+  isRecording = true;
+  stopwatch.start();
+  int index = 0;
+
+  final freeSpaceInGB = await FlutterStorageInfo.getStorageFreeSpaceInGB;
+  final freeSpaceInBytes = (freeSpaceInGB * 1073741824).toInt();
+
+  final limit = (freeSpaceInBytes * 0.8).toInt();
+
+  int usedSpace = 0;
+
+  while (isRecording) {
+    try {
+      DateTime now = DateTime.now();
+      int difference = now.difference(lastSnapshotTime).inMilliseconds - debounceDurationMillis;
+
+      if (difference >= debounceDurationMillis) {
+        lastSnapshotTime = now;
+        Uint8List? imageData = await player.takeSnapShot();
+        String fileName = 'image_${index.toString().padLeft(6, '0')}.jpg';
+        String filePath = '${directory.path}/$fileName';
+        File file = File(filePath);
+
+        await file.writeAsBytes(imageData);
+        imagePaths.add(filePath);
+
+        int fileSize = await file.length();
+        usedSpace += fileSize;
+
+        
+        if (usedSpace >= limit) {
+          showNotification(NotificationType.error, 'Storage limit reached. Stopping recording.');
+          stopRecording();
+        }
+
+        index++;
+      } else {
+        await Future.delayed(Duration(milliseconds: difference));
+      }
+    } catch (e) {
+      showNotification(NotificationType.error, 'Something went wrong. Video recording stopped.');
+      stopRecording();
     }
   }
-
+}
   Future<void> takeSnapShot() async {
     try {
       DateTime now = DateTime.now();
@@ -356,11 +367,9 @@ class _StreamViewPageState extends State<StreamViewPage> {
       await file.writeAsBytes(imageData);
       GallerySaver.saveImage(filePath).then((bool? success) {
         if (success == true) {
-          print("Snapshot successfully saved to gallery.");
           showNotification(NotificationType.defaultType,
               'Snapshot successfully saved to gallery.');
         } else {
-          print("Failed to save snapshot to gallery.");
           showNotification(
               NotificationType.error, 'Failed to save snapshot to gallery.');
         }
@@ -382,18 +391,13 @@ class _StreamViewPageState extends State<StreamViewPage> {
     });
     imagePaths.clear();
     stopwatch.reset();
+    setState(() {
+          isRecording = false;
+        });
   }
 
   Future<void> createVideoFromImages(int desiredVideoLengthInSeconds) async {
     final directory = await getTemporaryDirectory();
-
-    if (directory.existsSync()) {
-      directory.listSync(recursive: true).forEach((entity) {
-        print(entity.path);
-      });
-    } else {
-      print('Temporary directory doesnt exist');
-    }
 
     String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
     String outputPath = '${directory.path}/video_$timestamp.mp4';
@@ -409,17 +413,17 @@ class _StreamViewPageState extends State<StreamViewPage> {
 
     String ffmpegCommand =
         '-framerate $fps -i $inputPattern -c:v mpeg4 -pix_fmt yuv420p -r $fps $outputPath';
+
+
     await FFmpegKit.execute(ffmpegCommand).then((session) async {
       final returnCode = await session.getReturnCode();
 
       if (ReturnCode.isSuccess(returnCode)) {
         GallerySaver.saveVideo(outputPath).then((bool? success) {
           if (success == true) {
-            print("Video successfully saved to gallery.");
             showNotification(NotificationType.defaultType,
                 'Video successfully saved to gallery.');
           } else {
-            print("Failed to save video to gallery.");
             showNotification(
                 NotificationType.error, 'Failed to save video to gallery.');
           }
@@ -432,4 +436,5 @@ class _StreamViewPageState extends State<StreamViewPage> {
       }
     });
   }
+
 }

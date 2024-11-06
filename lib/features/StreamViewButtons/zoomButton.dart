@@ -27,7 +27,6 @@ class _ZoomButtonState extends State<ZoomButton> {
 
   @override
   void didUpdateWidget(covariant ZoomButton oldWidget) {
-    print('didUpdateWidget ${widget.devStatus.zoom}  ${oldWidget.devStatus.zoom}');
     super.didUpdateWidget(oldWidget);
     if (widget.devStatus.zoom != oldWidget.devStatus.zoom || 
         widget.devStatus.maxZoom != oldWidget.devStatus.maxZoom) {
@@ -40,7 +39,6 @@ class _ZoomButtonState extends State<ZoomButton> {
   }
 
   void _initializeZoomValues() {
-    print('widget.devStatus.maxZoom ${widget.devStatus.maxZoom}');
     
     switch (widget.devStatus.maxZoom) {
       case Zoom.ZOOM_X1: 
@@ -72,7 +70,6 @@ class _ZoomButtonState extends State<ZoomButton> {
   }
 
   int convertZoomToIndex(Zoom zoom) {
-     print('convertZoomToIndex ${zoom}');
     switch (zoom) {
       case Zoom.ZOOM_X1:
         return 0;
@@ -92,7 +89,6 @@ class _ZoomButtonState extends State<ZoomButton> {
   }
 
   void sendZoomCommand(Zoom zoom) {
-    print('sendZoomCommand ${zoom}');
     final setZoom = SetZoomLevel()..zoomLevel = zoom;
     final command = Command()..setZoom = setZoom;
     final clientPayload = ClientPayload()..command = command;

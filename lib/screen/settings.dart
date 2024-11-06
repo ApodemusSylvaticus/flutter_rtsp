@@ -36,21 +36,6 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    streamUrlController = widget.actualStreamConfig.streamUrl == ''
-        ? TextEditingController(text: '192.168.100.1/stream0')
-        : TextEditingController(text: widget.actualStreamConfig.streamUrl);
-    commandUrlController = widget.actualStreamConfig.commandUrl == ''
-        ? TextEditingController(text: '192.168.100.1:8080/websocket')
-        : TextEditingController(text: widget.actualStreamConfig.commandUrl);
-    tcpUrlController = widget.actualStreamConfig.commandUrl == ''
-        ? TextEditingController(text: '192.168.100.1:8888')
-        : TextEditingController(text: widget.actualStreamConfig.tcpCommandUrl);
-    shouldRunStreamView = widget.actualStreamConfig.shouldRunStreamView;
-  }
-
-  @override
   Widget build(BuildContext context) {
     return SafeArea(
         child: Stack(
@@ -59,81 +44,106 @@ class _SettingsPageState extends State<SettingsPage> {
           child: Scaffold(
             backgroundColor: Colors.transparent,
             body: SafeArea(
-              child:Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: <Widget>[
-                      const Text(
-                        'Enter stream URL:',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500),
-                      ),
-                      CustomTextField(
-                        controller: streamUrlController,
-                      ),
-                      SizedBox(height: 20.0),
-                      const Text(
-                        'Enter command websocket URL:',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500),
-                      ),
-                      CustomTextField(
-                        controller: commandUrlController,
-                      ),
-                      SizedBox(height: 10.0),
-                      Row(
-                        children: [
-                          const Text(
-                            'Should run TRANS_START:',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500),
-                          ),
-                          SizedBox(width: 10.0),
-                          CustomSwitch(
-                              value: shouldRunStreamView,
-                              onChanged: (newValue) {
-                                setState(() {
-                                  shouldRunStreamView = newValue;
-                                });
-                              }),
-                        ],
-                      ),
-                      if (shouldRunStreamView) ...[
-                        SizedBox(height: 20.0),
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start, // Текст слева
+                  children: <Widget>[
+                    const Text(
+                      'Enter stream URL:',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500),
+                    ),
+                    CustomTextField(
+                      controller: streamUrlController,
+                    ),
+                    SizedBox(height: 20.0),
+                    const Text(
+                      'Enter command websocket URL:',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500),
+                    ),
+                    CustomTextField(
+                      controller: commandUrlController,
+                    ),
+                    SizedBox(height: 10.0),
+                    Row(
+                      children: [
                         const Text(
-                          'Enter TCP URL:',
+                          'Should run TRANS_START:',
                           style: TextStyle(
                               color: Colors.white,
                               fontSize: 16,
                               fontWeight: FontWeight.w500),
                         ),
-                        CustomTextField(
-                          controller: tcpUrlController,
+                        SizedBox(width: 10.0),
+                        CustomSwitch(
+                          value: shouldRunStreamView,
+                          onChanged: (newValue) {
+                            setState(() {
+                              shouldRunStreamView = newValue;
+                            });
+                          },
                         ),
                       ],
+                    ),
+                    if (shouldRunStreamView) ...[
                       SizedBox(height: 10.0),
-                      ElevatedButton(
-                        onPressed: submit,
-                        child: Text('Submit',
-                            style:
-                                TextStyle(fontSize: 18.0, color: Colors.black)),
+                      const Text(
+                        'Enter TCP URL:',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500),
+                      ),
+                      CustomTextField(
+                        controller: tcpUrlController,
                       ),
                     ],
-                  ),
+                    SizedBox(height: 15.0),
+                    Center( 
+                      child: ElevatedButton(
+                        onPressed: submit,
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.symmetric(
+                              vertical: 12, horizontal: 24),
+                          minimumSize: Size(0, 0),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Image.asset(
+                              'assets/actionButtonIcon/submitButtonIcon.png',
+                              width: 20,
+                              height: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Submit',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
+              ),
             ),
           ),
         ),
         Positioned(
           bottom: 10,
-          left: 4,
+          left: 16,
           child: GestureDetector(
             onTap: widget.closeSettings,
             child: Image.asset(

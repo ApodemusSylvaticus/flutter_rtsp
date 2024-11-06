@@ -24,7 +24,7 @@ class LoadingIndicator extends StatelessWidget {
                     style: TextStyle(
                        decoration: TextDecoration.none,
                         color: Colors.white,
-                        fontSize: 15,
+                        fontSize: 16,
                         fontWeight: FontWeight.w500),
                   ),
                 ],
