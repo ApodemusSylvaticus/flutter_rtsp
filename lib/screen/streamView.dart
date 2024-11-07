@@ -310,7 +310,6 @@ class _StreamViewPageState extends State<StreamViewPage> {
   int index = 0;
 
 final freeSpaceInMB = await DiskSpace.getFreeDiskSpace;
-print('freeSpaceInMB: $freeSpaceInMB');
 
 final freeSpaceInMBNonNull = freeSpaceInMB ?? 1024.0; 
 

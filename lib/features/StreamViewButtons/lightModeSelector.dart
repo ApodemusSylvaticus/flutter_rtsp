@@ -2,11 +2,11 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:archer_link/features/StreamViewButtons/customButton.dart';
 import 'package:archer_link/proto/archer_protocol.pb.dart' as archer_protocol;
-import 'package:archer_link/proto/archer_protocol.pbserver.dart';
 
 class LightModeSelector extends StatefulWidget {
   final void Function(Uint8List buffer) sendToServer;
   final archer_protocol.HostDevStatus devStatus;
+  
   LightModeSelector(this.sendToServer, this.devStatus);
 
   @override
@@ -92,9 +92,9 @@ class _LightModeSelectorState extends State<LightModeSelector> {
 
   void sendComand(archer_protocol.ColorScheme colorScheme) {
     final setColorScheme = archer_protocol.SetColorScheme(scheme: colorScheme);
-    final command = Command(setPallette: setColorScheme);
+    final command = archer_protocol.Command(setPallette: setColorScheme);
 
-    final clientPayload = ClientPayload(command: command);
+    final clientPayload = archer_protocol.ClientPayload(command: command);
 
     final buffer = clientPayload.writeToBuffer();
     widget.sendToServer(buffer);
