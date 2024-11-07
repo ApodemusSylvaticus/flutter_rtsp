@@ -17,7 +17,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:convert';
-import 'package:flutter_storage_info/flutter_storage_info.dart';
+import 'package:disk_space_2/disk_space_2.dart';
 
 
 class ParsedData {
@@ -309,10 +309,16 @@ class _StreamViewPageState extends State<StreamViewPage> {
   stopwatch.start();
   int index = 0;
 
-  final freeSpaceInGB = await FlutterStorageInfo.getStorageFreeSpaceInGB;
-  final freeSpaceInBytes = (freeSpaceInGB * 1073741824).toInt();
+final freeSpaceInMB = await DiskSpace.getFreeDiskSpace;
+print('freeSpaceInMB: $freeSpaceInMB');
 
-  final limit = (freeSpaceInBytes * 0.8).toInt();
+final freeSpaceInMBNonNull = freeSpaceInMB ?? 1024.0; 
+
+final freeSpaceInBytes = (freeSpaceInMBNonNull * 1024 * 1024).toInt();
+
+final limit = (freeSpaceInBytes * 0.8).toInt();
+
+
 
   int usedSpace = 0;
 
