@@ -38,7 +38,6 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
   HostDevStatus? devStatus;
   late Timer _timer;
   late Timer _reconnectTimer;
-  int i = 0;
   final Queue<Uint8List> _requestQueue = Queue<Uint8List>();
 
   @override
@@ -46,14 +45,13 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
     super.initState();
     _connectToWebSocket();
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
-
       if (_isConnected && _requestQueue.isEmpty) {
         getDevStatus();
       }
     });
 
     _reconnectTimer = Timer.periodic(Duration(seconds: 1), (timer) {
-      if (_isTryingToConnect == false && _isConnected == false) {
+      if (!_isTryingToConnect && !_isConnected) {
         _connectToWebSocket();
       }
     });
@@ -70,9 +68,10 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
   Future<void> _connectToWebSocket() async {
     bool isCorrect = await isConnected(widget.commandUrl);
 
-    if (isCorrect == false) {
+    if (!isCorrect) {
       return;
     }
+
     _isTryingToConnect = true;
     final wsUrl = Uri.parse('ws://${widget.commandUrl}');
 
@@ -80,56 +79,54 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
     try {
       await _channel.ready;
     } catch (e) {
-      // handle exception here
-      //  print("WebsocketChannel was unable to establishconnection, ${e}");
       _isTryingToConnect = false;
-
       return;
     }
 
-    Stream stream = _channel.stream;
-    stream.listen((event) {
-      final commandResp = HostPayload.fromBuffer(event);
+    _channel.stream.listen(
+      (event) {
+        final commandResp = HostPayload.fromBuffer(event);
 
+        _requestQueue.removeLast();
 
-      _requestQueue.removeLast();
+        if (_requestQueue.isNotEmpty) {
+          _channel.sink.add(_requestQueue.last);
+        }
 
-      if (_requestQueue.length != 0) {
-        _channel.sink.add(_requestQueue.last);
-      }
-
-      if (commandResp.hasDevStatus()) {
-       setState(() {
+        if (commandResp.hasDevStatus()) {
+          setState(() {
             devStatus = commandResp.devStatus;
           });
-      }
+        }
 
-      setState(() {
-        _isConnected = true;
-      });
-      _isTryingToConnect = false;
-    }, onError: (error) {
-      _requestQueue.clear();
-      setState(() {
-        _isConnected = false;
-      });
-      _isTryingToConnect = false;
-    }, onDone: () {
-      print('onDone');
-      _requestQueue.clear();
-
-      setState(() {
-        _isConnected = false;
-      });
-      _isTryingToConnect = false;
-    }, cancelOnError: true);
+        setState(() {
+          _isConnected = true;
+        });
+        _isTryingToConnect = false;
+      },
+      onError: (error) {
+        _requestQueue.clear();
+        setState(() {
+          _isConnected = false;
+        });
+        _isTryingToConnect = false;
+      },
+      onDone: () {
+        _requestQueue.clear();
+        setState(() {
+          _isConnected = false;
+        });
+        _isTryingToConnect = false;
+      },
+      cancelOnError: true,
+    );
 
     getDevStatus();
   }
 
   Future<void> getDevStatus() async {
-    GetHostDevStatus getHostDevStatus = GetHostDevStatus();
-    Command command = Command(getHostDevStatus: getHostDevStatus);
+    final getHostDevStatus = GetHostDevStatus();
+    final command = Command(getHostDevStatus: getHostDevStatus);
 
     final clientPayload = ClientPayload()..command = command;
     final buffer = clientPayload.writeToBuffer();
@@ -157,21 +154,22 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
         padding: EdgeInsets.only(left: topPadding),
         child: Row(
           children: [
-            SizedBox(
-              width: 120,
-              height: MediaQuery.of(context).size.height,
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    MakePhotoButton(takePhoto: widget.takePhoto),
-                    SizedBox(height: 10),
-                    RecordButton(
-                      isRecording: widget.isRecording,
-                      onToggle: widget.onRecordingChanged,
-                    ),
-                  ],
-                ),
+            Container(
+              width: 60,
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.white, width: 2),
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min, // Подстроить по высоте контента
+                children: [
+                  MakePhotoButton(takePhoto: widget.takePhoto),
+                  SizedBox(height: 30),
+                  RecordButton(
+                    isRecording: widget.isRecording,
+                    onToggle: widget.onRecordingChanged,
+                  ),
+                ],
               ),
             ),
             Center(child: widget.child),
@@ -188,7 +186,7 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
                     SizedBox(height: 10),
                     ZoomButton(_sendToServer, devStatus!),
                     SizedBox(height: 10),
-                    CalibrationButton(_sendToServer)
+                    CalibrationButton(_sendToServer),
                   ],
                 ),
               ),
@@ -201,21 +199,22 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
         padding: EdgeInsets.only(left: topPadding),
         child: Row(
           children: [
-            SizedBox(
-              width: 120,
-              height: MediaQuery.of(context).size.height,
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    MakePhotoButton(takePhoto: widget.takePhoto),
-                    SizedBox(height: 10),
-                    RecordButton(
-                      isRecording: widget.isRecording,
-                      onToggle: widget.onRecordingChanged,
-                    ),
-                  ],
-                ),
+             Container(
+              width: 60,
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.white, width: 2),
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min, // Подстроить по высоте контента
+                children: [
+                  MakePhotoButton(takePhoto: widget.takePhoto),
+                  SizedBox(height: 40),
+                  RecordButton(
+                    isRecording: widget.isRecording,
+                    onToggle: widget.onRecordingChanged,
+                  ),
+                ],
               ),
             ),
             Center(child: widget.child),
@@ -234,17 +233,18 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
                           Text(
                             'Unable to establish a WebSocket connection. Trying to connect...',
                             style: TextStyle(
-                                color: Colors.white.withOpacity(0.45),
-                                fontSize: 12,
-                                decoration: TextDecoration.none),
+                              color: Colors.white.withOpacity(0.45),
+                              fontSize: 12,
+                              decoration: TextDecoration.none,
+                            ),
                           ),
                         ],
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),
-            )
+            ),
           ],
         ),
       );

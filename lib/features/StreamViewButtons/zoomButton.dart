@@ -39,6 +39,7 @@ class _ZoomButtonState extends State<ZoomButton> {
   }
 
   void _initializeZoomValues() {
+    
     switch (widget.devStatus.maxZoom) {
       case Zoom.ZOOM_X1: 
         _zoomValues = [Zoom.ZOOM_X1];
@@ -81,9 +82,9 @@ class _ZoomButtonState extends State<ZoomButton> {
       case Zoom.ZOOM_X6:
         return 4;
       case Zoom.UNKNOWN_ZOOM_LEVEL:
-        throw ArgumentError('Unknown zoom level: $zoom');
+         return 0;
       default:
-        throw ArgumentError('Unexpected zoom level: $zoom');
+      return 0;
     }
   }
 

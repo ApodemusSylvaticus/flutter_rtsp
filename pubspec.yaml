@@ -49,6 +49,7 @@ dependencies:
   flutter_launcher_icons: ^0.13.1
   flutter_native_splash: ^2.3.10
   in_app_notification: ^1.1.2
+  flutter_storage_info: ^0.0.5
 
 dev_dependencies:
   flutter_test:
@@ -81,21 +82,26 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-    - assets/image.png
-    - assets/actionButtonIcon/agsMode.png
-    - assets/actionButtonIcon/calibration.png
-    - assets/actionButtonIcon/colorMode.png
-    - assets/actionButtonIcon/startRecording.png
-    - assets/actionButtonIcon/stopRecording.png
-    - assets/actionButtonIcon/takePhoto.png
-    - assets/actionButtonIcon/zoom.png
-    - assets/actionButtonIcon/settings.png
     - assets/app/image.png
     - assets/splash/background.png
     - assets/splash/icon.png
     - assets/actionButtonIcon/infoIcon.png
     - assets/wifi_info.png
+    - assets/appName.png
+    - assets/actionButtonIcon/agsMode.png
+    - assets/actionButtonIcon/calibration.png
+    - assets/actionButtonIcon/colorMode.png
+    - assets/actionButtonIcon/connectButtonIcon.png
     - assets/actionButtonIcon/goBack.png
+    - assets/actionButtonIcon/infoIcon.png
+    - assets/actionButtonIcon/reconnectButtonIcon.png
+    - assets/actionButtonIcon/settings.png
+    - assets/actionButtonIcon/startRecording.png
+    - assets/actionButtonIcon/stopRecording.png
+    - assets/actionButtonIcon/submitButtonIcon.png
+    - assets/actionButtonIcon/takePhoto.png
+    - assets/actionButtonIcon/zoom.png
+    
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
 

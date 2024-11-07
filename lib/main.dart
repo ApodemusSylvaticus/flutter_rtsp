@@ -172,7 +172,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> getNetworkData() async {
     StreamConfig actualStreamConfig = await getStreamConfig();
-    print('getNetworkData, ${actualStreamConfig.streamUrl} !== ${streamConfig.streamUrl }');
 
     if (actualStreamConfig.streamUrl != streamConfig.streamUrl &&
         streamConfig.streamUrl != 'stream.trailcam.link:8554/mystream') {
@@ -180,7 +179,6 @@ class _MyHomePageState extends State<MyHomePage> {
         streamConfig = actualStreamConfig;
         isLoading = false;
       });
-      print('checkConnection');
       checkConnection();
     }
   }
