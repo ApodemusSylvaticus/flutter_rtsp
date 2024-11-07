@@ -13,7 +13,7 @@ import 'package:archer_link/features/StreamViewButtons/index.dart';
 import 'package:archer_link/features/loading.dart';
 import 'package:archer_link/features/reconnectView.dart';
 import 'package:in_app_notification/in_app_notification.dart';
-import 'package:wakelock/wakelock.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:convert';
@@ -115,7 +115,7 @@ class _StreamViewPageState extends State<StreamViewPage> {
       player.setOption(FijkOption.formatCategory, "rtsp_transport", "tcp");
       await player.setDataSource("rtsp://${widget.streamConfig.streamUrl}",
           autoPlay: true);
-      Wakelock.enable();
+      WakelockPlus.enable();
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
 
       setState(() {
@@ -195,7 +195,7 @@ class _StreamViewPageState extends State<StreamViewPage> {
     player.release();
     player.removeListener(() {});
     connectivitySubscription?.cancel();
-    Wakelock.disable();
+    WakelockPlus.disable();
     super.dispose();
   }
 
