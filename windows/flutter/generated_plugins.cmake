@@ -4,6 +4,10 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   connectivity_plus
+  disk_space_2
+  gal
+  media_kit_libs_windows_video
+  media_kit_video
   url_launcher_windows
 )
 

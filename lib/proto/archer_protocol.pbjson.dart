@@ -1,13 +1,15 @@
+// This is a generated file - do not edit.
 //
-//  Generated code. Do not modify.
-//  source: archer_protocol.proto
-//
-// @dart = 2.12
+// Generated from archer_protocol.proto.
+
+// @dart = 3.3
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
-// ignore_for_file: constant_identifier_names, library_prefixes
-// ignore_for_file: non_constant_identifier_names, prefer_final_fields
-// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
+// ignore_for_file: constant_identifier_names
+// ignore_for_file: curly_braces_in_flow_control_structures
+// ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
+// ignore_for_file: non_constant_identifier_names, prefer_relative_imports
+// ignore_for_file: unused_import
 
 import 'dart:convert' as $convert;
 import 'dart:core' as $core;
@@ -160,8 +162,8 @@ const DType$json = {
 };
 
 /// Descriptor for `DType`. Decode as a `google.protobuf.EnumDescriptorProto`.
-final $typed_data.Uint8List dTypeDescriptor = $convert.base64Decode(
-    'CgVEVHlwZRIJCgVWQUxVRRAAEgkKBUlOREVYEAE=');
+final $typed_data.Uint8List dTypeDescriptor =
+    $convert.base64Decode('CgVEVHlwZRIJCgVWQUxVRRAAEgkKBUlOREVYEAE=');
 
 @$core.Deprecated('Use gTypeDescriptor instead')
 const GType$json = {
@@ -174,8 +176,8 @@ const GType$json = {
 };
 
 /// Descriptor for `GType`. Decode as a `google.protobuf.EnumDescriptorProto`.
-final $typed_data.Uint8List gTypeDescriptor = $convert.base64Decode(
-    'CgVHVHlwZRIGCgJHMRAAEgYKAkc3EAESCgoGQ1VTVE9NEAI=');
+final $typed_data.Uint8List gTypeDescriptor =
+    $convert.base64Decode('CgVHVHlwZRIGCgJHMRAAEgYKAkc3EAESCgoGQ1VTVE9NEAI=');
 
 @$core.Deprecated('Use twistDirDescriptor instead')
 const TwistDir$json = {
@@ -187,18 +189,53 @@ const TwistDir$json = {
 };
 
 /// Descriptor for `TwistDir`. Decode as a `google.protobuf.EnumDescriptorProto`.
-final $typed_data.Uint8List twistDirDescriptor = $convert.base64Decode(
-    'CghUd2lzdERpchIJCgVSSUdIVBAAEggKBExFRlQQAQ==');
+final $typed_data.Uint8List twistDirDescriptor =
+    $convert.base64Decode('CghUd2lzdERpchIJCgVSSUdIVBAAEggKBExFRlQQAQ==');
 
 @$core.Deprecated('Use hostPayloadDescriptor instead')
 const HostPayload$json = {
   '1': 'HostPayload',
   '2': [
-    {'1': 'profile', '3': 1, '4': 1, '5': 11, '6': '.archer_protocol.HostProfile', '10': 'profile'},
-    {'1': 'devStatus', '3': 2, '4': 1, '5': 11, '6': '.archer_protocol.HostDevStatus', '10': 'devStatus'},
-    {'1': 'response', '3': 3, '4': 1, '5': 11, '6': '.archer_protocol.CommandResponse', '10': 'response'},
-    {'1': 'reticles', '3': 4, '4': 1, '5': 11, '6': '.archer_protocol.Reticles', '10': 'reticles'},
-    {'1': 'allProfiles', '3': 5, '4': 1, '5': 11, '6': '.archer_protocol.FullProfileData', '10': 'allProfiles'},
+    {
+      '1': 'profile',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.archer_protocol.HostProfile',
+      '10': 'profile'
+    },
+    {
+      '1': 'devStatus',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.archer_protocol.HostDevStatus',
+      '10': 'devStatus'
+    },
+    {
+      '1': 'response',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.archer_protocol.CommandResponse',
+      '10': 'response'
+    },
+    {
+      '1': 'reticles',
+      '3': 4,
+      '4': 1,
+      '5': 11,
+      '6': '.archer_protocol.Reticles',
+      '10': 'reticles'
+    },
+    {
+      '1': 'allProfiles',
+      '3': 5,
+      '4': 1,
+      '5': 11,
+      '6': '.archer_protocol.FullProfileData',
+      '10': 'allProfiles'
+    },
   ],
 };
 
@@ -215,9 +252,30 @@ final $typed_data.Uint8List hostPayloadDescriptor = $convert.base64Decode(
 const ClientPayload$json = {
   '1': 'ClientPayload',
   '2': [
-    {'1': 'devStatus', '3': 2, '4': 1, '5': 11, '6': '.archer_protocol.ClientDevStatus', '10': 'devStatus'},
-    {'1': 'command', '3': 3, '4': 1, '5': 11, '6': '.archer_protocol.Command', '10': 'command'},
-    {'1': 'response', '3': 4, '4': 1, '5': 11, '6': '.archer_protocol.CommandResponse', '10': 'response'},
+    {
+      '1': 'devStatus',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.archer_protocol.ClientDevStatus',
+      '10': 'devStatus'
+    },
+    {
+      '1': 'command',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.archer_protocol.Command',
+      '10': 'command'
+    },
+    {
+      '1': 'response',
+      '3': 4,
+      '4': 1,
+      '5': 11,
+      '6': '.archer_protocol.CommandResponse',
+      '10': 'response'
+    },
   ],
   '9': [
     {'1': 1, '2': 2},
@@ -236,8 +294,24 @@ final $typed_data.Uint8List clientPayloadDescriptor = $convert.base64Decode(
 const CommandResponse$json = {
   '1': 'CommandResponse',
   '2': [
-    {'1': 'statusOk', '3': 1, '4': 1, '5': 11, '6': '.archer_protocol.StatusOk', '9': 0, '10': 'statusOk'},
-    {'1': 'statusErr', '3': 2, '4': 1, '5': 11, '6': '.archer_protocol.StatusError', '9': 0, '10': 'statusErr'},
+    {
+      '1': 'statusOk',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.archer_protocol.StatusOk',
+      '9': 0,
+      '10': 'statusOk'
+    },
+    {
+      '1': 'statusErr',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.archer_protocol.StatusError',
+      '9': 0,
+      '10': 'statusErr'
+    },
   ],
   '8': [
     {'1': 'oneofCommandResponse'},
@@ -254,26 +328,186 @@ final $typed_data.Uint8List commandResponseDescriptor = $convert.base64Decode(
 const Command$json = {
   '1': 'Command',
   '2': [
-    {'1': 'setZoom', '3': 1, '4': 1, '5': 11, '6': '.archer_protocol.SetZoomLevel', '9': 0, '10': 'setZoom'},
-    {'1': 'setPallette', '3': 2, '4': 1, '5': 11, '6': '.archer_protocol.SetColorScheme', '9': 0, '10': 'setPallette'},
-    {'1': 'setAgc', '3': 3, '4': 1, '5': 11, '6': '.archer_protocol.SetAgcMode', '9': 0, '10': 'setAgc'},
-    {'1': 'setDst', '3': 4, '4': 1, '5': 11, '6': '.archer_protocol.SetDistance', '9': 0, '10': 'setDst'},
-    {'1': 'setHoldoff', '3': 5, '4': 1, '5': 11, '6': '.archer_protocol.SetHoldoff', '9': 0, '10': 'setHoldoff'},
-    {'1': 'setZeroing', '3': 6, '4': 1, '5': 11, '6': '.archer_protocol.SetZeroing', '9': 0, '10': 'setZeroing'},
-    {'1': 'setMagOffset', '3': 7, '4': 1, '5': 11, '6': '.archer_protocol.SetCompassOffset', '9': 0, '10': 'setMagOffset'},
-    {'1': 'setAirTC', '3': 8, '4': 1, '5': 11, '6': '.archer_protocol.SetAirTemp', '9': 0, '10': 'setAirTC'},
-    {'1': 'setAirHum', '3': 9, '4': 1, '5': 11, '6': '.archer_protocol.SetAirHumidity', '9': 0, '10': 'setAirHum'},
-    {'1': 'setAirPress', '3': 10, '4': 1, '5': 11, '6': '.archer_protocol.SetAirPressure', '9': 0, '10': 'setAirPress'},
-    {'1': 'setPowderTemp', '3': 11, '4': 1, '5': 11, '6': '.archer_protocol.SetPowderTemp', '9': 0, '10': 'setPowderTemp'},
-    {'1': 'setWind', '3': 12, '4': 1, '5': 11, '6': '.archer_protocol.SetWind', '9': 0, '10': 'setWind'},
-    {'1': 'buttonPress', '3': 13, '4': 1, '5': 11, '6': '.archer_protocol.ButtonPress', '9': 0, '10': 'buttonPress'},
-    {'1': 'cmdTrigger', '3': 14, '4': 1, '5': 11, '6': '.archer_protocol.TriggerCmd', '9': 0, '10': 'cmdTrigger'},
-    {'1': 'getHostDevStatus', '3': 15, '4': 1, '5': 11, '6': '.archer_protocol.GetHostDevStatus', '9': 0, '10': 'getHostDevStatus'},
-    {'1': 'getHostProfile', '3': 16, '4': 1, '5': 11, '6': '.archer_protocol.GetHostProfile', '9': 0, '10': 'getHostProfile'},
-    {'1': 'getAllProfiles', '3': 17, '4': 1, '5': 11, '6': '.archer_protocol.GetProfiles', '9': 0, '10': 'getAllProfiles'},
-    {'1': 'updateAllProfiles', '3': 18, '4': 1, '5': 11, '6': '.archer_protocol.UpdateProfiles', '9': 0, '10': 'updateAllProfiles'},
-    {'1': 'getReticles', '3': 19, '4': 1, '5': 11, '6': '.archer_protocol.GetReticles', '9': 0, '10': 'getReticles'},
-    {'1': 'updateReticles', '3': 20, '4': 1, '5': 11, '6': '.archer_protocol.UpdateReticles', '9': 0, '10': 'updateReticles'},
+    {
+      '1': 'setZoom',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.archer_protocol.SetZoomLevel',
+      '9': 0,
+      '10': 'setZoom'
+    },
+    {
+      '1': 'setPallette',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.archer_protocol.SetColorScheme',
+      '9': 0,
+      '10': 'setPallette'
+    },
+    {
+      '1': 'setAgc',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.archer_protocol.SetAgcMode',
+      '9': 0,
+      '10': 'setAgc'
+    },
+    {
+      '1': 'setDst',
+      '3': 4,
+      '4': 1,
+      '5': 11,
+      '6': '.archer_protocol.SetDistance',
+      '9': 0,
+      '10': 'setDst'
+    },
+    {
+      '1': 'setHoldoff',
+      '3': 5,
+      '4': 1,
+      '5': 11,
+      '6': '.archer_protocol.SetHoldoff',
+      '9': 0,
+      '10': 'setHoldoff'
+    },
+    {
+      '1': 'setZeroing',
+      '3': 6,
+      '4': 1,
+      '5': 11,
+      '6': '.archer_protocol.SetZeroing',
+      '9': 0,
+      '10': 'setZeroing'
+    },
+    {
+      '1': 'setMagOffset',
+      '3': 7,
+      '4': 1,
+      '5': 11,
+      '6': '.archer_protocol.SetCompassOffset',
+      '9': 0,
+      '10': 'setMagOffset'
+    },
+    {
+      '1': 'setAirTC',
+      '3': 8,
+      '4': 1,
+      '5': 11,
+      '6': '.archer_protocol.SetAirTemp',
+      '9': 0,
+      '10': 'setAirTC'
+    },
+    {
+      '1': 'setAirHum',
+      '3': 9,
+      '4': 1,
+      '5': 11,
+      '6': '.archer_protocol.SetAirHumidity',
+      '9': 0,
+      '10': 'setAirHum'
+    },
+    {
+      '1': 'setAirPress',
+      '3': 10,
+      '4': 1,
+      '5': 11,
+      '6': '.archer_protocol.SetAirPressure',
+      '9': 0,
+      '10': 'setAirPress'
+    },
+    {
+      '1': 'setPowderTemp',
+      '3': 11,
+      '4': 1,
+      '5': 11,
+      '6': '.archer_protocol.SetPowderTemp',
+      '9': 0,
+      '10': 'setPowderTemp'
+    },
+    {
+      '1': 'setWind',
+      '3': 12,
+      '4': 1,
+      '5': 11,
+      '6': '.archer_protocol.SetWind',
+      '9': 0,
+      '10': 'setWind'
+    },
+    {
+      '1': 'buttonPress',
+      '3': 13,
+      '4': 1,
+      '5': 11,
+      '6': '.archer_protocol.ButtonPress',
+      '9': 0,
+      '10': 'buttonPress'
+    },
+    {
+      '1': 'cmdTrigger',
+      '3': 14,
+      '4': 1,
+      '5': 11,
+      '6': '.archer_protocol.TriggerCmd',
+      '9': 0,
+      '10': 'cmdTrigger'
+    },
+    {
+      '1': 'getHostDevStatus',
+      '3': 15,
+      '4': 1,
+      '5': 11,
+      '6': '.archer_protocol.GetHostDevStatus',
+      '9': 0,
+      '10': 'getHostDevStatus'
+    },
+    {
+      '1': 'getHostProfile',
+      '3': 16,
+      '4': 1,
+      '5': 11,
+      '6': '.archer_protocol.GetHostProfile',
+      '9': 0,
+      '10': 'getHostProfile'
+    },
+    {
+      '1': 'getAllProfiles',
+      '3': 17,
+      '4': 1,
+      '5': 11,
+      '6': '.archer_protocol.GetProfiles',
+      '9': 0,
+      '10': 'getAllProfiles'
+    },
+    {
+      '1': 'updateAllProfiles',
+      '3': 18,
+      '4': 1,
+      '5': 11,
+      '6': '.archer_protocol.UpdateProfiles',
+      '9': 0,
+      '10': 'updateAllProfiles'
+    },
+    {
+      '1': 'getReticles',
+      '3': 19,
+      '4': 1,
+      '5': 11,
+      '6': '.archer_protocol.GetReticles',
+      '9': 0,
+      '10': 'getReticles'
+    },
+    {
+      '1': 'updateReticles',
+      '3': 20,
+      '4': 1,
+      '5': 11,
+      '6': '.archer_protocol.UpdateReticles',
+      '9': 0,
+      '10': 'updateReticles'
+    },
   ],
   '8': [
     {'1': 'oneofCommand'},
@@ -314,8 +548,8 @@ const GetProfiles$json = {
 };
 
 /// Descriptor for `GetProfiles`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List getProfilesDescriptor = $convert.base64Decode(
-    'CgtHZXRQcm9maWxlcw==');
+final $typed_data.Uint8List getProfilesDescriptor =
+    $convert.base64Decode('CgtHZXRQcm9maWxlcw==');
 
 @$core.Deprecated('Use getReticlesDescriptor instead')
 const GetReticles$json = {
@@ -323,14 +557,21 @@ const GetReticles$json = {
 };
 
 /// Descriptor for `GetReticles`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List getReticlesDescriptor = $convert.base64Decode(
-    'CgtHZXRSZXRpY2xlcw==');
+final $typed_data.Uint8List getReticlesDescriptor =
+    $convert.base64Decode('CgtHZXRSZXRpY2xlcw==');
 
 @$core.Deprecated('Use updateReticlesDescriptor instead')
 const UpdateReticles$json = {
   '1': 'UpdateReticles',
   '2': [
-    {'1': 'data', '3': 1, '4': 1, '5': 11, '6': '.archer_protocol.Reticles', '10': 'data'},
+    {
+      '1': 'data',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.archer_protocol.Reticles',
+      '10': 'data'
+    },
   ],
 };
 
@@ -343,7 +584,14 @@ final $typed_data.Uint8List updateReticlesDescriptor = $convert.base64Decode(
 const UpdateProfiles$json = {
   '1': 'UpdateProfiles',
   '2': [
-    {'1': 'data', '3': 1, '4': 1, '5': 11, '6': '.archer_protocol.FullProfileData', '10': 'data'},
+    {
+      '1': 'data',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.archer_protocol.FullProfileData',
+      '10': 'data'
+    },
   ],
 };
 
@@ -356,7 +604,14 @@ final $typed_data.Uint8List updateProfilesDescriptor = $convert.base64Decode(
 const StatusOk$json = {
   '1': 'StatusOk',
   '2': [
-    {'1': 'code', '3': 1, '4': 1, '5': 14, '6': '.archer_protocol.OkStatusCode', '10': 'code'},
+    {
+      '1': 'code',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.archer_protocol.OkStatusCode',
+      '10': 'code'
+    },
   ],
 };
 
@@ -369,7 +624,14 @@ final $typed_data.Uint8List statusOkDescriptor = $convert.base64Decode(
 const StatusError$json = {
   '1': 'StatusError',
   '2': [
-    {'1': 'code', '3': 1, '4': 1, '5': 14, '6': '.archer_protocol.ErrorStatusCode', '10': 'code'},
+    {
+      '1': 'code',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.archer_protocol.ErrorStatusCode',
+      '10': 'code'
+    },
     {'1': 'text', '3': 2, '4': 1, '5': 9, '10': 'text'},
   ],
 };
@@ -383,7 +645,14 @@ final $typed_data.Uint8List statusErrorDescriptor = $convert.base64Decode(
 const SetZoomLevel$json = {
   '1': 'SetZoomLevel',
   '2': [
-    {'1': 'zoomLevel', '3': 1, '4': 1, '5': 14, '6': '.archer_protocol.Zoom', '10': 'zoomLevel'},
+    {
+      '1': 'zoomLevel',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.archer_protocol.Zoom',
+      '10': 'zoomLevel'
+    },
   ],
 };
 
@@ -396,7 +665,14 @@ final $typed_data.Uint8List setZoomLevelDescriptor = $convert.base64Decode(
 const SetColorScheme$json = {
   '1': 'SetColorScheme',
   '2': [
-    {'1': 'scheme', '3': 1, '4': 1, '5': 14, '6': '.archer_protocol.ColorScheme', '10': 'scheme'},
+    {
+      '1': 'scheme',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.archer_protocol.ColorScheme',
+      '10': 'scheme'
+    },
   ],
 };
 
@@ -411,8 +687,8 @@ const GetHostDevStatus$json = {
 };
 
 /// Descriptor for `GetHostDevStatus`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List getHostDevStatusDescriptor = $convert.base64Decode(
-    'ChBHZXRIb3N0RGV2U3RhdHVz');
+final $typed_data.Uint8List getHostDevStatusDescriptor =
+    $convert.base64Decode('ChBHZXRIb3N0RGV2U3RhdHVz');
 
 @$core.Deprecated('Use getHostProfileDescriptor instead')
 const GetHostProfile$json = {
@@ -420,8 +696,8 @@ const GetHostProfile$json = {
 };
 
 /// Descriptor for `GetHostProfile`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List getHostProfileDescriptor = $convert.base64Decode(
-    'Cg5HZXRIb3N0UHJvZmlsZQ==');
+final $typed_data.Uint8List getHostProfileDescriptor =
+    $convert.base64Decode('Cg5HZXRIb3N0UHJvZmlsZQ==');
 
 @$core.Deprecated('Use setAirTempDescriptor instead')
 const SetAirTemp$json = {
@@ -494,14 +770,21 @@ const SetDistance$json = {
 };
 
 /// Descriptor for `SetDistance`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List setDistanceDescriptor = $convert.base64Decode(
-    'CgtTZXREaXN0YW5jZRIaCghkaXN0YW5jZRgBIAEoBVIIZGlzdGFuY2U=');
+final $typed_data.Uint8List setDistanceDescriptor = $convert
+    .base64Decode('CgtTZXREaXN0YW5jZRIaCghkaXN0YW5jZRgBIAEoBVIIZGlzdGFuY2U=');
 
 @$core.Deprecated('Use setAgcModeDescriptor instead')
 const SetAgcMode$json = {
   '1': 'SetAgcMode',
   '2': [
-    {'1': 'mode', '3': 1, '4': 1, '5': 14, '6': '.archer_protocol.AGCMode', '10': 'mode'},
+    {
+      '1': 'mode',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.archer_protocol.AGCMode',
+      '10': 'mode'
+    },
   ],
 };
 
@@ -519,8 +802,8 @@ const SetCompassOffset$json = {
 };
 
 /// Descriptor for `SetCompassOffset`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List setCompassOffsetDescriptor = $convert.base64Decode(
-    'ChBTZXRDb21wYXNzT2Zmc2V0EhYKBm9mZnNldBgBIAEoBVIGb2Zmc2V0');
+final $typed_data.Uint8List setCompassOffsetDescriptor = $convert
+    .base64Decode('ChBTZXRDb21wYXNzT2Zmc2V0EhYKBm9mZnNldBgBIAEoBVIGb2Zmc2V0');
 
 @$core.Deprecated('Use setHoldoffDescriptor instead')
 const SetHoldoff$json = {
@@ -528,7 +811,14 @@ const SetHoldoff$json = {
   '2': [
     {'1': 'x', '3': 1, '4': 1, '5': 5, '10': 'x'},
     {'1': 'y', '3': 2, '4': 1, '5': 5, '10': 'y'},
-    {'1': 'type', '3': 3, '4': 1, '5': 14, '6': '.archer_protocol.HoldoffType', '10': 'type'},
+    {
+      '1': 'type',
+      '3': 3,
+      '4': 1,
+      '5': 14,
+      '6': '.archer_protocol.HoldoffType',
+      '10': 'type'
+    },
   ],
 };
 
@@ -541,7 +831,14 @@ final $typed_data.Uint8List setHoldoffDescriptor = $convert.base64Decode(
 const ButtonPress$json = {
   '1': 'ButtonPress',
   '2': [
-    {'1': 'buttonPressed', '3': 1, '4': 1, '5': 14, '6': '.archer_protocol.ButtonEnum', '10': 'buttonPressed'},
+    {
+      '1': 'buttonPressed',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.archer_protocol.ButtonEnum',
+      '10': 'buttonPressed'
+    },
   ],
 };
 
@@ -554,7 +851,14 @@ final $typed_data.Uint8List buttonPressDescriptor = $convert.base64Decode(
 const TriggerCmd$json = {
   '1': 'TriggerCmd',
   '2': [
-    {'1': 'cmd', '3': 1, '4': 1, '5': 14, '6': '.archer_protocol.CMDDirect', '10': 'cmd'},
+    {
+      '1': 'cmd',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.archer_protocol.CMDDirect',
+      '10': 'cmd'
+    },
   ],
 };
 
@@ -573,15 +877,22 @@ const SetZeroing$json = {
 };
 
 /// Descriptor for `SetZeroing`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List setZeroingDescriptor = $convert.base64Decode(
-    'CgpTZXRaZXJvaW5nEgwKAXgYASABKAVSAXgSDAoBeRgCIAEoBVIBeQ==');
+final $typed_data.Uint8List setZeroingDescriptor = $convert
+    .base64Decode('CgpTZXRaZXJvaW5nEgwKAXgYASABKAVSAXgSDAoBeRgCIAEoBVIBeQ==');
 
 @$core.Deprecated('Use hostDevStatusDescriptor instead')
 const HostDevStatus$json = {
   '1': 'HostDevStatus',
   '2': [
     {'1': 'charge', '3': 1, '4': 1, '5': 5, '10': 'charge'},
-    {'1': 'zoom', '3': 2, '4': 1, '5': 14, '6': '.archer_protocol.Zoom', '10': 'zoom'},
+    {
+      '1': 'zoom',
+      '3': 2,
+      '4': 1,
+      '5': 14,
+      '6': '.archer_protocol.Zoom',
+      '10': 'zoom'
+    },
     {'1': 'airTemp', '3': 3, '4': 1, '5': 5, '10': 'airTemp'},
     {'1': 'airHum', '3': 4, '4': 1, '5': 5, '10': 'airHum'},
     {'1': 'airPress', '3': 5, '4': 1, '5': 5, '10': 'airPress'},
@@ -592,9 +903,30 @@ const HostDevStatus$json = {
     {'1': 'cant', '3': 10, '4': 1, '5': 5, '10': 'cant'},
     {'1': 'distance', '3': 11, '4': 1, '5': 5, '10': 'distance'},
     {'1': 'currentProfile', '3': 12, '4': 1, '5': 5, '10': 'currentProfile'},
-    {'1': 'colorScheme', '3': 13, '4': 1, '5': 14, '6': '.archer_protocol.ColorScheme', '10': 'colorScheme'},
-    {'1': 'modAGC', '3': 14, '4': 1, '5': 14, '6': '.archer_protocol.AGCMode', '10': 'modAGC'},
-    {'1': 'maxZoom', '3': 15, '4': 1, '5': 14, '6': '.archer_protocol.Zoom', '10': 'maxZoom'},
+    {
+      '1': 'colorScheme',
+      '3': 13,
+      '4': 1,
+      '5': 14,
+      '6': '.archer_protocol.ColorScheme',
+      '10': 'colorScheme'
+    },
+    {
+      '1': 'modAGC',
+      '3': 14,
+      '4': 1,
+      '5': 14,
+      '6': '.archer_protocol.AGCMode',
+      '10': 'modAGC'
+    },
+    {
+      '1': 'maxZoom',
+      '3': 15,
+      '4': 1,
+      '5': 14,
+      '6': '.archer_protocol.Zoom',
+      '10': 'maxZoom'
+    },
   ],
 };
 
@@ -617,8 +949,8 @@ const ClientDevStatus$json = {
 };
 
 /// Descriptor for `ClientDevStatus`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List clientDevStatusDescriptor = $convert.base64Decode(
-    'Cg9DbGllbnREZXZTdGF0dXM=');
+final $typed_data.Uint8List clientDevStatusDescriptor =
+    $convert.base64Decode('Cg9DbGllbnREZXZTdGF0dXM=');
 
 @$core.Deprecated('Use coefRowDescriptor instead')
 const CoefRow$json = {
@@ -641,7 +973,14 @@ const SwPos$json = {
     {'1': 'reticle_idx', '3': 2, '4': 1, '5': 5, '10': 'reticleIdx'},
     {'1': 'zoom', '3': 3, '4': 1, '5': 5, '10': 'zoom'},
     {'1': 'distance', '3': 4, '4': 1, '5': 5, '10': 'distance'},
-    {'1': 'distance_from', '3': 5, '4': 1, '5': 14, '6': '.archer_protocol.DType', '10': 'distanceFrom'},
+    {
+      '1': 'distance_from',
+      '3': 5,
+      '4': 1,
+      '5': 14,
+      '6': '.archer_protocol.DType',
+      '10': 'distanceFrom'
+    },
   ],
 };
 
@@ -666,23 +1005,93 @@ const HostProfile$json = {
     {'1': 'zero_y', '3': 8, '4': 1, '5': 5, '10': 'zeroY'},
     {'1': 'sc_height', '3': 9, '4': 1, '5': 5, '10': 'scHeight'},
     {'1': 'r_twist', '3': 10, '4': 1, '5': 5, '10': 'rTwist'},
-    {'1': 'c_muzzle_velocity', '3': 11, '4': 1, '5': 5, '10': 'cMuzzleVelocity'},
-    {'1': 'c_zero_temperature', '3': 12, '4': 1, '5': 5, '10': 'cZeroTemperature'},
+    {
+      '1': 'c_muzzle_velocity',
+      '3': 11,
+      '4': 1,
+      '5': 5,
+      '10': 'cMuzzleVelocity'
+    },
+    {
+      '1': 'c_zero_temperature',
+      '3': 12,
+      '4': 1,
+      '5': 5,
+      '10': 'cZeroTemperature'
+    },
     {'1': 'c_t_coeff', '3': 13, '4': 1, '5': 5, '10': 'cTCoeff'},
-    {'1': 'c_zero_distance_idx', '3': 14, '4': 1, '5': 5, '10': 'cZeroDistanceIdx'},
-    {'1': 'c_zero_air_temperature', '3': 15, '4': 1, '5': 5, '10': 'cZeroAirTemperature'},
-    {'1': 'c_zero_air_pressure', '3': 16, '4': 1, '5': 5, '10': 'cZeroAirPressure'},
-    {'1': 'c_zero_air_humidity', '3': 17, '4': 1, '5': 5, '10': 'cZeroAirHumidity'},
+    {
+      '1': 'c_zero_distance_idx',
+      '3': 14,
+      '4': 1,
+      '5': 5,
+      '10': 'cZeroDistanceIdx'
+    },
+    {
+      '1': 'c_zero_air_temperature',
+      '3': 15,
+      '4': 1,
+      '5': 5,
+      '10': 'cZeroAirTemperature'
+    },
+    {
+      '1': 'c_zero_air_pressure',
+      '3': 16,
+      '4': 1,
+      '5': 5,
+      '10': 'cZeroAirPressure'
+    },
+    {
+      '1': 'c_zero_air_humidity',
+      '3': 17,
+      '4': 1,
+      '5': 5,
+      '10': 'cZeroAirHumidity'
+    },
     {'1': 'c_zero_w_pitch', '3': 18, '4': 1, '5': 5, '10': 'cZeroWPitch'},
-    {'1': 'c_zero_p_temperature', '3': 19, '4': 1, '5': 5, '10': 'cZeroPTemperature'},
+    {
+      '1': 'c_zero_p_temperature',
+      '3': 19,
+      '4': 1,
+      '5': 5,
+      '10': 'cZeroPTemperature'
+    },
     {'1': 'b_diameter', '3': 20, '4': 1, '5': 5, '10': 'bDiameter'},
     {'1': 'b_weight', '3': 21, '4': 1, '5': 5, '10': 'bWeight'},
     {'1': 'b_length', '3': 22, '4': 1, '5': 5, '10': 'bLength'},
-    {'1': 'twist_dir', '3': 23, '4': 1, '5': 14, '6': '.archer_protocol.TwistDir', '10': 'twistDir'},
-    {'1': 'bc_type', '3': 24, '4': 1, '5': 14, '6': '.archer_protocol.GType', '10': 'bcType'},
-    {'1': 'switches', '3': 25, '4': 3, '5': 11, '6': '.archer_protocol.SwPos', '10': 'switches'},
+    {
+      '1': 'twist_dir',
+      '3': 23,
+      '4': 1,
+      '5': 14,
+      '6': '.archer_protocol.TwistDir',
+      '10': 'twistDir'
+    },
+    {
+      '1': 'bc_type',
+      '3': 24,
+      '4': 1,
+      '5': 14,
+      '6': '.archer_protocol.GType',
+      '10': 'bcType'
+    },
+    {
+      '1': 'switches',
+      '3': 25,
+      '4': 3,
+      '5': 11,
+      '6': '.archer_protocol.SwPos',
+      '10': 'switches'
+    },
     {'1': 'distances', '3': 26, '4': 3, '5': 5, '10': 'distances'},
-    {'1': 'coef_rows', '3': 27, '4': 3, '5': 11, '6': '.archer_protocol.CoefRow', '10': 'coefRows'},
+    {
+      '1': 'coef_rows',
+      '3': 27,
+      '4': 3,
+      '5': 11,
+      '6': '.archer_protocol.CoefRow',
+      '10': 'coefRows'
+    },
     {'1': 'caliber', '3': 28, '4': 1, '5': 9, '10': 'caliber'},
     {'1': 'device_uuid', '3': 29, '4': 1, '5': 9, '10': 'deviceUuid'},
   ],
@@ -715,7 +1124,14 @@ final $typed_data.Uint8List hostProfileDescriptor = $convert.base64Decode(
 const ProfileList$json = {
   '1': 'ProfileList',
   '2': [
-    {'1': 'profile_desc', '3': 1, '4': 3, '5': 11, '6': '.archer_protocol.ProfileListEntry', '10': 'profileDesc'},
+    {
+      '1': 'profile_desc',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.archer_protocol.ProfileListEntry',
+      '10': 'profileDesc'
+    },
     {'1': 'activeprofile', '3': 2, '4': 1, '5': 5, '10': 'activeprofile'},
   ],
 };
@@ -749,8 +1165,22 @@ final $typed_data.Uint8List profileListEntryDescriptor = $convert.base64Decode(
 const FullProfileData$json = {
   '1': 'FullProfileData',
   '2': [
-    {'1': 'table', '3': 1, '4': 1, '5': 11, '6': '.archer_protocol.ProfileList', '10': 'table'},
-    {'1': 'profiles', '3': 2, '4': 3, '5': 11, '6': '.archer_protocol.HostProfile', '10': 'profiles'},
+    {
+      '1': 'table',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.archer_protocol.ProfileList',
+      '10': 'table'
+    },
+    {
+      '1': 'profiles',
+      '3': 2,
+      '4': 3,
+      '5': 11,
+      '6': '.archer_protocol.HostProfile',
+      '10': 'profiles'
+    },
   ],
 };
 
@@ -778,7 +1208,14 @@ final $typed_data.Uint8List reticleDescriptor = $convert.base64Decode(
 const Reticles$json = {
   '1': 'Reticles',
   '2': [
-    {'1': 'rets', '3': 1, '4': 3, '5': 11, '6': '.archer_protocol.Reticle', '10': 'rets'},
+    {
+      '1': 'rets',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.archer_protocol.Reticle',
+      '10': 'rets'
+    },
   ],
 };
 
@@ -791,7 +1228,14 @@ final $typed_data.Uint8List reticlesDescriptor = $convert.base64Decode(
 const Payload$json = {
   '1': 'Payload',
   '2': [
-    {'1': 'profile', '3': 1, '4': 1, '5': 11, '6': '.archer_protocol.HostProfile', '10': 'profile'},
+    {
+      '1': 'profile',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.archer_protocol.HostProfile',
+      '10': 'profile'
+    },
   ],
 };
 
@@ -799,4 +1243,3 @@ const Payload$json = {
 final $typed_data.Uint8List payloadDescriptor = $convert.base64Decode(
     'CgdQYXlsb2FkEjYKB3Byb2ZpbGUYASABKAsyHC5hcmNoZXJfcHJvdG9jb2wuSG9zdFByb2ZpbG'
     'VSB3Byb2ZpbGU=');
-

@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlin_version = '1.9.0'
+    ext.kotlin_version = '2.1.0'
     repositories {
         google()
         mavenCentral()
@@ -18,9 +18,40 @@ allprojects {
 }
 
 rootProject.buildDir = '../build'
+
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
+    
+    afterEvaluate { project ->
+        if (project.hasProperty('android')) {
+            if (project.android.namespace == null) {
+                def manifest = file("${project.projectDir}/src/main/AndroidManifest.xml")
+                if (manifest.exists()) {
+                    def packageName = new XmlSlurper().parse(manifest).@package.toString()
+                    if (packageName) {
+                        project.android.namespace = packageName
+                    }
+                }
+            }
+            
+            // Java 17 для всех модулей
+            project.android {
+                compileOptions {
+                    sourceCompatibility JavaVersion.VERSION_17
+                    targetCompatibility JavaVersion.VERSION_17
+                }
+            }
+        }
+        
+        // Kotlin JVM target для всех модулей
+        project.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+            kotlinOptions {
+                jvmTarget = "17"
+            }
+        }
+    }
 }
+
 subprojects {
     project.evaluationDependsOn(':app')
 }

@@ -7,11 +7,14 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:archer_link/features/loading.dart';
 import 'package:archer_link/containers/DefaultBg.dart';
+import 'package:media_kit/media_kit.dart';
 import 'package:wifi_iot/wifi_iot.dart';
 import 'package:flutter/services.dart';
 import 'package:in_app_notification/in_app_notification.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  MediaKit.ensureInitialized();
   runApp(MyApp());
 }
 
@@ -138,7 +141,7 @@ class _MyHomePageState extends State<MyHomePage> {
     shouldRunStreamView: false,
     streamUrl: '',
   );
-  StreamSubscription<ConnectivityResult>? connectivitySubscription;
+StreamSubscription<List<ConnectivityResult>>? connectivitySubscription;
 
   @override
   void initState() {
@@ -213,12 +216,12 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  void monitorWifiConnection() {
-    connectivitySubscription =
-        Connectivity().onConnectivityChanged.listen((ConnectivityResult _) {
-      checkConnection();
-    });
-  }
+void monitorWifiConnection() {
+  connectivitySubscription =
+      Connectivity().onConnectivityChanged.listen((List<ConnectivityResult> results) {
+    checkConnection();
+  });
+}
 
   void openSettings() {
     setState(() => isSettingsOpen = true);

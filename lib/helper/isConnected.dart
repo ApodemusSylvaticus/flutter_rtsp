@@ -11,12 +11,13 @@ String? extractIP(String input) {
 }
 
 
-Future<bool> connectivityCheck() async{
-      ConnectivityResult result = await (Connectivity().checkConnectivity());
-    return result == ConnectivityResult.wifi ||
-        result == ConnectivityResult.ethernet ||
-                result == ConnectivityResult.vpn ||
-        result == ConnectivityResult.mobile;
+Future<bool> connectivityCheck() async {
+  List<ConnectivityResult> results = await Connectivity().checkConnectivity();
+  
+  return results.contains(ConnectivityResult.wifi) ||
+      results.contains(ConnectivityResult.ethernet) ||
+      results.contains(ConnectivityResult.vpn) ||
+      results.contains(ConnectivityResult.mobile);
 }
 
 Future<bool> isConnected(
