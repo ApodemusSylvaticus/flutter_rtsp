@@ -94,7 +94,6 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
         }
 
         if (commandResp.hasDevStatus()) {
-          print('devStatus maxZoom ${commandResp.devStatus.maxZoom} zoom ${commandResp.devStatus.zoom}');
           setState(() {
             devStatus = commandResp.devStatus;
           });
