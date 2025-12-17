@@ -23,8 +23,14 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace "com.example.one_more_try"
-    compileSdk 36 // Змінено з compileSdkVersion 34
+    compileSdk 36 
     ndkVersion flutter.ndkVersion
+
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging = true
+        }
+    }    
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -42,7 +48,7 @@ android {
     defaultConfig {
         applicationId "com.archer.link"
         minSdkVersion 24
-        targetSdkVersion 36 // Також оновлено
+        targetSdkVersion 36 
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }

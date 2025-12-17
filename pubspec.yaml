@@ -49,10 +49,10 @@ dependencies:
   in_app_notification: ^1.1.2 
   wakelock_plus: ^1.2.8 
   disk_space_2: ^1.0.8  
-  ffmpeg_kit_flutter_new: ^4.1.0
   media_kit: ^1.2.2
   media_kit_video: ^2.0.0
   media_kit_libs_video: ^1.0.7
+  flutter_quick_video_encoder: ^1.7.2
 
 dev_dependencies:
   flutter_test:
