@@ -46,7 +46,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.archer.link"
+        applicationId "com.archer.archerlink"
         minSdkVersion 24
         targetSdkVersion 36 
         versionCode flutterVersionCode.toInteger()
