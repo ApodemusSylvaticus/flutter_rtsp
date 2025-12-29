@@ -1,7 +1,6 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'dart:io';
 
-
 Future<String?> getDeviceIP() async {
   try {
     final interfaces = await NetworkInterface.list(
@@ -9,27 +8,49 @@ Future<String?> getDeviceIP() async {
       includeLinkLocal: false,
     );
     
+    // Log all interfaces
     print('=== Network Interfaces ===');
     for (var interface in interfaces) {
       print('${interface.name}: ${interface.addresses.map((a) => a.address).join(', ')}');
     }
     print('==========================');
     
+    // Priority: Wi-Fi interfaces
+    final wifiNames = ['en0', 'en1', 'wlan0', 'wlan1'];
+    
+    // Skip system/service interfaces
+    final skipPrefixes = ['lo', 'tun', 'tap', 'pdp_ip', 'ipsec', 'utun', 'rmnet'];
+    
+    String? wifiIP;
+    String? fallbackIP;
+    
     for (var interface in interfaces) {
-      if (interface.name.startsWith('lo') || 
-          interface.name.startsWith('tun') ||
-          interface.name.startsWith('tap')) {
-        continue;
-      }
+      final name = interface.name;
       
       for (var addr in interface.addresses) {
-        if (!addr.isLoopback) {
-          print('Selected IP: ${addr.address} (${interface.name})');
-          return addr.address;
+        if (addr.isLoopback) continue;
+        
+        final ip = addr.address;
+        
+        // Wi-Fi interface — save as priority
+        if (wifiNames.contains(name)) {
+          wifiIP = ip;
+          print('Found Wi-Fi IP: $ip ($name)');
+        }
+        // Non-service interface — save as fallback
+        else if (!skipPrefixes.any((p) => name.startsWith(p))) {
+          fallbackIP ??= ip;
+          print('Found fallback IP: $ip ($name)');
+        } else {
+          print('Skipped: $ip ($name)');
         }
       }
     }
-    return null;
+    
+    final selectedIP = wifiIP ?? fallbackIP;
+    print('Selected IP: $selectedIP');
+    
+    return selectedIP;
   } catch (e) {
     print('Error getting IP: $e');
     return null;
