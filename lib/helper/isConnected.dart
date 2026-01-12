@@ -9,11 +9,11 @@ Future<String?> getDeviceIP() async {
     );
     
     // Log all interfaces
-    print('=== Network Interfaces ===');
-    for (var interface in interfaces) {
-      print('${interface.name}: ${interface.addresses.map((a) => a.address).join(', ')}');
-    }
-    print('==========================');
+    // print('=== Network Interfaces ===');
+    // for (var interface in interfaces) {
+    //   print('${interface.name}: ${interface.addresses.map((a) => a.address).join(', ')}');
+    // }
+    // print('==========================');
     
     // Priority: Wi-Fi interfaces
     final wifiNames = ['en0', 'en1', 'wlan0', 'wlan1'];
@@ -35,12 +35,10 @@ Future<String?> getDeviceIP() async {
         // Wi-Fi interface — save as priority
         if (wifiNames.contains(name)) {
           wifiIP = ip;
-          print('Found Wi-Fi IP: $ip ($name)');
         }
         // Non-service interface — save as fallback
         else if (!skipPrefixes.any((p) => name.startsWith(p))) {
           fallbackIP ??= ip;
-          print('Found fallback IP: $ip ($name)');
         } else {
           print('Skipped: $ip ($name)');
         }
@@ -48,7 +46,7 @@ Future<String?> getDeviceIP() async {
     }
     
     final selectedIP = wifiIP ?? fallbackIP;
-    print('Selected IP: $selectedIP');
+
     
     return selectedIP;
   } catch (e) {
