@@ -22,24 +22,52 @@ class _ZoomButtonState extends State<ZoomButton> {
   void initState() {
     super.initState();
     _initializeZoomValues();
-    _currentZoomIndex = convertZoomToIndex(widget.devStatus.zoom);
+    _currentZoomIndex = _getInitialZoomIndex(widget.devStatus.zoom);
   }
 
   @override
   void didUpdateWidget(covariant ZoomButton oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.devStatus.zoom != oldWidget.devStatus.zoom || 
-        widget.devStatus.maxZoom != oldWidget.devStatus.maxZoom) {
-
+    
+    // Ignore UNKNOWN_ZOOM_LEVEL — don't change state
+    if (widget.devStatus.zoom == Zoom.UNKNOWN_ZOOM_LEVEL) {
+      debugPrint('[ZOOM] didUpdateWidget: IGNORED - UNKNOWN_ZOOM_LEVEL');
+      return;
+    }
+    
+    // maxZoom changed — reinitialize the list
+    if (widget.devStatus.maxZoom != oldWidget.devStatus.maxZoom) {
       setState(() {
         _initializeZoomValues();
-        _currentZoomIndex = convertZoomToIndex(widget.devStatus.zoom);
+        _currentZoomIndex = _getValidZoomIndex(widget.devStatus.zoom);
+      });
+      return;
+    }
+    
+    // zoom changed — update index
+    if (widget.devStatus.zoom != oldWidget.devStatus.zoom) {
+      setState(() {
+        _currentZoomIndex = _getValidZoomIndex(widget.devStatus.zoom);
       });
     }
   }
+  
+  int _getInitialZoomIndex(Zoom zoom) {
+  if (zoom == Zoom.UNKNOWN_ZOOM_LEVEL) {
+    return 0;  // Default to first zoom level
+  }
+  return convertZoomToIndex(zoom);
+}
+
+  /// Returns index for zoom, or current index if zoom is invalid
+  int _getValidZoomIndex(Zoom zoom) {
+    if (zoom == Zoom.UNKNOWN_ZOOM_LEVEL) {
+      return _currentZoomIndex;
+    }
+    return convertZoomToIndex(zoom);
+  }
 
   void _initializeZoomValues() {
-    
     switch (widget.devStatus.maxZoom) {
       case Zoom.ZOOM_X1: 
         _zoomValues = [Zoom.ZOOM_X1];
@@ -57,7 +85,7 @@ class _ZoomButtonState extends State<ZoomButton> {
         _zoomValues = [Zoom.ZOOM_X1, Zoom.ZOOM_X2, Zoom.ZOOM_X3, Zoom.ZOOM_X4, Zoom.ZOOM_X6];
         break;
       default:
-        _zoomValues =[Zoom.ZOOM_X1, Zoom.ZOOM_X2, Zoom.ZOOM_X3, Zoom.ZOOM_X4, Zoom.ZOOM_X6];
+        _zoomValues = [Zoom.ZOOM_X1, Zoom.ZOOM_X2, Zoom.ZOOM_X3, Zoom.ZOOM_X4, Zoom.ZOOM_X6];
         break;
     }
   }
@@ -81,10 +109,8 @@ class _ZoomButtonState extends State<ZoomButton> {
         return 3;
       case Zoom.ZOOM_X6:
         return 4;
-      case Zoom.UNKNOWN_ZOOM_LEVEL:
-         return 0;
       default:
-      return 0;
+        return 0;
     }
   }
 

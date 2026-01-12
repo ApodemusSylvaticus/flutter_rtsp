@@ -8,7 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:archer_link/features/loading.dart';
 import 'package:archer_link/containers/DefaultBg.dart';
 import 'package:media_kit/media_kit.dart';
-import 'package:wifi_iot/wifi_iot.dart';
 import 'package:flutter/services.dart';
 import 'package:in_app_notification/in_app_notification.dart';
 
@@ -33,7 +32,7 @@ class StreamConfig {
 }
 
 Future<StreamConfig> getStreamConfig() async {
-  final actualIp = await WiFiForIoTPlugin.getIP();
+  final actualIp = await getDeviceIP();
   if (actualIp == null) {
     return StreamConfig(
       streamUrl: '',

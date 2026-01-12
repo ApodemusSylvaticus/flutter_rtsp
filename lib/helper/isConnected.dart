@@ -1,5 +1,59 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:wifi_iot/wifi_iot.dart';
+import 'dart:io';
+
+Future<String?> getDeviceIP() async {
+  try {
+    final interfaces = await NetworkInterface.list(
+      type: InternetAddressType.IPv4,
+      includeLinkLocal: false,
+    );
+    
+    // Log all interfaces
+    // print('=== Network Interfaces ===');
+    // for (var interface in interfaces) {
+    //   print('${interface.name}: ${interface.addresses.map((a) => a.address).join(', ')}');
+    // }
+    // print('==========================');
+    
+    // Priority: Wi-Fi interfaces
+    final wifiNames = ['en0', 'en1', 'wlan0', 'wlan1'];
+    
+    // Skip system/service interfaces
+    final skipPrefixes = ['lo', 'tun', 'tap', 'pdp_ip', 'ipsec', 'utun', 'rmnet'];
+    
+    String? wifiIP;
+    String? fallbackIP;
+    
+    for (var interface in interfaces) {
+      final name = interface.name;
+      
+      for (var addr in interface.addresses) {
+        if (addr.isLoopback) continue;
+        
+        final ip = addr.address;
+        
+        // Wi-Fi interface — save as priority
+        if (wifiNames.contains(name)) {
+          wifiIP = ip;
+        }
+        // Non-service interface — save as fallback
+        else if (!skipPrefixes.any((p) => name.startsWith(p))) {
+          fallbackIP ??= ip;
+        } else {
+          print('Skipped: $ip ($name)');
+        }
+      }
+    }
+    
+    final selectedIP = wifiIP ?? fallbackIP;
+
+    
+    return selectedIP;
+  } catch (e) {
+    print('Error getting IP: $e');
+    return null;
+  }
+}
 
 String? extractIP(String input) {
   final RegExp ipRegex = RegExp(
@@ -29,7 +83,7 @@ Future<bool> isConnected(
   }
 
   List<String> octets = ipFromUrl.split('.');
-  final actualIp = await WiFiForIoTPlugin.getIP();
+  final actualIp = await getDeviceIP();
 
   if (actualIp == null || actualIp == '0.0.0.0' || actualIp == '0.0.0') {
     return false;
