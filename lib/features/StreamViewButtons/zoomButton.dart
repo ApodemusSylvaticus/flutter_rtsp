@@ -22,7 +22,7 @@ class _ZoomButtonState extends State<ZoomButton> {
   void initState() {
     super.initState();
     _initializeZoomValues();
-    _currentZoomIndex = _getValidZoomIndex(widget.devStatus.zoom);
+    _currentZoomIndex = _getInitialZoomIndex(widget.devStatus.zoom);
   }
 
   @override
@@ -51,6 +51,13 @@ class _ZoomButtonState extends State<ZoomButton> {
       });
     }
   }
+  
+  int _getInitialZoomIndex(Zoom zoom) {
+  if (zoom == Zoom.UNKNOWN_ZOOM_LEVEL) {
+    return 0;  // Default to first zoom level
+  }
+  return convertZoomToIndex(zoom);
+}
 
   /// Returns index for zoom, or current index if zoom is invalid
   int _getValidZoomIndex(Zoom zoom) {
