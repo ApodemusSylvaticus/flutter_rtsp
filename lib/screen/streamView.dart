@@ -51,11 +51,16 @@ class _StreamViewPageState extends State<StreamViewPage>
     _playerService.initialize();
   }
 
+  void _log(String message) {
+    print('[StreamViewPage] $message');
+  }
+
   void _handleStateChanged({
     bool? isLoading,
     bool? showReconnectButton,
     bool? isReconnecting,
   }) {
+    _log('_handleStateChanged: isLoading=$isLoading, showReconnectButton=$showReconnectButton, isReconnecting=$isReconnecting');
     setState(() {
       if (isLoading != null) this.isLoading = isLoading;
       if (showReconnectButton != null) {
@@ -63,7 +68,10 @@ class _StreamViewPageState extends State<StreamViewPage>
       }
       if (isReconnecting != null) this.isReconnecting = isReconnecting;
 
+      _log('State after update: isLoading=${this.isLoading}, showReconnectButton=${this.showReconnectButton}, isReconnecting=${this.isReconnecting}');
+
       if (this.isLoading == false && this.showReconnectButton == false) {
+        _log('Conditions met for landscape orientation');
         setLandscapeOrientation();
       }
     });
@@ -78,11 +86,13 @@ class _StreamViewPageState extends State<StreamViewPage>
 
   @override
   void onAppResumed() {
+    _log('onAppResumed() called');
     _playerService.reconnectAfterResume();
   }
 
   @override
   void onAppPaused() {
+    _log('onAppPaused() called');
     _playerService.pause();
   }
 

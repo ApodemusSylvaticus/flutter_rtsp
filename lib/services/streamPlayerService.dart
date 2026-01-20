@@ -33,6 +33,7 @@ class StreamPlayerService {
   int _stalledCount = 0;
 
   bool _isDisposed = false;
+  bool _tcpResponseReceived = false;
 
   StreamPlayerService({
     required this.streamConfig,
@@ -116,7 +117,6 @@ class StreamPlayerService {
     _bufferTimeout?.cancel();
     _positionWatchdog?.cancel();
 
-    print('🔴 Stream lost or stalled for 10+ seconds');
     onStateChanged(
       showReconnectButton: true,
       isLoading: false,
@@ -151,27 +151,51 @@ class StreamPlayerService {
         await socket.flush();
 
         Completer<String> completer = Completer<String>();
+        StreamSubscription<List<int>>? subscription;
 
-        socket.listen((data) {
+        subscription = socket.listen((data) {
           String response = utf8.decode(data);
-          completer.complete(response);
+          _tcpResponseReceived = true;
+          if (!completer.isCompleted) {
+            completer.complete(response);
+          }
         }, onError: (error) {
-          completer.completeError(error);
-        });
+          if (!completer.isCompleted) {
+            completer.completeError(error);
+          }
+        }, onDone: () {});
+
+        // Timeout: 5s if response was received, 30s otherwise
+        final timeoutDuration = _tcpResponseReceived
+            ? const Duration(seconds: 5)
+            : const Duration(seconds: 30);
 
         try {
-          String result = await completer.future;
-          print('Received response: $result');
+          await completer.future.timeout(
+            timeoutDuration,
+            onTimeout: () {
+              throw TimeoutException('TCP response timeout');
+            },
+          );
           await Future.delayed(const Duration(milliseconds: 500));
           await _initializePlayer();
+        } on TimeoutException {
+          await subscription.cancel();
+          try {
+            socket.destroy();
+          } catch (_) {}
+          await _initializePlayer();
         } catch (e) {
-          print('Error receiving response: $e');
+          await subscription.cancel();
+          try {
+            socket.destroy();
+          } catch (_) {}
+          await _initializePlayer();
         }
       } else {
         await _initializePlayer();
       }
     } catch (e) {
-      print('Failed to connect: $e');
       onStateChanged(
         showReconnectButton: true,
         isLoading: false,
@@ -201,8 +225,9 @@ class StreamPlayerService {
 
       _resetMonitoring();
 
+      final rtspUrl = 'rtsp://${streamConfig.streamUrl}';
       await player.open(
-        Media('rtsp://${streamConfig.streamUrl}'),
+        Media(rtspUrl),
         play: true,
       );
 
@@ -211,7 +236,6 @@ class StreamPlayerService {
 
       onStateChanged(showReconnectButton: false);
     } catch (e) {
-      print('Failed to connect: $e');
       onStateChanged(
         showReconnectButton: true,
         isLoading: false,
@@ -229,9 +253,12 @@ class StreamPlayerService {
   /// Reconnect after returning from background
   Future<void> reconnectAfterResume() async {
     await Future.delayed(const Duration(milliseconds: 500));
+
     if (_isDisposed) return;
 
-    if (!player.state.playing) {
+    final isPlaying = player.state.playing;
+
+    if (!isPlaying) {
       await initializeDeviceConnection();
     }
   }

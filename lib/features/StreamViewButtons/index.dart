@@ -32,12 +32,13 @@ class StreamViewButtons extends StatefulWidget {
 }
 
 class _StreamViewButtonsState extends State<StreamViewButtons> {
-  late WebSocketChannel _channel;
+  WebSocketChannel? _channel;
+  StreamSubscription? _channelSubscription;
   bool _isConnected = false;
   bool _isTryingToConnect = false;
   HostDevStatus? devStatus;
-  late Timer _timer;
-  late Timer _reconnectTimer;
+  Timer? _timer;
+  Timer? _reconnectTimer;
   final Queue<Uint8List> _requestQueue = Queue<Uint8List>();
 
   @override
@@ -59,9 +60,16 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
 
   @override
   void dispose() {
-    _channel.sink.close();
-    _reconnectTimer.cancel();
-    _timer.cancel();
+    // Сначала отменяем таймеры, чтобы они не вызывали методы
+    _timer?.cancel();
+    _reconnectTimer?.cancel();
+    
+    // Затем отменяем подписку на stream
+    _channelSubscription?.cancel();
+    
+    // И только потом закрываем канал
+    _channel?.sink.close();
+    
     super.dispose();
   }
 
@@ -77,45 +85,58 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
 
     _channel = WebSocketChannel.connect(wsUrl);
     try {
-      await _channel.ready;
+      await _channel!.ready;
     } catch (e) {
       _isTryingToConnect = false;
       return;
     }
 
-    _channel.stream.listen(
+    // Отменяем предыдущую подписку если она была
+    await _channelSubscription?.cancel();
+
+    _channelSubscription = _channel!.stream.listen(
       (event) {
         final commandResp = HostPayload.fromBuffer(event);
 
-        _requestQueue.removeLast();
+        if (_requestQueue.isNotEmpty) {
+          _requestQueue.removeLast();
+        }
 
         if (_requestQueue.isNotEmpty) {
-          _channel.sink.add(_requestQueue.last);
+          _channel?.sink.add(_requestQueue.last);
         }
 
         if (commandResp.hasDevStatus()) {
-          setState(() {
-            devStatus = commandResp.devStatus;
-          });
+          if (mounted) {
+            setState(() {
+              devStatus = commandResp.devStatus;
+            });
+          }
         }
 
-        setState(() {
-          _isConnected = true;
-        });
+        if (mounted) {
+          setState(() {
+            _isConnected = true;
+          });
+        }
         _isTryingToConnect = false;
       },
       onError: (error) {
         _requestQueue.clear();
-        setState(() {
-          _isConnected = false;
-        });
+        if (mounted) {
+          setState(() {
+            _isConnected = false;
+          });
+        }
         _isTryingToConnect = false;
       },
       onDone: () {
         _requestQueue.clear();
-        setState(() {
-          _isConnected = false;
-        });
+        if (mounted) {
+          setState(() {
+            _isConnected = false;
+          });
+        }
         _isTryingToConnect = false;
       },
       cancelOnError: true,
@@ -138,7 +159,7 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
     _requestQueue.addFirst(buffer);
 
     if (_requestQueue.length == 1) {
-      _channel.sink.add(buffer);
+      _channel?.sink.add(buffer);
     }
   }
 
@@ -161,7 +182,7 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
                 borderRadius: BorderRadius.circular(30),
               ),
               child: Column(
-                mainAxisSize: MainAxisSize.min, // Подстроить по высоте контента
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   MakePhotoButton(takePhoto: widget.takePhoto),
                   SizedBox(height: 30),
@@ -206,7 +227,7 @@ class _StreamViewButtonsState extends State<StreamViewButtons> {
                 borderRadius: BorderRadius.circular(30),
               ),
               child: Column(
-                mainAxisSize: MainAxisSize.min, // Подстроить по высоте контента
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   MakePhotoButton(takePhoto: widget.takePhoto),
                   SizedBox(height: 40),
