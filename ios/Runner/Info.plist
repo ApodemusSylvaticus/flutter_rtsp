@@ -26,8 +26,12 @@
 		<string>$(FLUTTER_BUILD_NUMBER)</string>
 		<key>LSRequiresIPhoneOS</key>
 		<true/>
+		<key>NSCameraUsageDescription</key>
+		<string>This app requires access to the camera.</string>
+		<key>NSLocalNetworkUsageDescription</key>
+		<string>Archer LINK connects to Archer devices on your local Wi-Fi network to enable remote control and live video streaming.</string>
 		<key>NSPhotoLibraryUsageDescription</key>
-		<string>Archer LINK saves photos and videos captured from the device's live stream during recording mode to your photo library.</string>
+		<string>Archer LINK saves photos and videos captured from connected Archer devices directly to your iPhone photo library for local storage and viewing. Example: when you capture an image or record a video from an Archer device in the app, it is saved to your Photos app.</string>
 		<key>UIApplicationSupportsIndirectInputEvents</key>
 		<true/>
 		<key>UILaunchStoryboardName</key>
