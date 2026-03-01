@@ -114,7 +114,7 @@ class ReconnectView extends StatelessWidget {
             ),
           )
         ],
-        
+
         ),
       ),
     );

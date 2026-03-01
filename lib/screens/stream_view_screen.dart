@@ -113,14 +113,6 @@ class _StreamViewPageState extends State<StreamViewPage>
 
   @override
   Widget build(BuildContext context) {
-    return Streamviewcontainer(
-      child: Center(
-        child: _buildBody(context),
-      ),
-    );
-  }
-
-  Widget _buildBody(BuildContext context) {
     if (isLoading) {
       setPortraitOrientation();
       return DefaultBg(child: LoadingIndicator(isLoading: isLoading));
@@ -131,10 +123,14 @@ class _StreamViewPageState extends State<StreamViewPage>
         onReconnect: _playerService.initializeDeviceConnection,
         openSettings: widget.openSettings,
       );
-    } else {
-      setLandscapeOrientation();
-      return _buildStreamView();
     }
+
+    setLandscapeOrientation();
+    return Streamviewcontainer(
+      child: Center(
+        child: _buildStreamView(),
+      ),
+    );
   }
 
   Widget _buildStreamView() {
