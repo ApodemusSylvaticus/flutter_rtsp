@@ -1,34 +1,23 @@
 import 'dart:async';
-import 'package:archer_link/features/wifiConnectPage.dart';
-import 'package:archer_link/helper/isConnected.dart';
-import 'package:archer_link/screen/settings.dart';
-import 'package:archer_link/screen/streamView.dart';
+import 'package:archer_link/screens/wifi_connect_screen.dart';
+import 'package:archer_link/utils/connectivity_checker.dart';
+import 'package:archer_link/utils/demo_mode.dart';
+import 'package:archer_link/screens/settings_screen.dart';
+import 'package:archer_link/screens/stream_view_screen.dart';
+import 'package:archer_link/screens/demo_stream_view_screen.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
-import 'package:archer_link/features/loading.dart';
-import 'package:archer_link/containers/DefaultBg.dart';
+import 'package:archer_link/screens/loading_screen.dart';
+import 'package:archer_link/widgets/default_bg.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:flutter/services.dart';
 import 'package:in_app_notification/in_app_notification.dart';
+import 'package:archer_link/models/stream_config.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   MediaKit.ensureInitialized();
   runApp(MyApp());
-}
-
-class StreamConfig {
-  final String streamUrl;
-  final String commandUrl;
-  final String tcpCommandUrl;
-  final bool shouldRunStreamView;
-
-  StreamConfig({
-    required this.streamUrl,
-    required this.commandUrl,
-    required this.tcpCommandUrl,
-    required this.shouldRunStreamView,
-  });
 }
 
 Future<StreamConfig> getStreamConfig() async {
@@ -173,6 +162,9 @@ StreamSubscription<List<ConnectivityResult>>? connectivitySubscription;
  
 
   Future<void> getNetworkData() async {
+    // В демо-режиме не проверяем сеть — конфиг уже задан
+    if (isDemoMode) return;
+
     StreamConfig actualStreamConfig = await getStreamConfig();
 
     if (actualStreamConfig.streamUrl != streamConfig.streamUrl &&
@@ -186,6 +178,9 @@ StreamSubscription<List<ConnectivityResult>>? connectivitySubscription;
   }
 
   Future<void> checkConnection() async {
+    // В демо-режиме всегда доступно
+    if (isDemoMode) return;
+
     setState(() {
       isLoading = true;
     });
@@ -236,6 +231,20 @@ void monitorWifiConnection() {
     checkConnection();
   }
 
+  void activateDemoMode() {
+    isDemoMode = true;
+    setState(() {
+      streamConfig = StreamConfig(
+        streamUrl: 'demo',
+        commandUrl: 'demo',
+        tcpCommandUrl: '',
+        shouldRunStreamView: false,
+      );
+      isAvailableToConnect = true;
+      isLoading = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     if (isSettingsOpen) {
@@ -248,9 +257,7 @@ void monitorWifiConnection() {
       setPortraitOrientation();
 
       return DefaultBg(
-        child: const Center(
-          child: LoadingIndicator(isLoading: true),
-        ),
+        child: const LoadingIndicator(isLoading: true),
       );
     }
 
@@ -259,7 +266,12 @@ void monitorWifiConnection() {
 
       return WifiConnectPage(
         openSettings: openSettings,
+        onDemoMode: activateDemoMode,
       );
+    }
+
+    if (isDemoMode) {
+      return DemoStreamViewPage(openSettings: openSettings);
     }
 
     return StreamViewPage(streamConfig, openSettings);
