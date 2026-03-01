@@ -9,6 +9,7 @@ import 'package:archer_link/widgets/stream_view/stream_view_container.dart';
 import 'package:archer_link/widgets/notification_card.dart';
 import 'package:archer_link/widgets/stream_view/demo_stream_view_buttons.dart';
 import 'package:archer_link/screens/loading_screen.dart';
+import 'package:archer_link/widgets/default_bg.dart';
 import 'package:archer_link/mixins/app_lifecycle_mixin.dart';
 import 'package:archer_link/services/demo_player_service.dart';
 import 'package:archer_link/utils/video_recorder.dart';
@@ -152,18 +153,16 @@ class _DemoStreamViewPageState extends State<DemoStreamViewPage>
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      setPortraitOrientation();
+      return DefaultBg(child: LoadingIndicator(isLoading: true));
+    }
+
     return Streamviewcontainer(
       child: Center(
-        child: isLoading
-            ? _buildLoading()
-            : _buildStreamView(),
+        child: _buildStreamView(),
       ),
     );
-  }
-
-  Widget _buildLoading() {
-    setPortraitOrientation();
-    return LoadingIndicator(isLoading: true);
   }
 
   Widget _buildStreamView() {

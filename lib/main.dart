@@ -234,14 +234,20 @@ void monitorWifiConnection() {
   void activateDemoMode() {
     isDemoMode = true;
     setState(() {
-      streamConfig = StreamConfig(
-        streamUrl: 'demo',
-        commandUrl: 'demo',
-        tcpCommandUrl: '',
-        shouldRunStreamView: false,
-      );
-      isAvailableToConnect = true;
-      isLoading = false;
+      isLoading = true;
+    });
+    Future.delayed(const Duration(seconds: 2), () {
+      if (!mounted) return;
+      setState(() {
+        streamConfig = StreamConfig(
+          streamUrl: 'demo',
+          commandUrl: 'demo',
+          tcpCommandUrl: '',
+          shouldRunStreamView: false,
+        );
+        isAvailableToConnect = true;
+        isLoading = false;
+      });
     });
   }
 
