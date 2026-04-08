@@ -1,10 +1,9 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:android_intent_plus/android_intent.dart';
+import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:archer_link/widgets/default_bg.dart';
 import 'package:archer_link/utils/demo_mode.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class WifiConnectPage extends StatefulWidget {
   final void Function() openSettings;
@@ -62,19 +61,11 @@ class _WifiConnectPageState extends State<WifiConnectPage> {
     );
   }
 
-  void openWifiSettings() async {
-    if (Platform.isAndroid) {
-      final AndroidIntent intent = AndroidIntent(
-        action: 'android.settings.WIFI_SETTINGS',
-      );
-      await intent.launch();
-    } else if (Platform.isIOS) {
-      const String url = 'App-Prefs:root=WIFI';
-      if (await canLaunch(url)) {
-        await launch(url);
-      } else {
-        print('Could not launch $url');
-      }
+  void openWifiSettings() {
+    if (Platform.isIOS) {
+      AppSettings.openAppSettings(type: AppSettingsType.settings);
+    } else {
+      AppSettings.openAppSettings(type: AppSettingsType.wifi);
     }
   }
 
