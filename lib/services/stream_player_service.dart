@@ -26,6 +26,8 @@ class StreamPlayerService {
   StreamSubscription<bool>? _playingSubscription;
   StreamSubscription<bool>? _bufferingSubscription;
   StreamSubscription<Duration>? _positionSubscription;
+  StreamSubscription<int?>? _widthSubscription;
+  StreamSubscription<String>? _errorSubscription;
 
   Timer? _bufferTimeout;
   Timer? _positionWatchdog;
@@ -34,6 +36,11 @@ class StreamPlayerService {
 
   bool _isDisposed = false;
   bool _tcpResponseReceived = false;
+
+  /// True between `player.open()` and the first decoded frame (or a failure).
+  /// media_kit reports `playing == true` optimistically right inside `open()`,
+  /// before any network I/O, so `playing` cannot be used as "stream is up".
+  bool _connecting = false;
 
   StreamPlayerService({
     required this.streamConfig,
@@ -83,14 +90,26 @@ class StreamPlayerService {
     });
 
     _playingSubscription = player.stream.playing.listen((playing) {
-      _positionWatchdog?.cancel();
+      if (!playing) {
+        _positionWatchdog?.cancel();
+      }
+    });
 
-      if (playing) {
-        onStateChanged(
-          isLoading: false,
-          showReconnectButton: false,
-        );
-        _startPositionWatchdog();
+    // First decoded frame: mpv publishes `video-params`, media_kit turns it
+    // into a non-null width. This is the real "stream is up" signal.
+    _widthSubscription = player.stream.width.listen((width) {
+      if (_connecting && width != null && width > 0) {
+        _onStreamAlive();
+      }
+    });
+
+    // mpv reports open failures (e.g. "tcp: ... Connection refused") within
+    // milliseconds; without this we would wait for the 10s buffer timeout.
+    // Only acted upon while connecting: decoder errors during playback are
+    // handled by the buffer/position watchdogs instead.
+    _errorSubscription = player.stream.error.listen((error) {
+      if (_connecting) {
+        _onStreamLost();
       }
     });
 
@@ -113,7 +132,22 @@ class StreamPlayerService {
     });
   }
 
+  void _onStreamAlive() {
+    _connecting = false;
+    _positionWatchdog?.cancel();
+    _startPositionWatchdog();
+
+    WakelockPlus.enable();
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
+
+    onStateChanged(
+      isLoading: false,
+      showReconnectButton: false,
+    );
+  }
+
   void _onStreamLost() {
+    _connecting = false;
     _bufferTimeout?.cancel();
     _positionWatchdog?.cancel();
 
@@ -226,16 +260,17 @@ class StreamPlayerService {
       _resetMonitoring();
 
       final rtspUrl = 'rtsp://${streamConfig.streamUrl}';
+      // Set right before open(): stop() above emits its own (stale)
+      // width/playing events which must not be taken for this attempt.
+      _connecting = true;
       await player.open(
         Media(rtspUrl),
         play: true,
       );
-
-      WakelockPlus.enable();
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
-
-      onStateChanged(showReconnectButton: false);
+      // The UI stays on the loader (isLoading == true) until _onStreamAlive()
+      // or _onStreamLost() fires from the stream subscriptions.
     } catch (e) {
+      _connecting = false;
       onStateChanged(
         showReconnectButton: true,
         isLoading: false,
@@ -280,6 +315,8 @@ class StreamPlayerService {
     _playingSubscription?.cancel();
     _bufferingSubscription?.cancel();
     _positionSubscription?.cancel();
+    _widthSubscription?.cancel();
+    _errorSubscription?.cancel();
 
     try {
       await player.stop();
