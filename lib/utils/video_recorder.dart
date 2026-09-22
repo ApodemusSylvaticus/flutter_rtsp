@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
@@ -15,20 +14,25 @@ import 'package:gal/gal.dart';
 /// `[REC]` (`adb logcat -s flutter`), итог показывает в уведомлении.
 const bool kRecorderDiagnostics = bool.fromEnvironment('REC_DIAG');
 
+/// Минимальный интервал между кадрами, то есть 25 кадров в секунду.
+const int _minFrameIntervalMs = 40;
+
+/// Битрейт записи, 4 Мбит/с.
+const int _videoBitrate = 4000000;
+
 /// Notification callback
 typedef OnRecorderNotification = void Function(bool isError, String message);
 
-/// Progress callback: current frame index, total frames
-typedef OnRecorderProgress = void Function(int current, int total);
-
 /// Processing state callback
 typedef OnProcessingChanged = void Function(bool isProcessing);
+
+/// Один снятый кадр: пиксели RGBA и размер, к которому привязан кодировщик.
+typedef _Frame = ({Uint8List bytes, int width, int height});
 
 /// Утилита для записи видео и создания снапшотов
 class VideoRecorder {
   final GlobalKey videoKey;
   final OnRecorderNotification onNotification;
-  final OnRecorderProgress? onProgress;
   final OnProcessingChanged? onProcessingChanged;
 
   /// Only read by diagnostics, to report the decoder state.
@@ -36,40 +40,24 @@ class VideoRecorder {
 
   bool isRecording = false;
   Stopwatch stopwatch = Stopwatch();
-  List<String> _imagePaths = [];
-  /// Capture time of each of [_imagePaths], ms since the recording started.
-  final List<int> _frameTimesMs = [];
-  DateTime _lastSnapshotTime = DateTime.now();
-  final int _debounceDurationMillis = 20;
-  _RecordingDiagnostics? _diag;
+  bool _encoderStarted = false;
 
   VideoRecorder({
     required this.videoKey,
     required this.onNotification,
-    this.onProgress,
     this.onProcessingChanged,
     this.player,
   });
 
-  /// Захват кадра из видео
-  Future<Uint8List?> _captureSnapshot([_RecordingDiagnostics? diag]) async {
+  /// Захват кадра в PNG — для снимка, который уходит в галерею картинкой.
+  Future<Uint8List?> _captureSnapshot() async {
     try {
       final boundary =
           videoKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
       if (boundary == null) return null;
 
-      final image =
-          await _timed(diag?.toImage, () => boundary.toImage(pixelRatio: 1.0));
-      final byteData = await _timed(
-          diag?.png, () => image.toByteData(format: ui.ImageByteFormat.png));
-
-      // GPU->CPU readback alone (no PNG compression), sampled every 10th
-      // frame, to split the `png` time into copy and compression.
-      if (diag != null && diag.frames % 10 == 0) {
-        await _timed(diag.readback,
-            () => image.toByteData(format: ui.ImageByteFormat.rawRgba));
-      }
-      diag?.captureSize ??= '${image.width}x${image.height}';
+      final image = await boundary.toImage(pixelRatio: 1.0);
+      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
       image.dispose();
       return byteData?.buffer.asUint8List();
     } catch (e) {
@@ -106,193 +94,200 @@ class VideoRecorder {
     }
   }
 
-  /// Начать запись видео
+  /// Начать запись видео. Кадры кодируются на ходу, поэтому после остановки
+  /// остаётся только закрыть файл и сохранить его в галерею.
   Future<void> startRecording() async {
-    final directory = await getTemporaryDirectory();
-
-    if (directory.existsSync()) {
-      directory.listSync().forEach((entity) {
-        if (entity is File) {
-          entity.deleteSync();
-        }
-      });
-    }
+    if (isRecording) return;
 
     isRecording = true;
-    stopwatch.start();
-    int index = 0;
+    _encoderStarted = false;
+    stopwatch
+      ..reset()
+      ..start();
 
     final diag = kRecorderDiagnostics ? _RecordingDiagnostics() : null;
-    _diag = diag;
     if (diag != null) {
       _log('start: ${_describeView()}');
       _playerStats().then((stats) => _log('player at start: $stats'));
     }
 
-    final freeSpaceInMB = await DiskSpace.getFreeDiskSpace;
-    final freeSpaceInMBNonNull = freeSpaceInMB ?? 1024.0;
-    final freeSpaceInBytes = (freeSpaceInMBNonNull * 1024 * 1024).toInt();
-    final limit = (freeSpaceInBytes * 0.8).toInt();
+    final directory = await getTemporaryDirectory();
+    final outputPath =
+        '${directory.path}/video_${DateTime.now().millisecondsSinceEpoch}.mp4';
+    await _deleteLeftoverVideos(directory);
 
-    int usedSpace = 0;
-
-    while (isRecording) {
-      try {
-        DateTime now = DateTime.now();
-        int difference =
-            now.difference(_lastSnapshotTime).inMilliseconds - _debounceDurationMillis;
-
-        if (difference >= _debounceDurationMillis) {
-          _lastSnapshotTime = now;
-          final capturedAtMs = stopwatch.elapsedMilliseconds;
-          diag?.frameStarted();
-
-          final imageData = await _captureSnapshot(diag);
-          if (imageData == null) continue;
-
-          String fileName = 'image_${index.toString().padLeft(6, '0')}.png';
-          String filePath = '${directory.path}/$fileName';
-          File file = File(filePath);
-
-          await _timed(diag?.write, () => file.writeAsBytes(imageData));
-
-          // stopRecording() may have run during the awaits above: this frame
-          // is past the end, and adding it to the already-cleared list would
-          // leak it into the next recording.
-          if (!isRecording) break;
-
-          diag?.frameStored(imageData);
-          _imagePaths.add(filePath);
-          _frameTimesMs.add(capturedAtMs);
-
-          // Diagnostics only: also time the alternative frame source.
-          if (diag != null && diag.frames % 10 == 5) {
-            final shot = await _timed(diag.mpvShot, _mpvScreenshot);
-            if (shot == null) diag.mpvShotFailed++;
-          }
-
-          int fileSize = await file.length();
-          usedSpace += fileSize;
-
-          if (usedSpace >= limit) {
-            onNotification(true, 'Storage limit reached. Stopping recording.');
-            await stopRecording();
-          }
-
-          index++;
-        } else {
-          await Future.delayed(Duration(milliseconds: difference.abs()));
-        }
-      } catch (e) {
-        onNotification(true, 'Something went wrong. Video recording stopped.');
-        await stopRecording();
-      }
+    int frames = 0;
+    try {
+      frames = await _captureLoop(outputPath, diag);
+    } catch (e) {
+      print('Recording error: $e');
+      diag?.log('recording error: $e');
+      onNotification(true, 'Something went wrong. Video recording stopped.');
     }
-  }
 
-  /// Остановить запись и создать видео
-  Future<void> stopRecording() async {
     isRecording = false;
     stopwatch.stop();
-
-    final diag = _diag;
-    _diag = null;
     if (diag != null) {
       diag.recorded = stopwatch.elapsed;
       diag.logCapture();
       _playerStats().then((stats) => _log('player at stop: $stats'));
     }
 
-    final pathsCopy = List<String>.from(_imagePaths);
-    final frameTimesCopy = List<int>.from(_frameTimesMs);
-    _imagePaths.clear();
-    _frameTimesMs.clear();
-
     onProcessingChanged?.call(true);
-    await _createVideoFromImages(
-        pathsCopy, frameTimesCopy, stopwatch.elapsedMilliseconds, diag);
+    await _finishVideo(outputPath, frames, diag);
     onProcessingChanged?.call(false);
-
-    for (var path in pathsCopy) {
-      try {
-        await File(path).delete();
-      } catch (_) {}
-    }
 
     stopwatch.reset();
   }
 
-  Future<void> _createVideoFromImages(
-    List<String> paths,
-    List<int> frameTimesMs,
-    int durationMs, [
-    _RecordingDiagnostics? diag,
-  ]) async {
-    if (paths.isEmpty || durationMs <= 0) {
-      diag?.log('encoder: skipped (${paths.length} frames, $durationMs ms)');
-      return;
-    }
+  /// Остановить запись: цикл сам закроет файл и сохранит его.
+  Future<void> stopRecording() async {
+    isRecording = false;
+  }
 
-    final directory = await getTemporaryDirectory();
-    final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-    final outputPath = '${directory.path}/video_$timestamp.mp4';
+  /// Снимает кадры и сразу отдаёт их кодировщику. Возвращает число кадров,
+  /// попавших в файл.
+  Future<int> _captureLoop(
+      String outputPath, _RecordingDiagnostics? diag) async {
+    // Кодировщик пишет примерно по 0.5 МБ в секунду; останавливаемся, пока на
+    // диске ещё остаётся место.
+    final freeSpaceInMB = await DiskSpace.getFreeDiskSpace;
+    final sizeLimit = ((freeSpaceInMB ?? 1024.0) * 1024 * 1024 * 0.8).toInt();
 
-    // The encoder only takes a constant integer fps, while frames are
-    // captured unevenly. Lay them out on an fps grid by their capture times,
-    // so the video lasts as long as the recording did and motion keeps its
-    // real speed.
-    final int fps = _gridFps(frameTimesMs, durationMs);
-    final int slotCount = math.max(1, (durationMs * fps / 1000).round());
-    final slotFrames = _frameForSlots(frameTimesMs, fps, slotCount);
-    print("Video fps: $fps");
-    if (diag != null) {
-      final shown = slotFrames.toSet().length;
-      diag.log('encoder: ${paths.length} frames over '
-          '${(durationMs / 1000).toStringAsFixed(2)} s -> fps=$fps, '
-          '$slotCount slots = ${(slotCount / fps).toStringAsFixed(2)} s video '
-          '(${paths.length - shown} frames dropped, '
-          '${slotCount - shown} slots repeat the previous frame)');
-    }
+    int frames = 0;
+    int width = 0;
+    int height = 0;
+    int nextFrameMs = 0;
 
-    try {
-      final processing = Stopwatch()..start();
-      final firstImageBytes = await File(paths.first).readAsBytes();
-      final firstCodec = await ui.instantiateImageCodec(firstImageBytes);
-      final firstFrame = await firstCodec.getNextFrame();
-      final width = firstFrame.image.width;
-      final height = firstFrame.image.height;
-      final adjustedWidth = (width ~/ 2) * 2;
-      final adjustedHeight = (height ~/ 2) * 2;
-      firstFrame.image.dispose();
-
-      await FlutterQuickVideoEncoder.setup(
-        width: adjustedWidth,
-        height: adjustedHeight,
-        fps: fps,
-        videoBitrate: 4000000,
-        audioChannels: 0,
-        audioBitrate: 0,
-        sampleRate: 44100,
-        filepath: outputPath,
-        profileLevel: ProfileLevel.baselineAutoLevel,
-      );
-
-      late Uint8List rgba;
-      var rgbaFrame = -1;
-      for (var slot = 0; slot < slotCount; slot++) {
-        final frame = slotFrames[slot];
-        if (frame != rgbaFrame) {
-          rgba = await _timed(diag?.decode,
-              () => _loadImageAsRgba(paths[frame], adjustedWidth, adjustedHeight));
-          rgbaFrame = frame;
-        }
-        await _timed(
-            diag?.append, () => FlutterQuickVideoEncoder.appendVideoFrame(rgba));
-        onProgress?.call(slot + 1, slotCount);
+    while (isRecording) {
+      final waitMs = nextFrameMs - stopwatch.elapsedMilliseconds;
+      if (waitMs > 0) {
+        await Future.delayed(Duration(milliseconds: waitMs));
+        continue;
       }
 
-      await FlutterQuickVideoEncoder.finish();
-      diag?.logProcessing(processing.elapsed);
+      final capturedAtMs = stopwatch.elapsedMilliseconds;
+      nextFrameMs = capturedAtMs + _minFrameIntervalMs;
+      diag?.frameStarted();
+
+      final frame = await _captureFrame(diag);
+      // stopRecording() may have run while we were capturing: this frame is
+      // past the end of the recording.
+      if (!isRecording) break;
+      if (frame == null) continue;
+
+      if (frames == 0) {
+        width = frame.width;
+        height = frame.height;
+        await FlutterQuickVideoEncoder.setup(
+          width: width,
+          height: height,
+          fps: 1000 ~/ _minFrameIntervalMs,
+          videoBitrate: _videoBitrate,
+          audioChannels: 0,
+          audioBitrate: 0,
+          sampleRate: 44100,
+          filepath: outputPath,
+          profileLevel: ProfileLevel.baselineAutoLevel,
+        );
+        _encoderStarted = true;
+        diag?.frameSize = '${width}x$height';
+      } else if (frame.width != width || frame.height != height) {
+        // The boundary changed size mid-recording (rotation, layout): the
+        // encoder is fixed to the size of the first frame.
+        diag?.resized++;
+        continue;
+      }
+
+      // Every frame carries its own capture time, so an uneven capture rate
+      // does not speed the video up or slow it down.
+      await _timed(
+        diag?.append,
+        () => FlutterQuickVideoEncoder.appendVideoFrame(
+          frame.bytes,
+          timestampUs: capturedAtMs * 1000,
+        ),
+      );
+      frames++;
+      diag?.frameAppended(frame.bytes);
+
+      if (frames % 50 == 0 && await File(outputPath).length() >= sizeLimit) {
+        onNotification(true, 'Storage limit reached. Stopping recording.');
+        isRecording = false;
+      }
+    }
+
+    return frames;
+  }
+
+  /// Снимок кадра без сжатия.
+  Future<_Frame?> _captureFrame(_RecordingDiagnostics? diag) async {
+    final boundary =
+        videoKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+    if (boundary == null) return null;
+
+    final image =
+        await _timed(diag?.toImage, () => boundary.toImage(pixelRatio: 1.0));
+    final byteData = await _timed(diag?.readback,
+        () => image.toByteData(format: ui.ImageByteFormat.rawRgba));
+    final width = image.width;
+    final height = image.height;
+    image.dispose();
+    if (byteData == null) return null;
+
+    final pixels = byteData.buffer
+        .asUint8List(byteData.offsetInBytes, byteData.lengthInBytes);
+    final evenWidth = width ~/ 2 * 2;
+    final evenHeight = height ~/ 2 * 2;
+    if (evenWidth == width && evenHeight == height) {
+      return (bytes: pixels, width: width, height: height);
+    }
+    return (
+      bytes: _cropToEven(pixels, width, evenWidth, evenHeight, diag),
+      width: evenWidth,
+      height: evenHeight,
+    );
+  }
+
+  /// H.264 не кодирует кадр с нечётной стороной, поэтому лишние столбец и
+  /// строку отрезаем. Строка обходится без копирования, столбец требует
+  /// переложить кадр построчно.
+  Uint8List _cropToEven(Uint8List pixels, int width, int evenWidth,
+      int evenHeight, _RecordingDiagnostics? diag) {
+    final watch = diag == null ? null : (Stopwatch()..start());
+    final Uint8List result;
+    if (evenWidth == width) {
+      result = Uint8List.sublistView(pixels, 0, width * evenHeight * 4);
+    } else {
+      final dstRowBytes = evenWidth * 4;
+      final srcRowBytes = width * 4;
+      result = Uint8List(dstRowBytes * evenHeight);
+      for (var y = 0; y < evenHeight; y++) {
+        result.setRange(
+            y * dstRowBytes, y * dstRowBytes + dstRowBytes, pixels, y * srcRowBytes);
+      }
+    }
+    if (watch != null) diag!.crop.add(watch.elapsedMicroseconds);
+    return result;
+  }
+
+  /// Закрыть файл и отдать его в галерею.
+  Future<void> _finishVideo(
+      String outputPath, int frames, _RecordingDiagnostics? diag) async {
+    final file = File(outputPath);
+    try {
+      if (_encoderStarted) {
+        final finishing = Stopwatch()..start();
+        await FlutterQuickVideoEncoder.finish();
+        _encoderStarted = false;
+        diag?.log('encoder: $frames frames, finish took '
+            '${finishing.elapsedMilliseconds} ms');
+      }
+
+      if (frames == 0) {
+        diag?.log('encoder: nothing was recorded');
+        return;
+      }
 
       await Gal.putVideo(outputPath);
       onNotification(
@@ -301,33 +296,26 @@ class VideoRecorder {
             ? 'Video successfully saved to gallery.'
             : 'Video saved. ${diag.shortSummary}',
       );
-
-      await File(outputPath).delete();
     } catch (e) {
       print("Video creation error: $e");
       diag?.log('encoder error: $e');
       onNotification(true, 'Failed to create video.');
-
-      final file = File(outputPath);
-      if (await file.exists()) {
-        await file.delete();
-      }
+    } finally {
+      try {
+        if (await file.exists()) await file.delete();
+      } catch (_) {}
     }
   }
 
-  Future<Uint8List> _loadImageAsRgba(
-      String path, int targetWidth, int targetHeight) async {
-    final bytes = await File(path).readAsBytes();
-    final codec = await ui.instantiateImageCodec(
-      bytes,
-      targetWidth: targetWidth,
-      targetHeight: targetHeight,
-    );
-    final frame = await codec.getNextFrame();
-    final byteData =
-        await frame.image.toByteData(format: ui.ImageByteFormat.rawRgba);
-    frame.image.dispose();
-    return byteData!.buffer.asUint8List();
+  /// Ролики остаются во временной папке только после падения приложения.
+  Future<void> _deleteLeftoverVideos(Directory directory) async {
+    try {
+      for (final entity in directory.listSync()) {
+        if (entity is File && entity.path.endsWith('.mp4')) {
+          entity.deleteSync();
+        }
+      }
+    } catch (_) {}
   }
 
   String _describeView() {
@@ -358,54 +346,6 @@ class VideoRecorder {
         'decoder=${await prop('decoder-frame-drop-count')}, '
         'video ${player.state.width}x${player.state.height}';
   }
-
-  /// Alternative frame source, only timed by diagnostics: the decoded video
-  /// frame straight from mpv (BGRA, native resolution, no Flutter overlays).
-  Future<Uint8List?> _mpvScreenshot() async {
-    try {
-      return await player
-          ?.screenshot(format: null)
-          .timeout(const Duration(seconds: 1), onTimeout: () => null);
-    } catch (_) {
-      return null;
-    }
-  }
-}
-
-/// Grid fps for [_frameForSlots], rounded up so (nearly) every captured
-/// frame gets its own slot. Uses the median capture interval as well as the
-/// average rate: a stall lowers the average, and a grid that coarse would
-/// drop frames all around it.
-int _gridFps(List<int> frameTimesMs, int durationMs) {
-  var fps = frameTimesMs.length * 1000 / durationMs;
-  if (frameTimesMs.length > 2) {
-    final intervals = [
-      for (var i = 1; i < frameTimesMs.length; i++)
-        frameTimesMs[i] - frameTimesMs[i - 1],
-    ]..sort();
-    final median = intervals[intervals.length ~/ 2];
-    if (median > 0) fps = math.max(fps, 1000 / median);
-  }
-  return fps.ceil().clamp(1, 30);
-}
-
-/// Maps a constant-[fps] grid of [slotCount] slots onto frames captured at
-/// [frameTimesMs]: each frame goes to the slot nearest to its capture time
-/// and is held until the next frame's slot. A later frame wins a shared
-/// slot; slots before the first frame show the first frame.
-List<int> _frameForSlots(List<int> frameTimesMs, int fps, int slotCount) {
-  int slotOf(int frame) =>
-      (frameTimesMs[frame] * fps / 1000).round().clamp(0, slotCount - 1);
-
-  final frames = List<int>.filled(slotCount, 0);
-  var frame = 0;
-  for (var slot = 0; slot < slotCount; slot++) {
-    while (frame + 1 < frameTimesMs.length && slotOf(frame + 1) <= slot) {
-      frame++;
-    }
-    frames[slot] = frame;
-  }
-  return frames;
 }
 
 void _log(String message) => debugPrint('[REC] $message');
@@ -439,22 +379,18 @@ class _Timings {
 }
 
 class _RecordingDiagnostics {
-  final Stopwatch _clock = Stopwatch()..start();
   final interval = _Timings();
   final toImage = _Timings();
   final readback = _Timings();
-  final png = _Timings();
-  final write = _Timings();
-  final decode = _Timings();
+  final crop = _Timings();
   final append = _Timings();
-  final mpvShot = _Timings();
 
+  final Stopwatch _clock = Stopwatch()..start();
   Duration recorded = Duration.zero;
-  String? captureSize;
+  String? frameSize;
   int frames = 0;
   int duplicates = 0;
-  int mpvShotFailed = 0;
-  int _pngBytes = 0;
+  int resized = 0;
   int? _lastStartUs;
   int? _lastHash;
 
@@ -466,14 +402,13 @@ class _RecordingDiagnostics {
     _lastStartUs = now;
   }
 
-  /// PNG encoding is deterministic, so identical bytes mean the video
-  /// texture had not changed since the previous capture.
-  void frameStored(Uint8List pngBytes) {
+  /// Identical pixels mean the video texture had not changed since the
+  /// previous capture, i.e. the player, not the capture, sets the pace.
+  void frameAppended(Uint8List pixels) {
     frames++;
-    _pngBytes += pngBytes.length;
-    var hash = pngBytes.length;
-    for (var i = 0; i < pngBytes.length; i += 97) {
-      hash = 0x1fffffff & (hash * 31 + pngBytes[i]);
+    var hash = pixels.length;
+    for (var i = 0; i < pixels.length; i += 97) {
+      hash = 0x1fffffff & (hash * 31 + pixels[i]);
     }
     if (hash == _lastHash) duplicates++;
     _lastHash = hash;
@@ -486,26 +421,17 @@ class _RecordingDiagnostics {
   void logCapture() {
     _log('stop: ${_seconds.toStringAsFixed(2)} s, $frames frames = '
         '${_fps(frames)} fps captured, ${frames - duplicates} unique = '
-        '${_fps(frames - duplicates)} fps, capture ${captureSize ?? '?'} px, '
-        'png avg ${frames == 0 ? 0 : _pngBytes ~/ frames ~/ 1024} KB');
+        '${_fps(frames - duplicates)} fps, frame ${frameSize ?? '?'} px'
+        '${resized == 0 ? '' : ', $resized skipped after a size change'}');
     _log('  interval $interval');
     _log('  toImage  $toImage');
-    _log('  png      $png');
-    _log('  readback $readback (rawRgba only)');
-    _log('  write    $write');
-    _log('  mpv shot $mpvShot, $mpvShotFailed failed '
-        '(screenshot-raw: native res, no overlays)');
-  }
-
-  void logProcessing(Duration total) {
-    _log('processing: ${(total.inMilliseconds / 1000).toStringAsFixed(1)} s '
-        'for $frames frames');
-    _log('  decode   $decode');
+    _log('  readback $readback');
+    _log('  crop     $crop');
     _log('  append   $append');
   }
 
   String get shortSummary => '${_fps(frames)} fps '
-      '(${_fps(frames - duplicates)} unique), capture ${captureSize ?? '?'}\n'
-      'toImage ${toImage.averageMs.round()} / png ${png.averageMs.round()} / '
-      'write ${write.averageMs.round()} ms per frame';
+      '(${_fps(frames - duplicates)} unique), frame ${frameSize ?? '?'}\n'
+      'toImage ${toImage.averageMs.round()} / readback '
+      '${readback.averageMs.round()} / append ${append.averageMs.round()} ms';
 }

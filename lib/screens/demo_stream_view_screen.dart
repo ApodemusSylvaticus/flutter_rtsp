@@ -35,8 +35,6 @@ class _DemoStreamViewPageState extends State<DemoStreamViewPage>
   bool isLoading = true;
   bool isRecording = false;
   bool isProcessing = false;
-  int _progressCurrent = 0;
-  int _progressTotal = 0;
 
   proto.HostDevStatus? _devStatus;
 
@@ -102,20 +100,8 @@ class _DemoStreamViewPageState extends State<DemoStreamViewPage>
           message,
         );
       },
-      onProgress: (current, total) {
-        setState(() {
-          _progressCurrent = current;
-          _progressTotal = total;
-        });
-      },
       onProcessingChanged: (processing) {
-        setState(() {
-          isProcessing = processing;
-          if (processing) {
-            _progressCurrent = 0;
-            _progressTotal = 0;
-          }
-        });
+        setState(() => isProcessing = processing);
       },
     );
 
@@ -694,10 +680,6 @@ class _DemoStreamViewPageState extends State<DemoStreamViewPage>
   // --- Helpers ---
 
   Widget _buildProgressOverlay() {
-    final text = _progressTotal > 0
-        ? 'Processing $_progressCurrent/$_progressTotal...'
-        : 'Processing...';
-
     return Positioned(
       bottom: 16,
       left: 0,
@@ -709,9 +691,9 @@ class _DemoStreamViewPageState extends State<DemoStreamViewPage>
             color: Colors.black.withValues(alpha: 0.7),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Text(
-            text,
-            style: const TextStyle(
+          child: const Text(
+            'Processing...',
+            style: TextStyle(
               color: Colors.white,
               fontSize: 14,
               decoration: TextDecoration.none,
