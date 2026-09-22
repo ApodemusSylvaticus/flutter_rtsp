@@ -50,7 +50,10 @@ dependencies:
   media_kit: ^1.2.2
   media_kit_video: ^2.0.0
   media_kit_libs_video: ^1.0.7
-  flutter_quick_video_encoder: ^1.7.2
+  # Форк 1.7.2: время кадра + пересчёт цвета вне потока интерфейса.
+  # Подробности в packages/flutter_quick_video_encoder/FORK.md
+  flutter_quick_video_encoder:
+    path: packages/flutter_quick_video_encoder
 
 dev_dependencies:
   flutter_test:
