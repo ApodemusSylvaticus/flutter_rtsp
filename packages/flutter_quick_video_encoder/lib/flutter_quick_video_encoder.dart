@@ -79,10 +79,16 @@ class FlutterQuickVideoEncoder {
   }
 
   /// append raw rgba video frame, 8 bits per channel
-  static Future<void> appendVideoFrame(Uint8List rawRgba) async {
+  ///
+  /// [timestampUs] (fork addition, see FORK.md) is the frame's own
+  /// presentation time in microseconds, counted from the first frame. Pass it
+  /// when capturing in real time, where frames do not land on an even [fps]
+  /// grid. Without it frames are timed as `frameIndex / fps`, as upstream.
+  static Future<void> appendVideoFrame(Uint8List rawRgba, {int? timestampUs}) async {
     assert(rawRgba.length == width * height * 4, "invalid data length");
     return await _invokeMethod('appendVideoFrame', {
       'rawRgba': rawRgba,
+      if (timestampUs != null) 'timestampUs': timestampUs,
     });
   }
 

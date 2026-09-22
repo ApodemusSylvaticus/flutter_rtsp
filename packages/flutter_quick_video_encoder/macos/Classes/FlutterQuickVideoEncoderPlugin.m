@@ -14,7 +14,7 @@
 #define NAMESPACE @"flutter_quick_video_encoder" 
 
 // forward define
-CMSampleBufferRef createVideoSampleBuffer(int fps, int videoFrameIdx, int width, int height, NSData *videoFrameData);
+CMSampleBufferRef createVideoSampleBuffer(int fps, int videoFrameIdx, int width, int height, NSData *videoFrameData, int64_t timestampUs);
 CMSampleBufferRef createAudioSampleBuffer(int fps, int audioFrameIdx, int audioChannels, int sampleRate, NSData *audioSampleData);
 
 typedef NS_ENUM(NSUInteger, LogLevel) {
@@ -209,6 +209,11 @@ typedef NS_ENUM(NSUInteger, LogLevel) {
             FlutterStandardTypedData *rawRgbaData = args[@"rawRgba"];
             NSData *videoFrameData = rawRgbaData.data;
 
+            // Fork: the frame's own presentation time, for callers that record
+            // in real time. Absent means "time it by index". See FORK.md.
+            NSNumber *timestampUsArg = args[@"timestampUs"];
+            int64_t timestampUs = timestampUsArg ? [timestampUsArg longLongValue] : -1;
+
             // Check if the asset writer is initialized
             if (!self.mAssetWriter) {
                 result([FlutterError errorWithCode:@"AssetWriterUnavailable"
@@ -242,7 +247,7 @@ typedef NS_ENUM(NSUInteger, LogLevel) {
 
             // Create video sample buffer from the provided data
             CMSampleBufferRef sampleBuffer = createVideoSampleBuffer(
-                self.fps, self.videoFrameIdx, self.width, self.height, videoFrameData);
+                self.fps, self.videoFrameIdx, self.width, self.height, videoFrameData, timestampUs);
 
             if (!sampleBuffer) {
                 result([FlutterError errorWithCode:@"SampleBufferCreationFailed"
@@ -436,7 +441,7 @@ typedef NS_ENUM(NSUInteger, LogLevel) {
 @end
 
 
-CMSampleBufferRef createVideoSampleBuffer(int fps, int frameIdx, int width, int height, NSData *videoFrameData)
+CMSampleBufferRef createVideoSampleBuffer(int fps, int frameIdx, int width, int height, NSData *videoFrameData, int64_t timestampUs)
 {
 #if TARGET_OS_IOS
     NSDictionary *attributes = @{(id)kCVPixelBufferIOSurfacePropertiesKey: @{}};
@@ -494,7 +499,10 @@ CMSampleBufferRef createVideoSampleBuffer(int fps, int frameIdx, int width, int 
     CMSampleTimingInfo timingInfo = {0};
     timingInfo.duration = CMTimeMake(1, fps);
     timingInfo.decodeTimeStamp = kCMTimeInvalid;
-    timingInfo.presentationTimeStamp = CMTimeMake(frameIdx, fps);
+    // Fork: use the frame's own timestamp when the caller supplied one.
+    timingInfo.presentationTimeStamp = timestampUs >= 0
+        ? CMTimeMake(timestampUs, 1000000)
+        : CMTimeMake(frameIdx, fps);
     
     CMSampleBufferRef sampleBuffer = NULL;
 

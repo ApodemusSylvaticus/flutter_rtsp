@@ -27,10 +27,18 @@ class InputData {
     enum DataType { VIDEO, AUDIO, STOP }
     public DataType type;
     public byte[] data;
+    // Fork: presentation time of a video frame in microseconds, or -1 to time
+    // frames by their index, as upstream does. See FORK.md.
+    public long timestampUs;
 
     public InputData(DataType type, byte[] data) {
+        this(type, data, -1);
+    }
+
+    public InputData(DataType type, byte[] data, long timestampUs) {
         this.type = type;
         this.data = data;
+        this.timestampUs = timestampUs;
     }
 }
 
@@ -216,13 +224,17 @@ public class FlutterQuickVideoEncoderPlugin implements
 
                     byte[] rawRgba = call.argument("rawRgba");
 
-                    // Convert RGBA to YUV420
-                    // Perf: we get better results doing this here on the Platform thread,
-                    // as opposed to doing it in the processing thread.
-                    byte[] yuv420 = rgbaToYuv420Planar(rawRgba, mWidth, mHeight);
+                    // Fork: the frame's own presentation time, for callers that
+                    // record in real time. Null means "time it by index".
+                    Number timestampUs = call.argument("timestampUs");
 
-                    // Create InputData
-                    InputData inputData = new InputData(InputData.DataType.VIDEO, yuv420);
+                    // Fork: upstream converted RGBA to YUV420 right here, on the
+                    // platform thread, to overlap it with encoding. Since Flutter
+                    // 3.29 that thread also runs the UI, so a conversion per frame
+                    // stalls the app while it records. The processing thread now
+                    // does the conversion instead. See FORK.md.
+                    InputData inputData = new InputData(InputData.DataType.VIDEO, rawRgba,
+                        timestampUs == null ? -1 : timestampUs.longValue());
 
                     // Put InputData into inputQueue (blocks if full)
                     inputQueue.put(inputData);
@@ -297,8 +309,9 @@ public class FlutterQuickVideoEncoderPlugin implements
                         // Finish processing
                         break;
                     } else if (inputData.type == InputData.DataType.VIDEO) {
-                        byte[] yuv420 = inputData.data;
-                        feedVideoEncoder(yuv420);
+                        // Fork: conversion moved here from the platform thread.
+                        byte[] yuv420 = rgbaToYuv420Planar(inputData.data, mWidth, mHeight);
+                        feedVideoEncoder(yuv420, inputData.timestampUs);
                         drainEncoder(mVideoEncoder, false);
                     } else if (inputData.type == InputData.DataType.AUDIO) {
                         byte[] rawPcmArray = inputData.data;
@@ -339,9 +352,12 @@ public class FlutterQuickVideoEncoderPlugin implements
         processingThread.start();
     }
 
-    private void feedVideoEncoder(byte[] yuv420) throws Exception {
+    private void feedVideoEncoder(byte[] yuv420, long timestampUs) throws Exception {
         // Calculate presentation time
-        long presentationTime = mVideoFrameIdx * 1000000L / mFps;
+        // Fork: use the frame's own timestamp when the caller supplied one.
+        long presentationTime = timestampUs >= 0
+            ? timestampUs
+            : mVideoFrameIdx * 1000000L / mFps;
 
         // Dequeue input buffer
         int inIdx = mVideoEncoder.dequeueInputBuffer(-1);
