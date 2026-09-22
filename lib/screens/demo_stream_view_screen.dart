@@ -95,6 +95,7 @@ class _DemoStreamViewPageState extends State<DemoStreamViewPage>
 
     _videoRecorder = VideoRecorder(
       videoKey: _videoKey,
+      player: _playerService.player,
       onNotification: (isError, message) {
         showNotification(
           isError ? NotificationType.error : NotificationType.defaultType,

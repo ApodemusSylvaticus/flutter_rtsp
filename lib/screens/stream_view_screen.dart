@@ -49,6 +49,7 @@ class _StreamViewPageState extends State<StreamViewPage>
 
     _videoRecorder = VideoRecorder(
       videoKey: _videoKey,
+      player: _playerService.player,
       onNotification: _handleRecorderNotification,
       onProgress: (current, total) {
         setState(() {
