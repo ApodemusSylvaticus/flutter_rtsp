@@ -14,11 +14,40 @@ import 'package:gal/gal.dart';
 /// `[REC]` (`adb logcat -s flutter`), итог показывает в уведомлении.
 const bool kRecorderDiagnostics = bool.fromEnvironment('REC_DIAG');
 
+/// Размер видео и снимков — множитель к размеру потока с прибора. 1 значит
+/// ровно столько пикселей, сколько приходит (640×384): деталей больше в
+/// источнике нет, а каждый лишний пиксель стоит времени на снимке, копировании
+/// и кодировании. 2 даст 1280×768 — ролик крупнее на вид, но запись медленнее.
+const double kCaptureScale = 1;
+
 /// Минимальный интервал между кадрами, то есть 25 кадров в секунду.
 const int _minFrameIntervalMs = 40;
 
 /// Битрейт записи, 4 Мбит/с.
 const int _videoBitrate = 4000000;
+
+/// Короче этого запись не сохраняется: обычно это случайное двойное нажатие.
+const Duration _minVideoDuration = Duration(seconds: 1);
+
+/// Тексты уведомлений о снимках и о том, что стало с роликом.
+abstract final class _Messages {
+  static const photoSaved = 'Photo saved to gallery.';
+  static const photoFailed = 'Could not save photo.';
+  static const videoSaved = 'Video saved to gallery.';
+  static const videoTooShort = 'Video too short to save.';
+  static const videoFailed = 'Could not save video.';
+}
+
+/// Почему запись остановилась не по кнопке. Этот текст открывает уведомление,
+/// дальше идёт то, что стало с роликом.
+enum _StopReason {
+  minimized('Recording stopped because the app was minimized.'),
+  storageFull('Recording stopped because storage is almost full.'),
+  error('Recording stopped because of an error.');
+
+  const _StopReason(this.message);
+  final String message;
+}
 
 /// Notification callback
 typedef OnRecorderNotification = void Function(bool isError, String message);
@@ -35,12 +64,22 @@ class VideoRecorder {
   final OnRecorderNotification onNotification;
   final OnProcessingChanged? onProcessingChanged;
 
-  /// Only read by diagnostics, to report the decoder state.
+  /// Its stream size sets the capture size (see [kCaptureScale]); diagnostics
+  /// also read the decoder state from it.
   final Player? player;
 
   bool isRecording = false;
   Stopwatch stopwatch = Stopwatch();
   bool _encoderStarted = false;
+
+  /// Приложение свёрнуто: уведомления ждут, пока пользователь вернётся.
+  bool _appHidden = false;
+
+  /// Почему остановилась текущая запись; null — остановлена кнопкой.
+  _StopReason? _stopReason;
+
+  /// Уведомление, появившееся, пока приложение было свёрнуто.
+  ({bool isError, String message})? _pendingNotice;
 
   VideoRecorder({
     required this.videoKey,
@@ -56,7 +95,8 @@ class VideoRecorder {
           videoKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
       if (boundary == null) return null;
 
-      final image = await boundary.toImage(pixelRatio: 1.0);
+      final image =
+          await boundary.toImage(pixelRatio: _capturePixelRatio(boundary));
       final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
       image.dispose();
       return byteData?.buffer.asUint8List();
@@ -85,13 +125,54 @@ class VideoRecorder {
 
       try {
         await Gal.putImage(filePath);
-        onNotification(false, 'Snapshot successfully saved to gallery.');
+        _notify(false, _Messages.photoSaved);
       } catch (e) {
-        onNotification(true, 'Failed to save snapshot to gallery.');
+        _notify(true, _Messages.photoFailed);
       }
     } catch (e) {
-      onNotification(true, 'Failed to save snapshot to gallery.');
+      _notify(true, _Messages.photoFailed);
     }
+  }
+
+  /// Приложение свернули. Запись в фоне не живёт (на iOS система отбирает
+  /// аппаратный кодировщик), поэтому она останавливается и сохраняется сразу,
+  /// а о результате пользователь узнает, когда вернётся.
+  void onAppHidden() {
+    _appHidden = true;
+    if (isRecording) {
+      _stopReason ??= _StopReason.minimized;
+      isRecording = false;
+    }
+  }
+
+  /// Приложение снова на экране: показать то, что случилось без пользователя.
+  void onAppVisible() {
+    _appHidden = false;
+    final notice = _pendingNotice;
+    _pendingNotice = null;
+    if (notice != null) onNotification(notice.isError, notice.message);
+  }
+
+  /// Показать уведомление сейчас или придержать до возвращения в приложение.
+  void _notify(bool isError, String message) {
+    if (_appHidden) {
+      _pendingNotice = (isError: isError, message: message);
+    } else {
+      onNotification(isError, message);
+    }
+  }
+
+  /// Одно уведомление на запись: почему она остановилась, если не кнопкой, и
+  /// что стало с роликом. Как ошибка — если ролик не сохранился или запись
+  /// оборвалась сама; сворачивание ошибкой не считается.
+  void _report(String outcome, {bool failed = false}) {
+    final reason = _stopReason;
+    _notify(
+      failed ||
+          reason == _StopReason.storageFull ||
+          reason == _StopReason.error,
+      reason == null ? outcome : '${reason.message} $outcome',
+    );
   }
 
   /// Начать запись видео. Кадры кодируются на ходу, поэтому после остановки
@@ -101,6 +182,7 @@ class VideoRecorder {
 
     isRecording = true;
     _encoderStarted = false;
+    _stopReason = null;
     stopwatch
       ..reset()
       ..start();
@@ -122,7 +204,9 @@ class VideoRecorder {
     } catch (e) {
       print('Recording error: $e');
       diag?.log('recording error: $e');
-      onNotification(true, 'Something went wrong. Video recording stopped.');
+      // After minimizing, a failed last capture is expected, and the first
+      // reason is the one the user gets told.
+      _stopReason ??= _StopReason.error;
     }
 
     isRecording = false;
@@ -134,7 +218,7 @@ class VideoRecorder {
     }
 
     onProcessingChanged?.call(true);
-    await _finishVideo(outputPath, frames, diag);
+    await _finishVideo(outputPath, frames, stopwatch.elapsed, diag);
     onProcessingChanged?.call(false);
 
     stopwatch.reset();
@@ -212,7 +296,7 @@ class VideoRecorder {
       diag?.frameAppended(frame.bytes);
 
       if (frames % 50 == 0 && await File(outputPath).length() >= sizeLimit) {
-        onNotification(true, 'Storage limit reached. Stopping recording.');
+        _stopReason ??= _StopReason.storageFull;
         isRecording = false;
       }
     }
@@ -226,8 +310,8 @@ class VideoRecorder {
         videoKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
     if (boundary == null) return null;
 
-    final image =
-        await _timed(diag?.toImage, () => boundary.toImage(pixelRatio: 1.0));
+    final image = await _timed(diag?.toImage,
+        () => boundary.toImage(pixelRatio: _capturePixelRatio(boundary)));
     final byteData = await _timed(diag?.readback,
         () => image.toByteData(format: ui.ImageByteFormat.rawRgba));
     final width = image.width;
@@ -247,6 +331,18 @@ class VideoRecorder {
       width: evenWidth,
       height: evenHeight,
     );
+  }
+
+  /// Масштаб снимка рамки, при котором кадр выходит размером с поток,
+  /// умноженный на [kCaptureScale]. Пока плеер не знает размер потока, рамка
+  /// снимается как есть.
+  double _capturePixelRatio(RenderRepaintBoundary boundary) {
+    final streamWidth = player?.state.width;
+    final boxWidth = boundary.size.width;
+    if (streamWidth == null || streamWidth <= 0 || boxWidth <= 0) return 1.0;
+    // toImage rounds the size up, so aim a hair below the target: an exact
+    // 640 can come out as 640.0000001 and turn into 641.
+    return (streamWidth * kCaptureScale - 0.01) / boxWidth;
   }
 
   /// H.264 не кодирует кадр с нечётной стороной, поэтому лишние столбец и
@@ -271,9 +367,9 @@ class VideoRecorder {
     return result;
   }
 
-  /// Закрыть файл и отдать его в галерею.
-  Future<void> _finishVideo(
-      String outputPath, int frames, _RecordingDiagnostics? diag) async {
+  /// Закрыть файл и отдать его в галерею, если он не слишком короткий.
+  Future<void> _finishVideo(String outputPath, int frames, Duration recorded,
+      _RecordingDiagnostics? diag) async {
     final file = File(outputPath);
     try {
       if (_encoderStarted) {
@@ -284,22 +380,21 @@ class VideoRecorder {
             '${finishing.elapsedMilliseconds} ms');
       }
 
-      if (frames == 0) {
-        diag?.log('encoder: nothing was recorded');
+      if (frames == 0 || recorded < _minVideoDuration) {
+        diag?.log('encoder: ${recorded.inMilliseconds} ms is too short, '
+            'not saved');
+        _report(_Messages.videoTooShort);
         return;
       }
 
       await Gal.putVideo(outputPath);
-      onNotification(
-        false,
-        diag == null
-            ? 'Video successfully saved to gallery.'
-            : 'Video saved. ${diag.shortSummary}',
-      );
+      _report(diag == null
+          ? _Messages.videoSaved
+          : '${_Messages.videoSaved}\n${diag.shortSummary}');
     } catch (e) {
       print("Video creation error: $e");
       diag?.log('encoder error: $e');
-      onNotification(true, 'Failed to create video.');
+      _report(_Messages.videoFailed, failed: true);
     } finally {
       try {
         if (await file.exists()) await file.delete();

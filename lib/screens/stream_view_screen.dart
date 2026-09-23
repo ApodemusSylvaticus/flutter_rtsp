@@ -84,11 +84,16 @@ class _StreamViewPageState extends State<StreamViewPage>
 
   @override
   void onAppResumed() {
+    _videoRecorder.onAppVisible();
     _playerService.onVisible();
   }
 
   @override
   void onAppPaused() {
+    // Recording stops with the app: the recorder saves the file and tells the
+    // user about it on return.
+    if (isRecording) setState(() => isRecording = false);
+    _videoRecorder.onAppHidden();
     _playerService.onHidden();
   }
 
@@ -129,16 +134,31 @@ class _StreamViewPageState extends State<StreamViewPage>
 
     double playerWidth = screenWidth - 240 + 60 - 8 - topPadding;
 
-    Widget playerWidget = RepaintBoundary(
-      key: _videoKey,
-      child: SizedBox(
-        width: playerWidth,
-        height: MediaQuery.of(context).size.height,
-        child: Video(
-          controller: _playerService.videoController,
-          fill: Colors.transparent,
-          controls: NoVideoControls,
-          fit: BoxFit.contain,
+    Widget video = Video(
+      controller: _playerService.videoController,
+      fill: Colors.transparent,
+      controls: NoVideoControls,
+      fit: BoxFit.contain,
+    );
+
+    // Recordings and snapshots capture exactly the RepaintBoundary, so it hugs
+    // the picture: around the whole box it would record black bars too.
+    final videoWidth = _playerService.player.state.width;
+    final videoHeight = _playerService.player.state.height;
+    video = videoWidth != null &&
+            videoHeight != null &&
+            videoWidth > 0 &&
+            videoHeight > 0
+        ? AspectRatio(aspectRatio: videoWidth / videoHeight, child: video)
+        : SizedBox.expand(child: video);
+
+    Widget playerWidget = SizedBox(
+      width: playerWidth,
+      height: MediaQuery.of(context).size.height,
+      child: Center(
+        child: RepaintBoundary(
+          key: _videoKey,
+          child: video,
         ),
       ),
     );

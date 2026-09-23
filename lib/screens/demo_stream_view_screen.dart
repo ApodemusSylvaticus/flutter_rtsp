@@ -121,10 +121,19 @@ class _DemoStreamViewPageState extends State<DemoStreamViewPage>
   }
 
   @override
-  void onAppResumed() => _playerService.resume();
+  void onAppResumed() {
+    _videoRecorder.onAppVisible();
+    _playerService.resume();
+  }
 
   @override
-  void onAppPaused() => _playerService.pause();
+  void onAppPaused() {
+    // Recording stops with the app: the recorder saves the file and tells the
+    // user about it on return.
+    if (isRecording) setState(() => isRecording = false);
+    _videoRecorder.onAppHidden();
+    _playerService.pause();
+  }
 
   @override
   void dispose() {
