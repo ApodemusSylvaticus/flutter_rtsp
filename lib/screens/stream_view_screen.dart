@@ -84,12 +84,12 @@ class _StreamViewPageState extends State<StreamViewPage>
 
   @override
   void onAppResumed() {
-    _playerService.reconnectAfterResume();
+    _playerService.onVisible();
   }
 
   @override
   void onAppPaused() {
-    _playerService.pause();
+    _playerService.onHidden();
   }
 
   @override
