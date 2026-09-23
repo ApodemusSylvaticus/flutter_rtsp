@@ -35,8 +35,6 @@ class _DemoStreamViewPageState extends State<DemoStreamViewPage>
   bool isLoading = true;
   bool isRecording = false;
   bool isProcessing = false;
-  int _progressCurrent = 0;
-  int _progressTotal = 0;
 
   proto.HostDevStatus? _devStatus;
 
@@ -95,26 +93,15 @@ class _DemoStreamViewPageState extends State<DemoStreamViewPage>
 
     _videoRecorder = VideoRecorder(
       videoKey: _videoKey,
+      player: _playerService.player,
       onNotification: (isError, message) {
         showNotification(
           isError ? NotificationType.error : NotificationType.defaultType,
           message,
         );
       },
-      onProgress: (current, total) {
-        setState(() {
-          _progressCurrent = current;
-          _progressTotal = total;
-        });
-      },
       onProcessingChanged: (processing) {
-        setState(() {
-          isProcessing = processing;
-          if (processing) {
-            _progressCurrent = 0;
-            _progressTotal = 0;
-          }
-        });
+        setState(() => isProcessing = processing);
       },
     );
 
@@ -134,10 +121,19 @@ class _DemoStreamViewPageState extends State<DemoStreamViewPage>
   }
 
   @override
-  void onAppResumed() => _playerService.resume();
+  void onAppResumed() {
+    _videoRecorder.onAppVisible();
+    _playerService.resume();
+  }
 
   @override
-  void onAppPaused() => _playerService.pause();
+  void onAppPaused() {
+    // Recording stops with the app: the recorder saves the file and tells the
+    // user about it on return.
+    if (isRecording) setState(() => isRecording = false);
+    _videoRecorder.onAppHidden();
+    _playerService.pause();
+  }
 
   @override
   void dispose() {
@@ -693,10 +689,6 @@ class _DemoStreamViewPageState extends State<DemoStreamViewPage>
   // --- Helpers ---
 
   Widget _buildProgressOverlay() {
-    final text = _progressTotal > 0
-        ? 'Processing $_progressCurrent/$_progressTotal...'
-        : 'Processing...';
-
     return Positioned(
       bottom: 16,
       left: 0,
@@ -708,9 +700,9 @@ class _DemoStreamViewPageState extends State<DemoStreamViewPage>
             color: Colors.black.withValues(alpha: 0.7),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Text(
-            text,
-            style: const TextStyle(
+          child: const Text(
+            'Processing...',
+            style: TextStyle(
               color: Colors.white,
               fontSize: 14,
               decoration: TextDecoration.none,
