@@ -16,8 +16,10 @@ import 'package:archer_link/utils/video_recorder.dart';
 class StreamViewPage extends StatefulWidget {
   final StreamConfig streamConfig;
   final void Function() openSettings;
+  final void Function() onDemoMode;
 
-  const StreamViewPage(this.streamConfig, this.openSettings, {super.key});
+  const StreamViewPage(this.streamConfig, this.openSettings, this.onDemoMode,
+      {super.key});
 
   @override
   State<StreamViewPage> createState() => _StreamViewPageState();
@@ -114,6 +116,7 @@ class _StreamViewPageState extends State<StreamViewPage>
         isReconnecting: isReconnecting,
         onReconnect: _playerService.initializeDeviceConnection,
         openSettings: widget.openSettings,
+        onDemoMode: widget.onDemoMode,
       );
     }
 
