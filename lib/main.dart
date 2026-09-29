@@ -280,6 +280,6 @@ void monitorWifiConnection() {
       return DemoStreamViewPage(openSettings: openSettings);
     }
 
-    return StreamViewPage(streamConfig, openSettings);
+    return StreamViewPage(streamConfig, openSettings, activateDemoMode);
   }
 }

@@ -16,8 +16,10 @@ import 'package:archer_link/utils/video_recorder.dart';
 class StreamViewPage extends StatefulWidget {
   final StreamConfig streamConfig;
   final void Function() openSettings;
+  final void Function() onDemoMode;
 
-  const StreamViewPage(this.streamConfig, this.openSettings, {super.key});
+  const StreamViewPage(this.streamConfig, this.openSettings, this.onDemoMode,
+      {super.key});
 
   @override
   State<StreamViewPage> createState() => _StreamViewPageState();
@@ -35,8 +37,6 @@ class _StreamViewPageState extends State<StreamViewPage>
   bool isLoading = true;
   bool isRecording = false;
   bool isProcessing = false;
-  int _progressCurrent = 0;
-  int _progressTotal = 0;
 
   @override
   void initState() {
@@ -49,21 +49,10 @@ class _StreamViewPageState extends State<StreamViewPage>
 
     _videoRecorder = VideoRecorder(
       videoKey: _videoKey,
+      player: _playerService.player,
       onNotification: _handleRecorderNotification,
-      onProgress: (current, total) {
-        setState(() {
-          _progressCurrent = current;
-          _progressTotal = total;
-        });
-      },
       onProcessingChanged: (processing) {
-        setState(() {
-          isProcessing = processing;
-          if (processing) {
-            _progressCurrent = 0;
-            _progressTotal = 0;
-          }
-        });
+        setState(() => isProcessing = processing);
       },
     );
 
@@ -97,12 +86,17 @@ class _StreamViewPageState extends State<StreamViewPage>
 
   @override
   void onAppResumed() {
-    _playerService.reconnectAfterResume();
+    _videoRecorder.onAppVisible();
+    _playerService.onVisible();
   }
 
   @override
   void onAppPaused() {
-    _playerService.pause();
+    // Recording stops with the app: the recorder saves the file and tells the
+    // user about it on return.
+    if (isRecording) setState(() => isRecording = false);
+    _videoRecorder.onAppHidden();
+    _playerService.onHidden();
   }
 
   @override
@@ -122,6 +116,7 @@ class _StreamViewPageState extends State<StreamViewPage>
         isReconnecting: isReconnecting,
         onReconnect: _playerService.initializeDeviceConnection,
         openSettings: widget.openSettings,
+        onDemoMode: widget.onDemoMode,
       );
     }
 
@@ -142,16 +137,31 @@ class _StreamViewPageState extends State<StreamViewPage>
 
     double playerWidth = screenWidth - 240 + 60 - 8 - topPadding;
 
-    Widget playerWidget = RepaintBoundary(
-      key: _videoKey,
-      child: SizedBox(
-        width: playerWidth,
-        height: MediaQuery.of(context).size.height,
-        child: Video(
-          controller: _playerService.videoController,
-          fill: Colors.transparent,
-          controls: NoVideoControls,
-          fit: BoxFit.contain,
+    Widget video = Video(
+      controller: _playerService.videoController,
+      fill: Colors.transparent,
+      controls: NoVideoControls,
+      fit: BoxFit.contain,
+    );
+
+    // Recordings and snapshots capture exactly the RepaintBoundary, so it hugs
+    // the picture: around the whole box it would record black bars too.
+    final videoWidth = _playerService.player.state.width;
+    final videoHeight = _playerService.player.state.height;
+    video = videoWidth != null &&
+            videoHeight != null &&
+            videoWidth > 0 &&
+            videoHeight > 0
+        ? AspectRatio(aspectRatio: videoWidth / videoHeight, child: video)
+        : SizedBox.expand(child: video);
+
+    Widget playerWidget = SizedBox(
+      width: playerWidth,
+      height: MediaQuery.of(context).size.height,
+      child: Center(
+        child: RepaintBoundary(
+          key: _videoKey,
+          child: video,
         ),
       ),
     );
@@ -187,10 +197,6 @@ class _StreamViewPageState extends State<StreamViewPage>
   }
 
   Widget _buildProgressOverlay() {
-    final text = _progressTotal > 0
-        ? 'Processing $_progressCurrent/$_progressTotal...'
-        : 'Processing...';
-
     return Positioned(
       bottom: 16,
       left: 0,
@@ -202,9 +208,9 @@ class _StreamViewPageState extends State<StreamViewPage>
             color: Colors.black.withValues(alpha: 0.7),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Text(
-            text,
-            style: const TextStyle(
+          child: const Text(
+            'Processing...',
+            style: TextStyle(
               color: Colors.white,
               fontSize: 14,
               decoration: TextDecoration.none,

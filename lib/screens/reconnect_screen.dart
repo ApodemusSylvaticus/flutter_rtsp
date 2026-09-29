@@ -1,17 +1,20 @@
 import 'package:archer_link/screens/loading_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:archer_link/widgets/default_bg.dart';
+import 'package:archer_link/widgets/demo_mode_dialog.dart';
 
 class ReconnectView extends StatelessWidget {
   final bool isReconnecting;
   final VoidCallback onReconnect;
   final void Function() openSettings;
+  final void Function() onDemoMode;
 
   const ReconnectView({
     Key? key,
     required this.isReconnecting,
     required this.onReconnect,
     required this.openSettings,
+    required this.onDemoMode,
   }) : super(key: key);
 
    void func(BuildContext context) {
@@ -36,6 +39,7 @@ class ReconnectView extends StatelessWidget {
 @override
   Widget build(BuildContext context) {
     return DefaultBg(
+      onLogoLongPress: () => showDemoModeDialog(context, onConfirm: onDemoMode),
       child: SafeArea(
         child: Stack(
         children: [
