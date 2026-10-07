@@ -1,10 +1,16 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:app_settings/app_settings.dart';
+
 import 'package:flutter/material.dart';
+import 'package:archer_link/services/device_wifi.dart';
 import 'package:archer_link/widgets/default_bg.dart';
 import 'package:archer_link/widgets/demo_mode_dialog.dart';
 
+/// Shown while the phone is not in the thermal imager's subnet.
+///
+/// The home page polls the subnet every 2 s and swaps this page for the
+/// stream on its own, so the Connect button only asks the OS to get onto
+/// the imager's Wi-Fi and then waits a little before offering help.
 class WifiConnectPage extends StatefulWidget {
   final void Function() openSettings;
   final void Function() onDemoMode;
@@ -20,54 +26,166 @@ class WifiConnectPage extends StatefulWidget {
 }
 
 class _WifiConnectPageState extends State<WifiConnectPage> {
-  Timer? _longPressTimer;
+  /// How long to wait for the imager's subnet after iOS accepted the join
+  /// request, or after the user came back from the Android Wi-Fi panel.
+  /// The join keeps going in the OS after this; the timer only decides
+  /// when to show the help picture.
+  static const Duration _subnetTimeout = Duration(seconds: 10);
 
-  void _onLogoLongPress() {
-    _longPressTimer?.cancel();
-    _showDemoDialog();
-  }
+  /// Android: if the Wi-Fi panel never takes the focus from the app, stop
+  /// waiting for it to close after this.
+  static const Duration _panelGrace = Duration(seconds: 3);
 
-  void _showDemoDialog() {
-    showDemoModeDialog(context, onConfirm: widget.onDemoMode);
-  }
+  static const String _helpText =
+      'Could not connect to the thermal imager. Make sure it is turned on '
+      'and Wi-Fi is enabled, or connect manually as shown below.';
 
-  void func(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return GestureDetector(
-          onTap: () {
-            Navigator.of(context).pop();
-          },
-          child: Container(
-            color: Colors.black,
-            child: Center(
-              child: Image.asset('assets/wifi_info.png'),
-            ),
-          ),
-        );
-      },
-    );
-  }
+  bool _connecting = false;
+  Timer? _timer;
 
-  void openWifiSettings() {
-    if (Platform.isIOS) {
-      AppSettings.openAppSettings(type: AppSettingsType.settings);
-    } else {
-      AppSettings.openAppSettings(type: AppSettingsType.wifi);
-    }
+  // Android: the Wi-Fi panel is a system sheet over the app. The app goes
+  // inactive while it is up and resumes when it closes.
+  late final AppLifecycleListener _lifecycle;
+  bool _waitingForPanel = false;
+  bool _leftForeground = false;
+
+  /// Set while the help picture is open, so it can be closed when the
+  /// stream appears underneath it.
+  NavigatorState? _helpNavigator;
+
+  @override
+  void initState() {
+    super.initState();
+    _lifecycle = AppLifecycleListener(onStateChange: _onLifecycleChange);
   }
 
   @override
   void dispose() {
-    _longPressTimer?.cancel();
+    _timer?.cancel();
+    _lifecycle.dispose();
+    _closeHelp();
     super.dispose();
+  }
+
+  Future<void> _connect() async {
+    if (_connecting) return;
+    setState(() => _connecting = true);
+    try {
+      if (Platform.isIOS) {
+        final result = await DeviceWifi.joinArcherWifi();
+        if (!mounted) return;
+        if (result == WifiJoinResult.cancelled) {
+          _stopConnecting();
+          return;
+        }
+        _waitForSubnet();
+      } else {
+        await DeviceWifi.openWifiPanel();
+        if (!mounted) return;
+        _waitingForPanel = true;
+        _leftForeground = false;
+        _timer?.cancel();
+        _timer = Timer(_panelGrace, () {
+          if (_waitingForPanel) _onPanelClosed();
+        });
+      }
+    } catch (e) {
+      print('[CONNECT] join request failed: $e');
+      if (!mounted) return;
+      _stopConnecting();
+      _showHelp(message: _helpText);
+    }
+  }
+
+  void _onLifecycleChange(AppLifecycleState state) {
+    if (!_waitingForPanel) return;
+    if (state != AppLifecycleState.resumed) {
+      _leftForeground = true;
+    } else if (_leftForeground) {
+      _onPanelClosed();
+    }
+  }
+
+  void _onPanelClosed() {
+    _waitingForPanel = false;
+    _waitForSubnet();
+  }
+
+  void _waitForSubnet() {
+    _timer?.cancel();
+    _timer = Timer(_subnetTimeout, () {
+      if (!mounted) return;
+      _stopConnecting();
+      _showHelp(message: _helpText);
+    });
+  }
+
+  void _stopConnecting() {
+    _timer?.cancel();
+    _waitingForPanel = false;
+    if (mounted) setState(() => _connecting = false);
+  }
+
+  /// The picture explaining how to join the imager's Wi-Fi by hand, with
+  /// an optional line above it. Tap anywhere to close.
+  void _showHelp({String? message}) {
+    if (_helpNavigator != null) return;
+    _helpNavigator = Navigator.of(context, rootNavigator: true);
+    showDialog<void>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return GestureDetector(
+          onTap: () => Navigator.of(dialogContext).pop(),
+          child: Container(
+            color: Colors.black,
+            child: SafeArea(
+              child: Column(
+                children: [
+                  if (message != null)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+                      child: Text(
+                        message,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          decoration: TextDecoration.none,
+                          color: Colors.white,
+                          fontSize: 16,
+                          height: 1.5,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  Expanded(
+                    child: Center(child: Image.asset('assets/wifi_info.png')),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    ).then((_) {
+      _helpNavigator = null;
+    });
+  }
+
+  /// Closes the help picture if it is open. Called when this page goes
+  /// away because the stream appeared underneath it.
+  void _closeHelp() {
+    final navigator = _helpNavigator;
+    if (navigator == null) return;
+    _helpNavigator = null;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (navigator.mounted && navigator.canPop()) navigator.pop();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return DefaultBg(
-      onLogoLongPress: _onLogoLongPress,
+      onLogoLongPress: () =>
+          showDemoModeDialog(context, onConfirm: widget.onDemoMode),
       child: SafeArea(
         child: Stack(
           children: [
@@ -76,7 +194,7 @@ class _WifiConnectPageState extends State<WifiConnectPage> {
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
+                  const Text(
                     'Please connect your device to continue',
                     textAlign: TextAlign.center,
                     style: TextStyle(
@@ -87,26 +205,37 @@ class _WifiConnectPageState extends State<WifiConnectPage> {
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   ElevatedButton(
-                    onPressed: openWifiSettings,
+                    onPressed: _connecting ? null : _connect,
                     style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
-                      minimumSize: Size(0, 0),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 12, horizontal: 24),
+                      minimumSize: const Size(0, 0),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Image.asset(
-                          'assets/actionButtonIcon/connectButtonIcon.png',
-                          width: 20,
-                          height: 20,
-                        ),
+                        if (_connecting)
+                          const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.black54,
+                            ),
+                          )
+                        else
+                          Image.asset(
+                            'assets/actionButtonIcon/connectButtonIcon.png',
+                            width: 20,
+                            height: 20,
+                          ),
                         const SizedBox(width: 8),
                         Text(
-                          'Connect',
-                          style: TextStyle(
+                          _connecting ? 'Connecting...' : 'Connect',
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
                             color: Colors.black,
@@ -134,7 +263,7 @@ class _WifiConnectPageState extends State<WifiConnectPage> {
               bottom: 10,
               right: 0,
               child: GestureDetector(
-                onTap: () => func(context),
+                onTap: () => _showHelp(),
                 child: Image.asset(
                   'assets/actionButtonIcon/infoIcon.png',
                   width: 50,

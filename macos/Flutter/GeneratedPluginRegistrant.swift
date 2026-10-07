@@ -5,7 +5,6 @@
 import FlutterMacOS
 import Foundation
 
-import app_settings
 import connectivity_plus
 import flutter_quick_video_encoder
 import gal
@@ -15,7 +14,6 @@ import package_info_plus
 import wakelock_plus
 
 func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
-  AppSettingsPlugin.register(with: registry.registrar(forPlugin: "AppSettingsPlugin"))
   ConnectivityPlusPlugin.register(with: registry.registrar(forPlugin: "ConnectivityPlusPlugin"))
   FlutterQuickVideoEncoderPlugin.register(with: registry.registrar(forPlugin: "FlutterQuickVideoEncoderPlugin"))
   GalPlugin.register(with: registry.registrar(forPlugin: "GalPlugin"))
