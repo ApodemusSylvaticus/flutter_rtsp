@@ -45,3 +45,5 @@ app.*.map.json
 /android/app/release
 
 lib/flutter
+# Thermal imager Wi-Fi password for the iOS build, see tool/set_wifi_password.dart
+ios/Runner/Secrets.swift
