@@ -39,7 +39,8 @@ class _WifiConnectPageState extends State<WifiConnectPage> {
 
   static const String _helpText =
       'Could not connect to the thermal imager. Make sure it is turned on '
-      'and Wi-Fi is enabled, or join its network by hand as shown above.';
+      "and Wi-Fi is enabled, then join its network in your phone's Wi-Fi "
+      'settings and return to the app.';
 
   bool _connecting = false;
   Timer? _timer;
