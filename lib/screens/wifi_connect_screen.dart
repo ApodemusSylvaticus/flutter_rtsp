@@ -207,7 +207,11 @@ class _WifiConnectPageState extends State<WifiConnectPage> {
                   ),
                   const SizedBox(height: 10),
                   ElevatedButton(
-                    onPressed: _connecting ? null : _connect,
+                    // Stays enabled while connecting (taps are ignored in
+                    // _connect) so the button keeps its light background:
+                    // the disabled look is near-transparent and the black
+                    // text vanished on the dark page.
+                    onPressed: _connect,
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
                           vertical: 12, horizontal: 24),
