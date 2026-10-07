@@ -2,6 +2,7 @@ import 'package:archer_link/screens/loading_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:archer_link/widgets/default_bg.dart';
 import 'package:archer_link/widgets/demo_mode_dialog.dart';
+import 'package:archer_link/widgets/wifi_help_dialog.dart';
 
 class ReconnectView extends StatelessWidget {
   final bool isReconnecting;
@@ -16,25 +17,6 @@ class ReconnectView extends StatelessWidget {
     required this.openSettings,
     required this.onDemoMode,
   }) : super(key: key);
-
-   void func(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return GestureDetector(
-          onTap: () {
-            Navigator.of(context).pop();
-          },
-          child: Container(
-            color: Colors.black,
-            child: Center(
-              child: Image.asset('assets/wifi_info.png'),
-            ),
-          ),
-        );
-      },
-    );
-  }
 
 @override
   Widget build(BuildContext context) {
@@ -109,7 +91,7 @@ class ReconnectView extends StatelessWidget {
             bottom: 10,
             right: 0,
             child: GestureDetector(
-             onTap: () => func(context),
+             onTap: () => showWifiHelp(context, message: wifiHelpText),
               child: Image.asset(
                 'assets/actionButtonIcon/infoIcon.png',
                 width: 50,

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:archer_link/services/device_wifi.dart';
 import 'package:archer_link/widgets/default_bg.dart';
 import 'package:archer_link/widgets/demo_mode_dialog.dart';
+import 'package:archer_link/widgets/wifi_help_dialog.dart';
 
 /// Shown while the phone is not in the thermal imager's subnet.
 ///
@@ -38,7 +39,7 @@ class _WifiConnectPageState extends State<WifiConnectPage> {
 
   static const String _helpText =
       'Could not connect to the thermal imager. Make sure it is turned on '
-      'and Wi-Fi is enabled, or connect manually as shown below.';
+      'and Wi-Fi is enabled, or join its network by hand as shown above.';
 
   bool _connecting = false;
   Timer? _timer;
@@ -126,46 +127,11 @@ class _WifiConnectPageState extends State<WifiConnectPage> {
     if (mounted) setState(() => _connecting = false);
   }
 
-  /// The picture explaining how to join the imager's Wi-Fi by hand, with
-  /// an optional line above it. Tap anywhere to close.
-  void _showHelp({String? message}) {
+  /// The help picture with [message] under it. Tap anywhere to close.
+  void _showHelp({required String message}) {
     if (_helpNavigator != null) return;
     _helpNavigator = Navigator.of(context, rootNavigator: true);
-    showDialog<void>(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        return GestureDetector(
-          onTap: () => Navigator.of(dialogContext).pop(),
-          child: Container(
-            color: Colors.black,
-            child: SafeArea(
-              child: Column(
-                children: [
-                  if (message != null)
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-                      child: Text(
-                        message,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          decoration: TextDecoration.none,
-                          color: Colors.white,
-                          fontSize: 16,
-                          height: 1.5,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  Expanded(
-                    child: Center(child: Image.asset('assets/wifi_info.png')),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    ).then((_) {
+    showWifiHelp(context, message: message).then((_) {
       _helpNavigator = null;
     });
   }
@@ -267,7 +233,7 @@ class _WifiConnectPageState extends State<WifiConnectPage> {
               bottom: 10,
               right: 0,
               child: GestureDetector(
-                onTap: () => _showHelp(),
+                onTap: () => _showHelp(message: wifiHelpText),
                 child: Image.asset(
                   'assets/actionButtonIcon/infoIcon.png',
                   width: 50,
