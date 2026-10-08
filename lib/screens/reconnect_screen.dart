@@ -4,7 +4,7 @@ import 'package:archer_link/widgets/default_bg.dart';
 import 'package:archer_link/widgets/demo_mode_dialog.dart';
 import 'package:archer_link/widgets/wifi_help_dialog.dart';
 
-class ReconnectView extends StatelessWidget {
+class ReconnectView extends StatefulWidget {
   final bool isReconnecting;
   final VoidCallback onReconnect;
   final void Function() openSettings;
@@ -18,14 +18,30 @@ class ReconnectView extends StatelessWidget {
     required this.onDemoMode,
   }) : super(key: key);
 
-@override
+  @override
+  State<ReconnectView> createState() => _ReconnectViewState();
+}
+
+class _ReconnectViewState extends State<ReconnectView> {
+  /// Closed in dispose(): this view is replaced by the player as soon as
+  /// the stream comes back, and the help must go with it.
+  final WifiHelp _help = WifiHelp();
+
+  @override
+  void dispose() {
+    _help.close();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return DefaultBg(
-      onLogoLongPress: () => showDemoModeDialog(context, onConfirm: onDemoMode),
+      onLogoLongPress: () =>
+          showDemoModeDialog(context, onConfirm: widget.onDemoMode),
       child: SafeArea(
         child: Stack(
         children: [
-          if (isReconnecting)
+          if (widget.isReconnecting)
             const LoadingIndicator(isLoading: true)
           else
           Center(
@@ -46,10 +62,10 @@ class ReconnectView extends StatelessWidget {
                   ),
                   SizedBox(height: 10),
                    ElevatedButton(
-                    onPressed: onReconnect,
+                    onPressed: widget.onReconnect,
                     style: ElevatedButton.styleFrom(
                       padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
-                      minimumSize: Size(0, 0), 
+                      minimumSize: Size(0, 0),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -79,7 +95,7 @@ class ReconnectView extends StatelessWidget {
             bottom: 10,
             left: 0,
             child: GestureDetector(
-              onTap: openSettings,
+              onTap: widget.openSettings,
               child: Image.asset(
                 'assets/actionButtonIcon/settings.png',
                 width: 50,
@@ -91,7 +107,7 @@ class ReconnectView extends StatelessWidget {
             bottom: 10,
             right: 0,
             child: GestureDetector(
-             onTap: () => showWifiHelp(context, message: wifiHelpText),
+             onTap: () => _help.show(context, message: wifiHelpText),
               child: Image.asset(
                 'assets/actionButtonIcon/infoIcon.png',
                 width: 50,
@@ -106,4 +122,3 @@ class ReconnectView extends StatelessWidget {
     );
   }
 }
-   

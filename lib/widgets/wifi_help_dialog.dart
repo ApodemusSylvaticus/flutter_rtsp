@@ -7,6 +7,36 @@ import 'package:flutter/material.dart';
 const String wifiHelpText =
     "Connect to the device's Wi-Fi network and return to the app.";
 
+/// Opens the Wi-Fi help for one page and closes it again when that page
+/// goes away. Keep one per State and call [close] from `dispose()`: the
+/// page is swapped for the stream the moment the device is reachable,
+/// and the help must not stay on top of the video.
+class WifiHelp {
+  NavigatorState? _navigator;
+
+  bool get isOpen => _navigator != null;
+
+  void show(BuildContext context, {required String message}) {
+    if (_navigator != null) return;
+    _navigator = Navigator.of(context, rootNavigator: true);
+    showWifiHelp(context, message: message).then((_) {
+      _navigator = null;
+    });
+  }
+
+  /// Closes the help if it is open. Safe to call from `dispose()`: the
+  /// pop is deferred to after the current frame, because dispose runs in
+  /// the middle of a build and the navigator must not change then.
+  void close() {
+    final NavigatorState? navigator = _navigator;
+    if (navigator == null) return;
+    _navigator = null;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (navigator.mounted && navigator.canPop()) navigator.pop();
+    });
+  }
+}
+
 /// Full-screen help: the picture of the imager's network in the phone's
 /// Wi-Fi list, centred, with [message] right under it. Closed by the
 /// cross in the top right corner or a tap anywhere. The returned future

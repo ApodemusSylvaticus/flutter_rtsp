@@ -51,9 +51,8 @@ class _WifiConnectPageState extends State<WifiConnectPage> {
   bool _waitingForPanel = false;
   bool _leftForeground = false;
 
-  /// Set while the help picture is open, so it can be closed when the
-  /// stream appears underneath it.
-  NavigatorState? _helpNavigator;
+  /// Closed in dispose(): the stream may appear underneath it.
+  final WifiHelp _help = WifiHelp();
 
   @override
   void initState() {
@@ -65,7 +64,7 @@ class _WifiConnectPageState extends State<WifiConnectPage> {
   void dispose() {
     _timer?.cancel();
     _lifecycle.dispose();
-    _closeHelp();
+    _help.close();
     super.dispose();
   }
 
@@ -128,24 +127,8 @@ class _WifiConnectPageState extends State<WifiConnectPage> {
     if (mounted) setState(() => _connecting = false);
   }
 
-  /// The help picture with [message] under it. Tap anywhere to close.
   void _showHelp({required String message}) {
-    if (_helpNavigator != null) return;
-    _helpNavigator = Navigator.of(context, rootNavigator: true);
-    showWifiHelp(context, message: message).then((_) {
-      _helpNavigator = null;
-    });
-  }
-
-  /// Closes the help picture if it is open. Called when this page goes
-  /// away because the stream appeared underneath it.
-  void _closeHelp() {
-    final navigator = _helpNavigator;
-    if (navigator == null) return;
-    _helpNavigator = null;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (navigator.mounted && navigator.canPop()) navigator.pop();
-    });
+    _help.show(context, message: message);
   }
 
   @override
