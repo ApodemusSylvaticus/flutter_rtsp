@@ -87,7 +87,9 @@ class _WifiConnectPageState extends State<WifiConnectPage> {
         _leftForeground = false;
         _timer?.cancel();
         _timer = Timer(_panelGrace, () {
-          if (_waitingForPanel) _onPanelClosed();
+          // Only if the panel never took the focus: once the app has gone
+          // inactive, the user is in the panel and we wait for the resume.
+          if (_waitingForPanel && !_leftForeground) _onPanelClosed();
         });
       }
     } catch (e) {
@@ -102,6 +104,7 @@ class _WifiConnectPageState extends State<WifiConnectPage> {
     if (!_waitingForPanel) return;
     if (state != AppLifecycleState.resumed) {
       _leftForeground = true;
+      _timer?.cancel(); // the grace timer: the panel is up, nothing to guess
     } else if (_leftForeground) {
       _onPanelClosed();
     }
