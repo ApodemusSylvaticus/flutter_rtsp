@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:media_kit_video/media_kit_video.dart';
@@ -38,6 +41,8 @@ class _StreamViewPageState extends State<StreamViewPage>
   bool isRecording = false;
   bool isProcessing = false;
 
+  StreamSubscription<List<ConnectivityResult>>? _networkChanges;
+
   @override
   void initState() {
     super.initState();
@@ -46,6 +51,16 @@ class _StreamViewPageState extends State<StreamViewPage>
       streamConfig: widget.streamConfig,
       onStateChanged: _handleStateChanged,
     );
+
+    // The first attempt often starts too early on Android: the imager's
+    // address is already on wlan0, but the phone still routes the app
+    // through mobile data, because a Wi-Fi without internet becomes the
+    // default network only after Android's checks give up (measured: 8 s
+    // after the address appeared, 4 s after the attempt had timed out).
+    // That switch arrives here as a connectivity change, so retry on it
+    // instead of waiting for a tap on Reconnect.
+    _networkChanges =
+        Connectivity().onConnectivityChanged.listen(_onNetworkChanged);
 
     _videoRecorder = VideoRecorder(
       videoKey: _videoKey,
@@ -64,6 +79,9 @@ class _StreamViewPageState extends State<StreamViewPage>
     bool? showReconnectButton,
     bool? isReconnecting,
   }) {
+    // An attempt that was in flight when the screen went away still
+    // reports its end; there is nobody left to show it to.
+    if (!mounted) return;
     setState(() {
       if (isLoading != null) this.isLoading = isLoading;
       if (showReconnectButton != null) {
@@ -75,6 +93,15 @@ class _StreamViewPageState extends State<StreamViewPage>
         setLandscapeOrientation();
       }
     });
+  }
+
+  void _onNetworkChanged(List<ConnectivityResult> results) {
+    if (!mounted || !showReconnectButton || isReconnecting) return;
+    // The imager is only ever reachable over Wi-Fi. A change to mobile or
+    // to nothing is the network going away, and the home page replaces
+    // this screen for that; an attempt started now would outlive it.
+    if (!results.contains(ConnectivityResult.wifi)) return;
+    _playerService.initializeDeviceConnection();
   }
 
   void _handleRecorderNotification(bool isError, String message) {
@@ -101,6 +128,7 @@ class _StreamViewPageState extends State<StreamViewPage>
 
   @override
   void dispose() {
+    _networkChanges?.cancel();
     _playerService.dispose();
     super.dispose();
   }
