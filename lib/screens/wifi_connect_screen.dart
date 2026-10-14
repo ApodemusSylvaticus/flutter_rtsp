@@ -1,3 +1,4 @@
+import 'package:archer_link/utils/trace.dart';
 import 'dart:async';
 import 'dart:io';
 
@@ -57,11 +58,14 @@ class _WifiConnectPageState extends State<WifiConnectPage> {
   @override
   void initState() {
     super.initState();
+    trace('CONNECT', 'Connect page created');
     _lifecycle = AppLifecycleListener(onStateChange: _onLifecycleChange);
   }
 
   @override
   void dispose() {
+    trace('CONNECT', 'Connect page disposed (connecting=$_connecting, '
+        'timer=${_timer?.isActive == true ? 'running' : 'none'})');
     _timer?.cancel();
     _lifecycle.dispose();
     _help.close();
@@ -69,13 +73,24 @@ class _WifiConnectPageState extends State<WifiConnectPage> {
   }
 
   Future<void> _connect() async {
-    if (_connecting) return;
+    if (_connecting) {
+      trace('CONNECT', 'Connect tapped again: ignored, still connecting');
+      return;
+    }
+    trace('CONNECT', 'Connect tapped');
     setState(() => _connecting = true);
     try {
       if (Platform.isIOS) {
-        final result = await DeviceWifi.joinArcherWifi();
+        var answered = false;
+        Future<void>.delayed(const Duration(seconds: 20), () {
+          if (!answered) trace('CONNECT', 'iOS has not answered after 20 s');
+        });
+        final result = await DeviceWifi.joinArcherWifi()
+            .whenComplete(() => answered = true);
+        trace('CONNECT', 'join result: $result (page mounted=$mounted)');
         if (!mounted) return;
         if (result == WifiJoinResult.cancelled) {
+          trace('CONNECT', 'user cancelled the iOS question: back to the button');
           _stopConnecting();
           return;
         }
@@ -93,7 +108,7 @@ class _WifiConnectPageState extends State<WifiConnectPage> {
         });
       }
     } catch (e) {
-      print('[CONNECT] join request failed: $e');
+      trace('CONNECT', 'join request failed: $e -> help');
       if (!mounted) return;
       _stopConnecting();
       _showHelp(message: _helpText);
@@ -101,6 +116,7 @@ class _WifiConnectPageState extends State<WifiConnectPage> {
   }
 
   void _onLifecycleChange(AppLifecycleState state) {
+    trace('CONNECT', 'app lifecycle: $state');
     if (!_waitingForPanel) return;
     if (state != AppLifecycleState.resumed) {
       _leftForeground = true;
@@ -116,21 +132,25 @@ class _WifiConnectPageState extends State<WifiConnectPage> {
   }
 
   void _waitForSubnet() {
+    trace('CONNECT', 'waiting ${_subnetTimeout.inSeconds} s for the imager subnet');
     _timer?.cancel();
     _timer = Timer(_subnetTimeout, () {
       if (!mounted) return;
+      trace('CONNECT', 'no imager subnet after ${_subnetTimeout.inSeconds} s -> help');
       _stopConnecting();
       _showHelp(message: _helpText);
     });
   }
 
   void _stopConnecting() {
+    trace('CONNECT', 'button back to "Connect"');
     _timer?.cancel();
     _waitingForPanel = false;
     if (mounted) setState(() => _connecting = false);
   }
 
   void _showHelp({required String message}) {
+    trace('CONNECT', 'help dialog shown');
     _help.show(context, message: message);
   }
 

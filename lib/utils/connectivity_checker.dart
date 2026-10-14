@@ -1,5 +1,10 @@
+import 'package:archer_link/utils/trace.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'dart:io';
+
+/// Last interface snapshot that was logged; the poll runs every 2 s and
+/// only changes are worth a line.
+String? _lastInterfaceSnapshot;
 
 Future<String?> getDeviceIP() async {
   try {
@@ -7,6 +12,13 @@ Future<String?> getDeviceIP() async {
       type: InternetAddressType.IPv4,
       includeLinkLocal: false,
     );
+    final snapshot = interfaces
+        .map((i) => '${i.name}=${i.addresses.map((a) => a.address).join('/')}')
+        .join(' ');
+    if (snapshot != _lastInterfaceSnapshot) {
+      _lastInterfaceSnapshot = snapshot;
+      trace('NET', 'IPv4 interfaces: ${snapshot.isEmpty ? '(none)' : snapshot}');
+    }
     
     // Log all interfaces
     // print('=== Network Interfaces ===');
@@ -39,8 +51,6 @@ Future<String?> getDeviceIP() async {
         // Non-service interface — save as fallback
         else if (!skipPrefixes.any((p) => name.startsWith(p))) {
           fallbackIP ??= ip;
-        } else {
-          print('Skipped: $ip ($name)');
         }
       }
     }

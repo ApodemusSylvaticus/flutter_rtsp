@@ -1,3 +1,4 @@
+import 'package:archer_link/utils/trace.dart';
 import 'package:flutter/material.dart';
 
 /// Shown under the help picture when the user opens the help themselves.
@@ -17,9 +18,14 @@ class WifiHelp {
   bool get isOpen => _navigator != null;
 
   void show(BuildContext context, {required String message}) {
-    if (_navigator != null) return;
+    if (_navigator != null) {
+      trace('HELP', 'help already open');
+      return;
+    }
+    trace('HELP', 'help opened');
     _navigator = Navigator.of(context, rootNavigator: true);
     showWifiHelp(context, message: message).then((_) {
+      trace('HELP', 'help gone');
       _navigator = null;
     });
   }
@@ -30,6 +36,7 @@ class WifiHelp {
   void close() {
     final NavigatorState? navigator = _navigator;
     if (navigator == null) return;
+    trace('HELP', 'help closed by the page going away');
     _navigator = null;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (navigator.mounted && navigator.canPop()) navigator.pop();
@@ -46,11 +53,14 @@ Future<void> showWifiHelp(BuildContext context, {required String message}) {
     context: context,
     useSafeArea: false,
     builder: (BuildContext dialogContext) {
-      void close() => Navigator.of(dialogContext).pop();
+      void close(String how) {
+        trace('HELP', 'help closed by $how');
+        Navigator.of(dialogContext).pop();
+      }
 
       return GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: close,
+        onTap: () => close('tap'),
         child: Container(
           color: Colors.black,
           width: double.infinity,
@@ -104,7 +114,7 @@ Future<void> showWifiHelp(BuildContext context, {required String message}) {
                   right: 4,
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
-                    onTap: close,
+                    onTap: () => close('the cross'),
                     child: const Padding(
                       padding: EdgeInsets.all(12),
                       child: Icon(Icons.close, color: Colors.white, size: 40),

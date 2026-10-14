@@ -9,20 +9,12 @@ The imager's Wi-Fi name starts with `ARCHER_` and always has a password.
 
 - **Android:** Connect opens the system Wi-Fi panel. The user picks the
   imager's network and types the password there; Android saves the network
-  and re-joins it on its own later. The Android build holds no password.
+  and re-joins it on its own later. Android does not use the password: the user types it in the system Wi-Fi panel.
 - **iOS:** Apple does not allow opening the Wi-Fi settings, so the app joins
   the network itself (`NEHotspotConfiguration`, prefix `ARCHER_`) with the
-  factory password compiled into the iOS build from `ios/Runner/Secrets.swift`.
-  That file is **not committed**. Create it once per machine before building
-  for iOS:
-
-  ```bash
-  dart run tool/set_wifi_password.dart
-  ```
-
-  The tool asks for the password in the terminal (not echoed) and writes the
-  file with the password XOR-encoded. Without the file the Xcode build fails
-  with `Build input file cannot be found: .../Secrets.swift`.
+  factory password. The prefix and the password are constants in
+  `lib/services/device_wifi.dart`; the password is a basic value, the same on
+  every imager, so it is kept in plain text.
 - The iOS join needs the *Hotspot Configuration* capability on the App ID.
   The entitlement is already in `ios/Runner/Runner.entitlements`; if signing
   complains, enable the capability once in Xcode under
