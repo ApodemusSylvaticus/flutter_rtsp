@@ -1,3 +1,4 @@
+import 'package:archer_link/utils/trace.dart';
 import 'package:flutter/material.dart';
 
 /// Mixin for app lifecycle tracking.
@@ -8,7 +9,7 @@ mixin AppLifecycleMixin<T extends StatefulWidget> on State<T> {
   late final AppLifecycleListener _lifecycleListener;
 
   void _logLifecycle(String message) {
-    print('[AppLifecycleMixin] $message');
+    trace('LIFECYCLE', message);
   }
 
   @override

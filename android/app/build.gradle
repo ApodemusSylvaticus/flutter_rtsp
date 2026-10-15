@@ -22,7 +22,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace "com.example.one_more_try"
+    namespace "com.archer.archerlink"
     compileSdk 36 
     ndkVersion flutter.ndkVersion
 

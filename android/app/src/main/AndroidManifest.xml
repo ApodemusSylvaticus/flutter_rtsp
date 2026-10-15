@@ -1,6 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <!-- DeviceWifi.kt: requestNetwork and bindProcessToNetwork for the imager Wi-Fi -->
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
                      android:maxSdkVersion="29" />
 
@@ -26,6 +28,15 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <!-- Versions published before October 2026 had their activity in the
+             project's first package, com.example.one_more_try. Home-screen
+             icons and shortcuts made with them point at that name; the alias
+             keeps it opening the app. No intent filter, so it adds no second
+             icon. -->
+        <activity-alias
+            android:name="com.example.one_more_try.MainActivity"
+            android:targetActivity=".MainActivity"
+            android:exported="true" />
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />

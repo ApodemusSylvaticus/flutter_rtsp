@@ -13,6 +13,7 @@ import 'package:archer_link/widgets/default_bg.dart';
 import 'package:archer_link/mixins/app_lifecycle_mixin.dart';
 import 'package:archer_link/services/demo_player_service.dart';
 import 'package:archer_link/utils/video_recorder.dart';
+import 'package:archer_link/utils/orientation.dart';
 import 'package:archer_link/proto/archer_protocol.pb.dart' as proto;
 
 
@@ -814,10 +815,7 @@ class _DemoStreamViewPageState extends State<DemoStreamViewPage>
   }
 
   void setLandscapeOrientation() {
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-    ]);
+    SystemChrome.setPreferredOrientations([landscapeCameraLeft]);
   }
 }
 
