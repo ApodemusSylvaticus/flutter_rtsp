@@ -19,6 +19,10 @@ import 'package:archer_link/models/stream_config.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  // Before runApp, so the native side's calls have a handler from the start;
+  // on Android it also asks whether the app is bound to an imager Wi-Fi
+  // already.
+  DeviceWifi.listenToNative();
   MediaKit.ensureInitialized();
   runApp(MyApp());
 }
@@ -144,6 +148,20 @@ const Duration kControlsHold = Duration(seconds: 10);
 const Duration kImagerRestartMinimum = Duration(seconds: 5);
 const Duration kRestartSuspicion = Duration(seconds: 90);
 
+/// Android: how long a check waits for the app to be bound to the imager's
+/// Wi-Fi before it probes. A probe socket opened before the binding goes
+/// out over mobile data, the default network while the Wi-Fi has no
+/// internet, and fails. The binding normally follows the address at once;
+/// the cap is only for a binding report that never comes: the probe then
+/// runs anyway and still works whenever Wi-Fi is the default network.
+const Duration kImagerBindingWait = Duration(seconds: 3);
+
+/// While the phone is in a device subnet but the stream's RTSP server did
+/// not answer, the Connect page stays and the probe runs again quietly at
+/// most this often, so an imager whose RTSP server starts a little after
+/// its Wi-Fi is still picked up.
+const Duration kReprobeInterval = Duration(seconds: 4);
+
 class _MyHomePageState extends State<MyHomePage> {
   bool isLoading = false;
   bool isAvailableToConnect = false;
@@ -157,11 +175,19 @@ class _MyHomePageState extends State<MyHomePage> {
     streamUrl: '',
   );
 StreamSubscription<List<ConnectivityResult>>? connectivitySubscription;
+  StreamSubscription<bool>? _imagerNetworkSubscription;
+
+  /// Numbers the checks: only the newest one may change the page, so a slow
+  /// probe cannot overwrite the result of a check started after it.
+  int _checkId = 0;
+  int _checksInFlight = 0;
+  DateTime? _lastCheckEndedAt;
 
   @override
   void initState() {
     super.initState();
-    DeviceWifi.listenToNativeTrace();
+    _imagerNetworkSubscription =
+        DeviceWifi.imagerNetworkChanges.listen(_onImagerNetworkChanged);
     getNetworkData();
     monitorWifiConnection();
     handleMonitorWifiConnection();
@@ -171,7 +197,17 @@ StreamSubscription<List<ConnectivityResult>>? connectivitySubscription;
   void dispose() {
     _timer?.cancel();
     connectivitySubscription?.cancel();
+    _imagerNetworkSubscription?.cancel();
     super.dispose();
+  }
+
+  /// Android: the app was just bound to a Wi-Fi in a device subnet. From
+  /// now on a probe reaches the imager, so look at the network at once
+  /// instead of at the next poll.
+  void _onImagerNetworkChanged(bool bound) {
+    if (!bound || isDemoMode || !mounted) return;
+    trace('HOME', 'app bound to a device-subnet Wi-Fi: checking the network now');
+    getNetworkData(reprobeNow: true);
   }
 
   void handleMonitorWifiConnection() {
@@ -201,11 +237,12 @@ StreamSubscription<List<ConnectivityResult>>? connectivitySubscription;
   /// hold. Kept here because the page is recreated on connectivity events.
   DateTime? _controlsHoldUntil;
 
-  Future<void> getNetworkData() async {
+  Future<void> getNetworkData({bool reprobeNow = false}) async {
     // В демо-режиме не проверяем сеть — конфиг уже задан
     if (isDemoMode) return;
 
     StreamConfig actualStreamConfig = await getStreamConfig();
+    if (!mounted) return;
     final firstPoll = !_firstPollDone;
     _firstPollDone = true;
 
@@ -230,7 +267,26 @@ StreamSubscription<List<ConnectivityResult>>? connectivitySubscription;
         isLoading = false;
       });
       checkConnection();
+    } else if (_shouldReprobe(actualStreamConfig, now: reprobeNow)) {
+      checkConnection(quiet: true);
     }
+  }
+
+  /// The phone is in a device subnet, but the RTSP probe failed and the
+  /// Connect page is shown: probe again, at most every [kReprobeInterval]
+  /// ([now]: at once), and never while another check runs.
+  bool _shouldReprobe(StreamConfig actual, {required bool now}) {
+    if (kNoStream || isAvailableToConnect || isLoading || isSettingsOpen) {
+      return false;
+    }
+    if (actual.streamUrl.isEmpty || actual.streamUrl != streamConfig.streamUrl) {
+      return false;
+    }
+    if (_checksInFlight > 0) return false;
+    if (now) return true;
+    final lastCheck = _lastCheckEndedAt;
+    return lastCheck == null ||
+        DateTime.now().difference(lastCheck) >= kReprobeInterval;
   }
 
   /// See [kControlsHold].
@@ -284,14 +340,27 @@ StreamSubscription<List<ConnectivityResult>>? connectivitySubscription;
     return now.add(kControlsHold);
   }
 
-  Future<void> checkConnection() async {
+  /// Decides between the stream page and the Connect page.
+  ///
+  /// Being in a device subnet is not enough: many home routers are
+  /// 192.168.1.1 as well. The stream page is shown only when the stream's
+  /// RTSP server answers a probe (see probeRtsp). [quiet]: a re-probe from
+  /// the Connect page; no loading page, and a failure changes nothing.
+  Future<void> checkConnection({bool quiet = false}) async {
     // В демо-режиме всегда доступно
     if (isDemoMode) return;
 
-    trace('HOME', 'checkConnection: loading page shown');
-    setState(() {
-      isLoading = true;
-    });
+    final check = ++_checkId;
+    _checksInFlight++;
+    if (quiet) {
+      trace('HOME', 'checkConnection #$check (quiet): probing the imager '
+          'again, the Connect page stays');
+    } else {
+      trace('HOME', 'checkConnection #$check: loading page shown');
+      setState(() {
+        isLoading = true;
+      });
+    }
 
     try {
       if (streamConfig.streamUrl == 'stream.trailcam.link:8554/mystream') {
@@ -304,31 +373,95 @@ StreamSubscription<List<ConnectivityResult>>? connectivitySubscription;
         return;
       }
 
-      bool isAvailable = await isConnected(streamConfig.streamUrl);
+      final streamUrl = streamConfig.streamUrl;
+      bool isAvailable = await isConnected(streamUrl);
       if (kNoStream && isAvailable) {
         trace('HOME', 'NO_STREAM: imager subnet reachable, staying on the '
             'Connect page on purpose');
         isAvailable = false;
+      } else if (isAvailable) {
+        if (Platform.isAndroid && !DeviceWifi.imagerNetworkBound) {
+          await _waitForImagerBinding();
+          if (check != _checkId) {
+            trace('HOME', 'checkConnection #$check: superseded by '
+                '#$_checkId while waiting for the binding');
+            return;
+          }
+        }
+        isAvailable = await probeRtsp(streamUrl);
+        if (isAvailable && Platform.isIOS) {
+          // The imager answers: a password the user typed for this join
+          // worked, keep it (a no-op otherwise).
+          unawaited(DeviceWifi.rememberJoinedPassword());
+        }
       }
 
-      trace('HOME', 'checkConnection: available=$isAvailable -> '
+      if (!mounted || isDemoMode) return;
+      if (check != _checkId) {
+        trace('HOME', 'checkConnection #$check: superseded by #$_checkId, '
+            'result dropped');
+        return;
+      }
+      if (quiet && !isAvailable) return;
+
+      trace('HOME', 'checkConnection #$check: available=$isAvailable -> '
           '${isAvailable ? 'stream' : 'Connect'} page');
       setState(() {
         isAvailableToConnect = isAvailable;
         isLoading = false;
       });
     } catch (e) {
-      trace('HOME', 'checkConnection failed: $e -> Connect page');
+      if (!mounted || isDemoMode || check != _checkId) return;
+      trace('HOME', 'checkConnection #$check failed: $e -> Connect page');
       setState(() {
         isAvailableToConnect = false;
         isLoading = false;
       });
+    } finally {
+      _checksInFlight--;
+      _lastCheckEndedAt = DateTime.now();
+    }
+  }
+
+  /// Android: waits for the app to be bound to the imager's Wi-Fi, at most
+  /// [kImagerBindingWait]. Event-driven: returns the moment the binding is
+  /// reported.
+  Future<void> _waitForImagerBinding() async {
+    trace('HOME', 'device subnet is up but the app is not bound to it yet: '
+        'waiting up to ${kImagerBindingWait.inSeconds} s before probing');
+    final watch = Stopwatch()..start();
+    final bound = Completer<void>();
+    final subscription = DeviceWifi.imagerNetworkChanges.listen((isBound) {
+      if (isBound && !bound.isCompleted) bound.complete();
+    });
+    try {
+      await bound.future.timeout(kImagerBindingWait);
+      trace('HOME', 'bound after ${watch.elapsedMilliseconds} ms');
+    } on TimeoutException {
+      trace('HOME', 'not bound after ${kImagerBindingWait.inSeconds} s: '
+          'probing anyway');
+    } finally {
+      await subscription.cancel();
     }
   }
 
 void monitorWifiConnection() {
   connectivitySubscription =
       Connectivity().onConnectivityChanged.listen((List<ConnectivityResult> results) {
+    if (Platform.isAndroid &&
+        isAvailableToConnect &&
+        !isLoading &&
+        DeviceWifi.imagerNetworkBound) {
+      // The app's traffic is bound to the imager Wi-Fi, so a change of the
+      // default network (Android accepting the Wi-Fi after its no-internet
+      // question, mobile data coming and going) does not touch the stream.
+      // A full check here would replace the stream page and restart the
+      // video for nothing; losing the imager shows in the poll and in the
+      // binding events.
+      trace('HOME', 'connectivity changed: $results; bound to the imager, '
+          'the stream stays');
+      return;
+    }
     trace('HOME', 'connectivity changed: $results; checking connection');
     checkConnection();
   });
@@ -376,20 +509,38 @@ void monitorWifiConnection() {
       return SettingsPage(streamConfig, resetAll, closeSettings);
     }
 
+    if (isAvailableToConnect == false) {
+      setPortraitOrientation();
+
+      // The Connect page stays mounted under the loading look: a network
+      // event in the middle of a Connect attempt (Wi-Fi switched on in the
+      // panel, Android leaving the home network to join the imager) runs a
+      // check, and replacing the page for it would reset the button and
+      // drop the attempt (the panel it waits for, the wait after it).
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          Visibility(
+            visible: !isLoading,
+            maintainState: true,
+            child: WifiConnectPage(
+              openSettings: openSettings,
+              onDemoMode: activateDemoMode,
+            ),
+          ),
+          if (isLoading)
+            DefaultBg(
+              child: const LoadingIndicator(isLoading: true),
+            ),
+        ],
+      );
+    }
+
     if (isLoading) {
       setPortraitOrientation();
 
       return DefaultBg(
         child: const LoadingIndicator(isLoading: true),
-      );
-    }
-
-    if (isAvailableToConnect == false) {
-      setPortraitOrientation();
-
-      return WifiConnectPage(
-        openSettings: openSettings,
-        onDemoMode: activateDemoMode,
       );
     }
 

@@ -1,5 +1,7 @@
+import 'package:archer_link/services/device_wifi.dart';
 import 'package:archer_link/utils/trace.dart';
 import 'dart:async';
+import 'dart:io' show Platform;
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
@@ -46,6 +48,7 @@ class _StreamViewPageState extends State<StreamViewPage>
   bool isProcessing = false;
 
   StreamSubscription<List<ConnectivityResult>>? _networkChanges;
+  StreamSubscription<bool>? _imagerNetworkChanges;
 
   @override
   void initState() {
@@ -66,6 +69,15 @@ class _StreamViewPageState extends State<StreamViewPage>
     // instead of waiting for a tap on Reconnect.
     _networkChanges =
         Connectivity().onConnectivityChanged.listen(_onNetworkChanged);
+
+    // Android binds the app's traffic to the imager's Wi-Fi (see
+    // DeviceWifi). An attempt made before the binding went out over mobile
+    // data and failed; the binding is the moment a new one gets through,
+    // with or without a connectivity change.
+    if (Platform.isAndroid) {
+      _imagerNetworkChanges =
+          DeviceWifi.imagerNetworkChanges.listen(_onImagerNetworkChanged);
+    }
 
     _videoRecorder = VideoRecorder(
       videoKey: _videoKey,
@@ -114,6 +126,14 @@ class _StreamViewPageState extends State<StreamViewPage>
     _playerService.initializeDeviceConnection();
   }
 
+  void _onImagerNetworkChanged(bool bound) {
+    trace('STREAM', 'imager Wi-Fi binding: bound=$bound (reconnect shown='
+        '$showReconnectButton, reconnecting=$isReconnecting)');
+    if (!mounted || !bound || !showReconnectButton || isReconnecting) return;
+    trace('STREAM', 'app bound to the imager Wi-Fi: retrying the stream');
+    _playerService.initializeDeviceConnection();
+  }
+
   void _handleRecorderNotification(bool isError, String message) {
     showNotification(
       isError ? NotificationType.error : NotificationType.defaultType,
@@ -140,6 +160,7 @@ class _StreamViewPageState extends State<StreamViewPage>
   void dispose() {
     trace('STREAM', 'Stream page disposed');
     _networkChanges?.cancel();
+    _imagerNetworkChanges?.cancel();
     _playerService.dispose();
     super.dispose();
   }

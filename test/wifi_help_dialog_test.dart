@@ -83,4 +83,48 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text(wifiHelpText), findsNothing);
   });
+
+  testWidgets('the password field checks the length and hands the password on',
+      (WidgetTester tester) async {
+    // An iPhone-sized screen: the form sits under a full-width picture.
+    tester.view.physicalSize = const Size(1179, 2556);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    final typed = <String>[];
+    await tester.pumpWidget(MaterialApp(
+      home: Builder(
+        builder: (BuildContext context) => TextButton(
+          onPressed: () =>
+              showWifiHelp(context, message: 'failed', onPassword: typed.add),
+          child: const Text('open'),
+        ),
+      ),
+    ));
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    expect(find.text("Or try again with the device's Wi-Fi password"),
+        findsOneWidget);
+
+    // Too short for WPA2: an error, the help stays.
+    await tester.enterText(find.byType(TextField), '1234567');
+    await tester.ensureVisible(find.text('Connect'));
+    await tester.tap(find.text('Connect'));
+    await tester.pumpAndSettle();
+    expect(find.text('At least 8 characters'), findsOneWidget);
+    expect(typed, isEmpty);
+
+    // A tap outside the field does not close the help that asks a password.
+    await tester.tapAt(const Offset(5, 300));
+    await tester.pumpAndSettle();
+    expect(find.text('failed'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField), '123456789');
+    await tester.pump();
+    expect(find.text('At least 8 characters'), findsNothing);
+    await tester.ensureVisible(find.text('Connect'));
+    await tester.tap(find.text('Connect'));
+    await tester.pumpAndSettle();
+    expect(typed, <String>['123456789']);
+    expect(find.text('failed'), findsNothing);
+  });
 }

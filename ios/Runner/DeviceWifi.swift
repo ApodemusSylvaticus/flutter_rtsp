@@ -1,14 +1,19 @@
 import Flutter
 import Network
 import NetworkExtension
+import Security
 import UIKit
 
 /// Joins the thermal imager's Wi-Fi on request from Dart (channel
 /// `archer_link/device_wifi`, see lib/services/device_wifi.dart). iOS only:
 /// on Android the user joins through the system Wi-Fi panel instead.
 ///
-/// The SSID prefix and the password come with the call; both are constants
-/// in lib/services/device_wifi.dart.
+/// The SSID prefix and the password come with the call; the prefix and the
+/// factory password are constants in lib/services/device_wifi.dart. When the
+/// factory password fails, the user can type the imager's own one; the one
+/// that worked is kept in the keychain (`rememberPassword`,
+/// `rememberedPassword`), labelled with the network's name when iOS gives
+/// one (`currentSsid`).
 ///
 /// Everything here is traced: each line goes to NSLog and, through the
 /// channel ("trace" calls), to Dart, which prints it as `[TRACE ... iOS]`
@@ -68,9 +73,81 @@ final class DeviceWifi: NSObject, FlutterPlugin {
       // Missing flag = forget, the behaviour the Dart side defaults to.
       let forgetFirst = args["forgetFirst"] as? Bool ?? true
       join(prefix: prefix, passphrase: passphrase, forgetFirst: forgetFirst, result: result)
+    case "currentSsid":
+      // iOS names the current network only to apps with the Access Wi-Fi
+      // Information entitlement (com.apple.developer.networking.wifi-info),
+      // which this app does not have, so the answer is nil (seen on iOS 27,
+      // 2026-10-15). The name only labels the remembered password in the
+      // trace; nothing depends on it.
+      NEHotspotNetwork.fetchCurrent { network in
+        DeviceWifi.trace("currentSsid -> \(network.map { "\"\($0.ssid)\"" } ?? "none")")
+        DispatchQueue.main.async { result(network?.ssid) }
+      }
+    case "rememberPassword":
+      guard let args = call.arguments as? [String: Any],
+        let passphrase = args["passphrase"] as? String, !passphrase.isEmpty
+      else {
+        result(FlutterError(code: "badArgs", message: "passphrase is required", details: nil))
+        return
+      }
+      let ssid = args["ssid"] as? String
+      let saved = DeviceWifi.savePassword(passphrase, ssid: ssid)
+      DeviceWifi.trace("password for \(ssid.map { "\"\($0)\"" } ?? "the imager") saved in the keychain: \(saved)")
+      result(saved)
+    case "rememberedPassword":
+      let remembered = DeviceWifi.loadPassword()
+      DeviceWifi.trace(
+        "remembered password: "
+          + (remembered.map { "\($0.password.count) chars, for \($0.ssid.map { "\"\($0)\"" } ?? "an unnamed network")" }
+            ?? "none"))
+      result(remembered?.password)
     default:
       result(FlutterMethodNotImplemented)
     }
+  }
+
+  // MARK: - The password the user typed
+
+  /// The imager's Wi-Fi password the user typed after the factory one failed
+  /// (some units ship with another one, or the owner changed it). Kept in the
+  /// keychain, the place iOS has for passwords, and only after the join with
+  /// it worked. One entry: iOS lets the app see no networks around it, so
+  /// the app cannot pick a password per imager before joining; the last
+  /// one that worked is the best guess. The network's name, when iOS gives
+  /// one, is kept with it for the trace.
+  private static let keychainService = "archer_link.imager_wifi"
+  private static let keychainAccount = "last_working_password"
+
+  private static func keychainQuery() -> [String: Any] {
+    [
+      kSecClass as String: kSecClassGenericPassword,
+      kSecAttrService as String: keychainService,
+      kSecAttrAccount as String: keychainAccount,
+    ]
+  }
+
+  private static func savePassword(_ password: String, ssid: String?) -> Bool {
+    SecItemDelete(keychainQuery() as CFDictionary)
+    var item = keychainQuery()
+    item[kSecValueData as String] = Data(password.utf8)
+    item[kSecAttrLabel as String] = ssid ?? ""
+    item[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+    return SecItemAdd(item as CFDictionary, nil) == errSecSuccess
+  }
+
+  private static func loadPassword() -> (password: String, ssid: String?)? {
+    var query = keychainQuery()
+    query[kSecReturnData as String] = true
+    query[kSecReturnAttributes as String] = true
+    query[kSecMatchLimit as String] = kSecMatchLimitOne
+    var found: CFTypeRef?
+    guard SecItemCopyMatching(query as CFDictionary, &found) == errSecSuccess,
+      let attributes = found as? [String: Any],
+      let data = attributes[kSecValueData as String] as? Data,
+      let password = String(data: data, encoding: .utf8), !password.isEmpty
+    else { return nil }
+    let label = attributes[kSecAttrLabel as String] as? String
+    return (password, label?.isEmpty == false ? label : nil)
   }
 
   /// Asks iOS to join the strongest nearby network whose name starts with
