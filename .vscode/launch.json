@@ -5,18 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "one_more_try",
+            "name": "Archer Link",
             "request": "launch",
             "type": "dart"
         },
         {
-            "name": "one_more_try (profile mode)",
+            "name": "Archer Link (profile mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "profile"
         },
         {
-            "name": "one_more_try (release mode)",
+            "name": "Archer Link (release mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "release"
