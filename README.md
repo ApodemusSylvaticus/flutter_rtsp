@@ -42,6 +42,41 @@ hand. Measurements, the reasons behind each choice and the approaches that
 were tried and dropped are in `docs/connect-button.md`; the imager's DHCP
 bug is described for its firmware in `docs/dhcp-init-reboot-firmware.md`.
 
+### Why it was hard, and why iOS and Android differ
+
+What caused the problems:
+
+- **No internet on the imager's Wi-Fi.** Android keeps mobile data as the
+  default network, so the app's traffic went there and the stream timed
+  out. It also flags the network "no internet" and does not rejoin it by
+  itself; only the user's "Always connect" answer brings it back, and
+  Samsung asks that in the full Wi-Fi settings, not over the quick panel.
+- **The imager's DHCP bug.** After a restart the imager stays silent when a
+  phone rejoins with its old address. iOS keeps that address for ~8 s, then
+  drops it for ~4 s: every session dies, and the imager holds the dead ones
+  for ~60 s. Android waits for the answer instead and is not hit.
+- **The OSes hide the result.** iOS says "accepted" even for a wrong
+  password and does not show the app the networks around it. Since
+  Android 10 an app cannot switch the phone's Wi-Fi itself; only the
+  settings, the Wi-Fi panel and the system's auto-join can.
+- **Shared subnets.** Home routers use `192.168.1.x` too, hence the RTSP
+  check.
+
+Why the two platforms differ:
+
+- iOS lets an app join a network but not open the settings; Android lets
+  it open the Wi-Fi panel but not switch the network. So iOS joins by
+  itself and must know the password, while on Android the user picks the
+  network and types the password in the panel.
+- Each fix targets its own platform's cause. iOS forgets its saved imager
+  networks before a join, so DHCP starts fresh and the drop never comes;
+  Android binds the app's traffic to the imager's Wi-Fi, so nothing takes
+  the mobile-data detour.
+- Joining from inside the app on Android (`WifiNetworkSpecifier`, a device
+  picker that saves the network) was tried and dropped: a system dialog on
+  every join, wrong passwords saved to the phone, and no way to join a
+  saved network whose password the app does not know.
+
 ## Our native code and the platform folders
 
 `android/` and `ios/` are source code in this project, not generated output:
