@@ -18,6 +18,7 @@ import 'package:archer_link/screens/reconnect_screen.dart';
 import 'package:archer_link/mixins/app_lifecycle_mixin.dart';
 import 'package:archer_link/services/stream_player_service.dart';
 import 'package:archer_link/utils/video_recorder.dart';
+import 'package:archer_link/utils/orientation.dart';
 
 class StreamViewPage extends StatefulWidget {
   final StreamConfig streamConfig;
@@ -302,10 +303,7 @@ class _StreamViewPageState extends State<StreamViewPage>
   }
 
   void setLandscapeOrientation() {
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-    ]);
+    SystemChrome.setPreferredOrientations([landscapeCameraLeft]);
   }
 }
 
