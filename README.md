@@ -35,6 +35,14 @@ every imager, so it is kept in plain text.
   enough, many home routers use these too. Before it shows the stream, the
   app sends one RTSP `OPTIONS` request and needs a reply starting with
   `RTSP/1.0`.
+- **Wi-Fi switched off in Settings (iOS):** iOS never answers a join by name
+  prefix then, and refuses every later join, of any app, until the phone
+  restarts. The Wi-Fi-off guard reads the network interfaces first and, when
+  Wi-Fi is off, shows the help instead of sending the request. How it works,
+  how to check it on a new iOS and how to remove it:
+  `docs/wifi-off-guard.md`. For any other hang, the Connect screen gives up
+  and shows the help when iOS sends neither an answer nor its question for
+  15 s while the app is on screen.
 
 The app does not learn from the OS whether a join succeeded: it waits 10 s
 for the imager and otherwise shows the picture explaining how to join by
@@ -91,7 +99,9 @@ Written or changed by hand:
 | --- | --- |
 | `lib/services/device_wifi.dart` | Dart side of the `archer_link/device_wifi` channel |
 | `ios/Runner/DeviceWifi.swift` | iOS side of the channel: joins the imager's Wi-Fi, keeps a typed password that worked in the Keychain |
-| `ios/Runner/AppDelegate.swift` | registers `DeviceWifi` |
+| `lib/services/wifi_off_guard.dart` | Wi-Fi-off guard, Dart side: the rule and its kill switch (`docs/wifi-off-guard.md`) |
+| `ios/Runner/WifiOffGuard.swift` | Wi-Fi-off guard, iOS side: reads `awdl0` and the Wi-Fi address |
+| `ios/Runner/AppDelegate.swift` | registers `DeviceWifi` and `WifiOffGuard` |
 | `ios/Runner/Runner.entitlements` | Hotspot Configuration entitlement (Debug, Profile and Release) |
 | `android/app/src/main/kotlin/com/archer/archerlink/DeviceWifi.kt` | Android side of the channel: binds the app's traffic to the imager's Wi-Fi |
 | `android/app/src/main/kotlin/com/archer/archerlink/MainActivity.kt` | creates `DeviceWifi` |

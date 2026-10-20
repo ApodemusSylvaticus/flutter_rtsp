@@ -308,6 +308,23 @@ Galaxy S24+ (SM-S926B), Android 16 QPR2, One UI 8.5. Телефоном керу
 - Орієнтація: екран стріму просить `SCREEN_ORIENTATION_LANDSCAPE`, система ставить `ROTATION_90` (камера ліворуч); на час перезапуску стріму, як і раніше, портрет (лоадер).
 - Падінь немає. mpv на кожному старті пише «Could not open codec» і «Cannot seek in this stream»: не фатально, відео є, так було й раніше.
 
+## 2026-10-20: Wi-Fi switched off in Settings, the guard
+
+**The problem** (iPhone 16 Pro, iOS 27.0, system log of 2026-10-19). With Wi-Fi switched off in Settings (gray tile in Control Center), iOS never finishes a join request by the `ARCHER` prefix:
+- the scan does not start (`Error initiating scan request: 82`);
+- iOS asks nothing, and the button hangs on "Connecting...";
+- after that iOS refuses every later request, from any app, within milliseconds (`internal`, code 8; `failed: 37` in the log), until the phone restarts.
+
+Seen in both Archer BC and Link. Joining by hand in Settings works all the while. Wi-Fi switched off in Control Center (white tile) leaves the radio on, and everything works there.
+
+**The guard.** Before the request, the app reads the network interfaces. `awdl0`, the AirDrop and AirPlay interface, is down only when Wi-Fi is switched off in Settings. When `awdl0` is down and Wi-Fi has no address, no request is sent and the help "Wi-Fi is turned off…" opens.
+
+The code lives apart, in `lib/services/wifi_off_guard.dart` and `ios/Runner/WifiOffGuard.swift`. The kill switch is `wifiOffGuardEnabled`. The evidence, the check on a new iOS and how to remove the guard are in `docs/wifi-off-guard.md`. The same guard was checked in Archer BC on the same phone on 2026-10-19. Checked in Link on 2026-10-20 at 05:37:
+- gray tile: the help, no request to iOS;
+- blue tile: the request went out, and iOS answered `code 11` after 3 s (no imager nearby).
+
+**Silence watch** (`_noReactionTimeout` in `wifi_connect_screen.dart`, not part of the guard). When iOS sends neither an answer nor its question for 15 s, the button returns to "Connect" and the help opens. A late answer from iOS to that request changes nothing. The app is inactive while the iOS question is on screen, and also while the user is in Control Center or another app. The countdown stops then and starts from zero once the app is back. It is a fallback in case the `awdl0` sign ever fails or iOS hangs some other way. Archer BC has the same watch.
+
 ## Збірка на Windows-машині
 
 - `flutter build apk` падає на `Could not close incremental caches` (Kotlin 2.4, відомий баг, провокується паралельним `flutter analyze`). Працює `cd android && ./gradlew assembleDebug -Pkotlin.incremental=false`. Не запускати analyze або тести під час збірки.

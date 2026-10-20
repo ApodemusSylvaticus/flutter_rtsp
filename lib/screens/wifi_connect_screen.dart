@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:archer_link/services/device_wifi.dart';
+import 'package:archer_link/services/wifi_off_guard.dart';
 import 'package:archer_link/widgets/default_bg.dart';
 import 'package:archer_link/widgets/demo_mode_dialog.dart';
 import 'package:archer_link/widgets/wifi_help_dialog.dart';
@@ -65,6 +66,36 @@ class _WifiConnectPageState extends State<WifiConnectPage> {
   /// waiting for it to close after this.
   static const Duration _panelGrace = Duration(seconds: 3);
 
+  /// Silence watch, iOS: the help comes when iOS gives no sign of life this
+  /// long after a join request, neither an answer nor its question "join
+  /// the network?".
+  ///
+  /// Why: iOS can leave a join request unanswered for good. Seen with Wi-Fi
+  /// switched off in Settings (docs/wifi-off-guard.md): the button then
+  /// stays on "Connecting..." forever. The Wi-Fi-off guard keeps that
+  /// request from being sent at all; this watch is the fallback for any
+  /// hang the guard misses. The help shows how to join in Settings > Wi-Fi,
+  /// which works even while iOS refuses joins from apps.
+  ///
+  /// What counts as a sign of life:
+  /// - an answer to the request (accepted, cancelled or an error): the
+  ///   watch stops;
+  /// - the iOS question: while it is on screen the app is inactive (Archer
+  ///   BC's trace, 2026-10-19: inactive when the question showed up, active
+  ///   again on the tap). Any spell away from the foreground stops the
+  ///   countdown (the question, Control Center, another app), and it starts
+  ///   again from zero once the app is back ([_onLifecycleChange]).
+  ///
+  /// So the help comes only after this long with the app in the foreground
+  /// and nothing from iOS. Normal answers come much sooner: the question
+  /// ~3 s after the request, "no imager in range" (code 11) in ~3 s, a
+  /// blocked iOS within milliseconds.
+  ///
+  /// When the watch fires, the attempt is given up ([_giveUp] bumps
+  /// [_attempt]), so a late answer to the request changes nothing. The same
+  /// watch as `NO_REACTION_MS` in Archer BC (store/useConnectStore.ts).
+  static const Duration _noReactionTimeout = Duration(seconds: 15);
+
   static const String _helpText =
       'Could not connect to the device. Make sure it is turned on and '
       "Wi-Fi is enabled, then connect to the device's Wi-Fi network and "
@@ -85,6 +116,10 @@ class _WifiConnectPageState extends State<WifiConnectPage> {
 
   /// The panel grace timer or the wait for the imager; one at a time.
   Timer? _timer;
+
+  /// iOS: the silence watch's countdown ([_noReactionTimeout]). Runs only
+  /// while a join request is unanswered and the app is in the foreground.
+  Timer? _noReactionTimer;
 
   // Android: the Wi-Fi panel is a system sheet over the app. The app goes
   // inactive while it is up and resumes when it closes.
@@ -114,6 +149,7 @@ class _WifiConnectPageState extends State<WifiConnectPage> {
         'phase=${_phase.name}, '
         'timer=${_timer?.isActive == true ? 'running' : 'none'})');
     _timer?.cancel();
+    _noReactionTimer?.cancel();
     _lifecycle.dispose();
     _help.close();
     super.dispose();
@@ -147,7 +183,19 @@ class _WifiConnectPageState extends State<WifiConnectPage> {
   /// [typedPassword]: the password the user typed in the help after a
   /// failed join (see [_joinFailedAfterAccept]).
   Future<void> _connectIos(int attempt, {String? typedPassword}) async {
+    // wifi-off-guard: with Wi-Fi switched off in Settings, iOS never answers
+    // the join and then refuses every later one, of any app, until the
+    // phone restarts (docs/wifi-off-guard.md). No request then; the help
+    // says to turn Wi-Fi on.
+    if (await isWifiSwitchedOff()) {
+      if (!_current(attempt)) return;
+      trace('CONNECT', 'Wi-Fi is off in Settings -> help to turn it on');
+      _stopConnecting();
+      _showHelp(message: wifiOffHelpText);
+      return;
+    }
     _phase = _Phase.asking;
+    _startNoReactionWatch(attempt);
     try {
       var answered = false;
       Future<void>.delayed(const Duration(seconds: 20), () {
@@ -157,6 +205,7 @@ class _WifiConnectPageState extends State<WifiConnectPage> {
           .whenComplete(() => answered = true);
       trace('CONNECT', 'join result: $result (page mounted=$mounted)');
       if (!_current(attempt)) return;
+      _noReactionTimer?.cancel();
       if (result == WifiJoinResult.cancelled) {
         trace('CONNECT', 'user cancelled the iOS question: back to the button');
         _stopConnecting();
@@ -168,8 +217,25 @@ class _WifiConnectPageState extends State<WifiConnectPage> {
       // (measured: an error within ~3 s, no join attempt): plain help.
       trace('CONNECT', 'join request failed: $e -> help');
       if (!_current(attempt)) return;
+      _noReactionTimer?.cancel();
       _giveUp();
     }
+  }
+
+  /// iOS: (re)starts the silence watch's countdown from zero, see
+  /// [_noReactionTimeout]. Not while the app is away from the foreground:
+  /// [_onLifecycleChange] starts it once the app is back.
+  void _startNoReactionWatch(int attempt) {
+    _noReactionTimer?.cancel();
+    if (WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed) {
+      return;
+    }
+    _noReactionTimer = Timer(_noReactionTimeout, () {
+      if (!_current(attempt) || _phase != _Phase.asking) return;
+      trace('CONNECT', 'no answer and no question from iOS in '
+          '${_noReactionTimeout.inSeconds} s -> help');
+      _giveUp();
+    });
   }
 
   /// iOS accepted the join but the imager never showed up. iOS reports a
@@ -263,8 +329,17 @@ class _WifiConnectPageState extends State<WifiConnectPage> {
           trace('CONNECT', 'back in the app: the wait starts over');
           _startWaitTimer();
         }
-      case _Phase.idle:
       case _Phase.asking:
+        // iOS silence watch ([_noReactionTimeout]): away from the
+        // foreground (the iOS question, Control Center, another app) the
+        // countdown stops; back in the app it starts again from zero.
+        if (!Platform.isIOS) return;
+        if (away) {
+          _noReactionTimer?.cancel();
+        } else {
+          _startNoReactionWatch(_attempt);
+        }
+      case _Phase.idle:
         break;
     }
   }
@@ -308,6 +383,7 @@ class _WifiConnectPageState extends State<WifiConnectPage> {
   void _stopConnecting() {
     trace('CONNECT', 'button back to "Connect"');
     _timer?.cancel();
+    _noReactionTimer?.cancel();
     _attempt++;
     _phase = _Phase.idle;
     _waitPaused = false;
