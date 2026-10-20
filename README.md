@@ -137,3 +137,32 @@ default:
   decoder state (log prefix `[REC]`, a summary in a notification).
 - `--dart-define=NO_STREAM=true`: stays on the Connect page after the phone
   joins the imager, to watch the Wi-Fi without a stream.
+
+On iOS these flags stay in the build settings until the next Flutter
+command, and an Archive made in Xcode picks them up: see
+[Releasing on iOS](#releasing-on-ios).
+
+## Releasing on iOS
+
+Xcode does not read the version from `pubspec.yaml`. `Info.plist` takes it
+from `FLUTTER_BUILD_NAME` and `FLUTTER_BUILD_NUMBER` in
+`ios/Flutter/Generated.xcconfig`, a git-ignored file that only Flutter
+commands (`flutter run`, `flutter build …`) rewrite. The file also keeps the
+`--dart-define` flags of the last such command.
+
+So an Archive made in Xcode after a version bump, or after a `flutter run`
+with diagnostic flags, gets the old version and those flags. On 2026-10-20
+that gave a `1.0.5 (45)` archive with `CONN_DIAG=true` after the bump to
+1.0.6+46. App Store Connect refuses such an archive, because build 45 was
+already uploaded.
+
+To release:
+
+1. Raise `version:` in `pubspec.yaml`. The build number after the `+` must
+   be higher than the last one uploaded to App Store Connect.
+2. Refresh the iOS build settings: `flutter build ios --release --config-only`.
+   Or build everything with `flutter build ipa --release`: the archive lands
+   in `build/ios/archive/`, the IPA for Transporter in `build/ios/ipa/`.
+3. In Xcode, Product > Archive. Skip this step after `flutter build ipa`.
+4. In the Organizer, check that the archive shows the new version and build,
+   for example `1.0.6 (46)`, before Distribute App > App Store Connect.
