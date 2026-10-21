@@ -1,6 +1,7 @@
 package com.archer.archerlink
 
 import android.content.Context
+import android.content.pm.ApplicationInfo
 import android.net.ConnectivityManager
 import android.net.LinkProperties
 import android.net.Network
@@ -32,9 +33,11 @@ import java.net.Inet4Address
  * `imagerNetwork` method when it starts (anything sent before Dart runs is
  * lost).
  *
- * Every step is traced: each line goes to logcat with the tag TRACE-Android
- * and, through the channel ("trace" calls), to Dart, which prints it next to
- * its own lines, like the iOS side does.
+ * Every step is traced: each line goes, through the channel ("trace" calls),
+ * to Dart, which prints it next to its own lines, like the iOS side does
+ * (not in release builds, see lib/utils/trace.dart). Debuggable builds
+ * (debug, profile) also send each line to logcat with the tag TRACE-Android;
+ * a release build sends none.
  *
  * Main thread only: the network callbacks are delivered on the main looper.
  */
@@ -62,6 +65,9 @@ class DeviceWifi(context: Context, messenger: BinaryMessenger) : MethodChannel.M
 
     private val channel = MethodChannel(messenger, CHANNEL)
     private val mainHandler = Handler(Looper.getMainLooper())
+
+    /** Whether trace lines go to logcat too: in debuggable builds (debug, profile) only. */
+    private val logcat = (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
     private val connectivity: ConnectivityManager =
         requireNotNull(context.getSystemService(ConnectivityManager::class.java)) { "no ConnectivityManager" }
 
@@ -147,7 +153,7 @@ class DeviceWifi(context: Context, messenger: BinaryMessenger) : MethodChannel.M
         current = null
         if (boundNetwork != null) {
             val ok = connectivity.bindProcessToNetwork(null)
-            Log.i(TAG, "bindProcessToNetwork(null) because the activity is destroyed -> $ok")
+            if (logcat) Log.i(TAG, "bindProcessToNetwork(null) because the activity is destroyed -> $ok")
         }
     }
 
@@ -218,7 +224,7 @@ class DeviceWifi(context: Context, messenger: BinaryMessenger) : MethodChannel.M
     }
 
     private fun trace(message: String) {
-        Log.i(TAG, message)
+        if (logcat) Log.i(TAG, message)
         channel.invokeMethod("trace", message)
     }
 }

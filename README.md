@@ -127,9 +127,16 @@ for `landscapeLeft`.
 
 The Connect flow writes `[TRACE hh:mm:ss.mmm TAG]` lines to the log
 (`lib/utils/trace.dart`); the native sides send theirs over the channel, so
-one `flutter run` shows them all. More detail on request, all off by
-default:
+one `flutter run` shows them all. The trace is on in debug and profile
+builds and off in release builds (App Store, Play). The native sides also
+write each line to the system log in debug and profile builds only: NSLog
+through the `NATIVE_TRACE` compilation condition, which the Runner target
+sets for Debug and Profile, and logcat when the app is debuggable.
 
+More detail on request, all off by default:
+
+- `--dart-define=TRACE=true`: the Connect trace in a release build, for a
+  problem in the field.
 - `--dart-define=CONN_DIAG=true`: stream connection attempts, acks, stalls
   and restarts.
 - `--dart-define=MPV_DIAG=true`: mpv's own verbose log.

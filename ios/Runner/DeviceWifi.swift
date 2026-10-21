@@ -15,10 +15,14 @@ import UIKit
 /// `rememberedPassword`), labelled with the network's name when iOS gives
 /// one (`currentSsid`).
 ///
-/// Everything here is traced: each line goes to NSLog and, through the
-/// channel ("trace" calls), to Dart, which prints it as `[TRACE ... iOS]`
-/// next to its own lines. `flutter run` does not show NSLog from the
-/// device, so without the channel the native side would be invisible.
+/// Everything here is traced: each line goes, through the channel ("trace"
+/// calls), to Dart, which prints it as `[TRACE ... iOS]` next to its own
+/// lines (not in release builds, see lib/utils/trace.dart). `flutter run`
+/// does not show NSLog from the device, so without the channel the native
+/// side would be invisible. Debug and Profile builds also send each line to
+/// NSLog: the Runner target sets the NATIVE_TRACE compilation condition for
+/// those two configurations only, so a Release build (the Archive) has no
+/// NSLog lines.
 final class DeviceWifi: NSObject, FlutterPlugin {
   private static let wifiPath = NWPathMonitor(requiredInterfaceType: .wifi)
   private static let defaultPath = NWPathMonitor()
@@ -52,7 +56,9 @@ final class DeviceWifi: NSObject, FlutterPlugin {
   }
 
   static func trace(_ message: String) {
+    #if NATIVE_TRACE
     NSLog("[TRACE-iOS] %@", message)
+    #endif
     DispatchQueue.main.async {
       channel?.invokeMethod("trace", arguments: message)
     }
