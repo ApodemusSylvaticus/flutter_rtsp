@@ -12,5 +12,13 @@ import UIKit
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "DeviceWifi") {
+      DeviceWifi.register(with: registrar)
+    }
+    // wifi-off-guard: tells Connect whether Wi-Fi is switched off in
+    // Settings (docs/wifi-off-guard.md)
+    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "WifiOffGuard") {
+      WifiOffGuard.register(with: registrar)
+    }
   }
 }

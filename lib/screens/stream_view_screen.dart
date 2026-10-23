@@ -1,3 +1,9 @@
+import 'package:archer_link/services/device_wifi.dart';
+import 'package:archer_link/utils/trace.dart';
+import 'dart:async';
+import 'dart:io' show Platform;
+
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:media_kit_video/media_kit_video.dart';
@@ -12,14 +18,18 @@ import 'package:archer_link/screens/reconnect_screen.dart';
 import 'package:archer_link/mixins/app_lifecycle_mixin.dart';
 import 'package:archer_link/services/stream_player_service.dart';
 import 'package:archer_link/utils/video_recorder.dart';
+import 'package:archer_link/utils/orientation.dart';
 
 class StreamViewPage extends StatefulWidget {
   final StreamConfig streamConfig;
   final void Function() openSettings;
   final void Function() onDemoMode;
 
+  /// iOS: keep the WebSocket closed until this moment (see main.dart).
+  final DateTime? controlsHoldUntil;
+
   const StreamViewPage(this.streamConfig, this.openSettings, this.onDemoMode,
-      {super.key});
+      {super.key, this.controlsHoldUntil});
 
   @override
   State<StreamViewPage> createState() => _StreamViewPageState();
@@ -38,14 +48,37 @@ class _StreamViewPageState extends State<StreamViewPage>
   bool isRecording = false;
   bool isProcessing = false;
 
+  StreamSubscription<List<ConnectivityResult>>? _networkChanges;
+  StreamSubscription<bool>? _imagerNetworkChanges;
+
   @override
   void initState() {
     super.initState();
+    trace('STREAM', 'Stream page created');
 
     _playerService = StreamPlayerService(
       streamConfig: widget.streamConfig,
       onStateChanged: _handleStateChanged,
     );
+
+    // The first attempt often starts too early on Android: the imager's
+    // address is already on wlan0, but the phone still routes the app
+    // through mobile data, because a Wi-Fi without internet becomes the
+    // default network only after Android's checks give up (measured: 8 s
+    // after the address appeared, 4 s after the attempt had timed out).
+    // That switch arrives here as a connectivity change, so retry on it
+    // instead of waiting for a tap on Reconnect.
+    _networkChanges =
+        Connectivity().onConnectivityChanged.listen(_onNetworkChanged);
+
+    // Android binds the app's traffic to the imager's Wi-Fi (see
+    // DeviceWifi). An attempt made before the binding went out over mobile
+    // data and failed; the binding is the moment a new one gets through,
+    // with or without a connectivity change.
+    if (Platform.isAndroid) {
+      _imagerNetworkChanges =
+          DeviceWifi.imagerNetworkChanges.listen(_onImagerNetworkChanged);
+    }
 
     _videoRecorder = VideoRecorder(
       videoKey: _videoKey,
@@ -64,6 +97,11 @@ class _StreamViewPageState extends State<StreamViewPage>
     bool? showReconnectButton,
     bool? isReconnecting,
   }) {
+    // An attempt that was in flight when the screen went away still
+    // reports its end; there is nobody left to show it to.
+    if (!mounted) return;
+    trace('STREAM', 'player: isLoading=$isLoading '
+        'showReconnect=$showReconnectButton isReconnecting=$isReconnecting');
     setState(() {
       if (isLoading != null) this.isLoading = isLoading;
       if (showReconnectButton != null) {
@@ -75,6 +113,26 @@ class _StreamViewPageState extends State<StreamViewPage>
         setLandscapeOrientation();
       }
     });
+  }
+
+  void _onNetworkChanged(List<ConnectivityResult> results) {
+    trace('STREAM', 'connectivity changed: $results (reconnect shown='
+        '$showReconnectButton, reconnecting=$isReconnecting)');
+    if (!mounted || !showReconnectButton || isReconnecting) return;
+    // The imager is only ever reachable over Wi-Fi. A change to mobile or
+    // to nothing is the network going away, and the home page replaces
+    // this screen for that; an attempt started now would outlive it.
+    if (!results.contains(ConnectivityResult.wifi)) return;
+    trace('STREAM', 'Wi-Fi is back: retrying the stream');
+    _playerService.initializeDeviceConnection();
+  }
+
+  void _onImagerNetworkChanged(bool bound) {
+    trace('STREAM', 'imager Wi-Fi binding: bound=$bound (reconnect shown='
+        '$showReconnectButton, reconnecting=$isReconnecting)');
+    if (!mounted || !bound || !showReconnectButton || isReconnecting) return;
+    trace('STREAM', 'app bound to the imager Wi-Fi: retrying the stream');
+    _playerService.initializeDeviceConnection();
   }
 
   void _handleRecorderNotification(bool isError, String message) {
@@ -101,6 +159,9 @@ class _StreamViewPageState extends State<StreamViewPage>
 
   @override
   void dispose() {
+    trace('STREAM', 'Stream page disposed');
+    _networkChanges?.cancel();
+    _imagerNetworkChanges?.cancel();
     _playerService.dispose();
     super.dispose();
   }
@@ -182,6 +243,7 @@ class _StreamViewPageState extends State<StreamViewPage>
       isProcessing: isProcessing,
       commandUrl: widget.streamConfig.commandUrl,
       takePhoto: _videoRecorder.takeSnapshot,
+      controlsHoldUntil: widget.controlsHoldUntil,
     );
 
     if (isProcessing) {
@@ -241,10 +303,7 @@ class _StreamViewPageState extends State<StreamViewPage>
   }
 
   void setLandscapeOrientation() {
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-    ]);
+    SystemChrome.setPreferredOrientations([landscapeCameraLeft]);
   }
 }
 
